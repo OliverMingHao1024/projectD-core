@@ -1,0 +1,12 @@
+[
+  {
+    "path": "D:\\workspaces\\example-work-project",
+    "category": "work",
+    "packs": ["csharp"]
+  },
+  {
+    "path": "D:\\workspaces\\example-side-project",
+    "category": "side",
+    "packs": ["frontend-react-angular"]
+  }
+]
