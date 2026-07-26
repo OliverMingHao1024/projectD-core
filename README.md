@@ -40,12 +40,19 @@
 各 AI 目錄只放 junction，不保存獨立內容；修改 repo 的 canonical Skill 會即時反映。`packs/_staging/` 不會接入。
 若已設定 `CODEX_HOME`，Codex 的全域 `AGENTS.md` 會寫入該目錄。
 
+全域接線由同一份 `GovernanceWiring` desired state 管理。可先用
+`pwsh -File scripts/setup.ps1 -Mode Check` 唯讀檢查；`Apply` 會先完成所有
+ownership/conflict preflight，全部變更後再驗證，途中失敗只回滾本次異動。
+本機 ownership state 位於 `.local/`，不進 Git。
+
 **移機到新裝置**：把整個 `projectD-core` 資料夾複製或 `git clone` 到任意路徑，
 執行 `scripts/setup.bat`（或 `pwsh -File scripts/setup.ps1`）即可，不需要手動
 改任何路徑。腳本會自動定位自己所在位置。
 
 **移除全域接線**：`scripts/uninstall.ps1`（或 `scripts/uninstall.bat`），
-repo 本身不會被刪除。
+repo 本身不會被刪除。可先以 `scripts/uninstall.ps1 -Mode Check` 執行唯讀
+ownership preflight；不屬於 projectD-core 的檔案、junction 或 environment
+value 不會被移除。
 
 ## 可選：本機專案歷程搜尋
 

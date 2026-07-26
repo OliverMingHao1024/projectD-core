@@ -23,6 +23,8 @@ pwsh -File scripts/fleet-governance.ps1 -Mode Check
 
 新增、移除或調整 Fleet 項目後先執行 `Apply`，再用 `Check` 驗證。工具可安全重複執行；
 若同一入口出現重複受管區塊，會停止並要求人工檢查，不自動刪除內容。
+Fleet 與全域 setup/remove 共用相同的 managed-block inspect、plan、apply 與
+rollback lifecycle；本機 state 存在 `.local/`，不會提交到 Git。
 
 ## work / side 區分
 

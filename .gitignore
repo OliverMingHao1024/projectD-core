@@ -1,2 +1,4 @@
 fleet/fleet.json
 .local/
+__pycache__/
+*.py[cod]
