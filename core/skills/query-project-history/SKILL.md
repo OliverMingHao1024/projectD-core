@@ -69,3 +69,20 @@ materially improve semantic paraphrase queries.
 python scripts/history_search.py evaluate --db <index.db> `
   --benchmark <benchmark.json> --mode hybrid --output <results.json>
 ```
+
+## Export to Obsidian
+
+Generate a read-only Markdown dashboard from reviewed candidate and evaluation JSON:
+
+```powershell
+python scripts/export_obsidian.py `
+  --candidates <candidates.json> `
+  --lexical-results <lexical-results.json> `
+  --hybrid-results <hybrid-results.json> `
+  --output <obsidian-folder> `
+  --project intentype=<repo> --project photoFilter=<repo> `
+  --remote intentype=<repository-url> --remote photoFilter=<repository-url>
+```
+
+Keep the unconfirmed warning and `experimental` status visible. Exporting a candidate
+does not confirm it.
