@@ -5,6 +5,15 @@ description: React/Angular/TypeScript/HTML/CSS conventions for PG.
 
 # Frontend (React / Angular / TypeScript) Pack
 
+## 能力選型路由
+
+- 選擇或替換 UI、狀態、表單、動效、圖表、虛擬化等能力時，先使用
+  `core/skills/select-frontend-capability/SKILL.md` 定義需求與決策深度。
+- React 專案按需讀 `references/react-capabilities.md`；Angular 專案按需讀
+  `references/angular-capabilities.md`。
+- Monorepo 依目前操作的 app／package 路由，不以 repo 根目錄推定唯一技術棧。
+- adapter 內所有套件都是條件式候選；專案決策與既有可維護方案優先。
+
 ## React 專案結構慣例
 
 - 狀態管理視資料性質選擇，兩種都會用到，不要混用同一類資料：

@@ -1,5 +1,5 @@
 ---
-lastUpdated: 2026-07-24
+lastUpdated: 2026-07-26
 ---
 
 # 記憶快照
@@ -10,6 +10,9 @@ lastUpdated: 2026-07-24
 
 - 從零建立 projectD-core，作為個人獨立擁有、精簡且可按需演進的 AI 治理核心。
 - 採用自主設計的 core + packs 架構。
+- 所有自建 Skill 採開放的 `<name>/SKILL.md` 格式，canonical 內容只在 projectD-core 維護：
+  `core/skills/` 放跨技術棧能力、`packs/` 放技術棧規範；`setup.ps1` 只以 junction 接到
+  `~/.claude/skills/` 與 Codex/Copilot 共用的 `~/.agents/skills/`，不為不同 AI 維護副本。
 - 角色 agent：PM/SA/SD/PG 四個獨立具名 agent。
 - 初始 pack：csharp、frontend-react-angular、python（骨架，內容待實際使用累積）。
 - 建立輕量 L1–L6 運作模型：L0 常駐、其他層按語意載入；四角色依任務規模選用，
@@ -18,3 +21,15 @@ lastUpdated: 2026-07-24
   Red → Green → Refactor；無測試框架時改做最小回歸驗證，不擅自加依賴。
 - Fleet 專案以 `AGENTS.md`／`CLAUDE.md`／`GEMINI.md` 受管區塊連回單一 core，
   並用 `scripts/fleet-governance.ps1` 的 Apply／Check 模式防止入口漂移或靜默失聯。
+- 軟體變更使用 `grill-me`／`grilling` 完成共識並確認執行後，預設銜接精簡工程流程：
+  spec → tracer-bullet TDD → typecheck/build → Standards/Spec 雙軸 review → commit。
+  此流程是下位、可組合的工作流；projectD-core L0、較近專案規則與使用者當次明確指令
+  永遠優先，且非程式議題不強制套用開發流程。
+
+## 2026-07-26
+
+- 為避免外部 Skill 或單一套件清單造成跨專案生態綁定，採用「共用決策原則 → 能力需求 →
+  技術棧 adapter → 專案決策」四層模型。L0 只保留技術生態中立底線；具體路由放在 L4。
+  新增 `select-frontend-capability`，React／Angular 候選留在各自 adapter，且只能作為附帶
+  適用條件的候選。專案既有決策與可維護依賴優先，只有需求、維護、安全、授權、相容性、
+  成本或使用者要求發生變化時才重新選型。

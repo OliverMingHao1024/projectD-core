@@ -1,7 +1,8 @@
 # projectD-core
 
 從零設計、獨立維護的個人 AI 治理核心，不依賴外部 plugin。架構為 core + packs：
-`core/` 是每個專案都共用的部分，`packs/` 是依專案技術棧選用的技能包。
+`core/` 是跨專案共用治理與通用 Skill，`packs/` 是依技術棧選用的 Skill。兩者都使用
+開放的 `<name>/SKILL.md` 格式，canonical 內容只在本 repo 維護。
 
 ## 目錄導覽
 
@@ -10,7 +11,8 @@
 | `CLAUDE.md` | session 啟動協議 |
 | `core/constitution/rules.md` | L0 憲法 |
 | `core/agents/` | PM / SA / SD / PG 四個角色 agent |
-| `core/commands/` | slash command（目前為空，等實際需求出現再加）|
+| `core/commands/` | Claude Code 相容的 slash command（單檔 command）|
+| `core/skills/` | 跨技術棧通用 Skill；每個子目錄以 `SKILL.md` 為入口 |
 | `vault/` | 跨 session 記憶（身份、決策、制度路由、踩坑紀錄）|
 | `packs/` | 依技術棧選用的技能包，目前：csharp、frontend-react-angular、python |
 | `fleet/` | 多專案共用本 repo 的說明與清單範例 |
@@ -23,15 +25,20 @@
 
 ## 全域安裝／移機
 
-`scripts/setup.ps1`（或雙擊 `scripts/setup.bat`）把本 repo 接進
-`~/.claude/`，讓任何專案都能直接叫到 PM/SA/SD/PG 與各 pack：
+雙擊 `scripts/setup.bat`（或執行 `pwsh -File scripts/setup.ps1`）會把本 repo
+同時接進 Claude Code 與 Codex，讓任何專案都能使用 projectD-core：
 
 - 設定 `PROJECTD_CORE` 環境變數指向本 repo
-- 複製 `core/agents/{pm,sa,sd,pg}.md` 到 `~/.claude/agents/`
+- Claude：複製 `core/agents/{pm,sa,sd,pg}.md` 到 `~/.claude/agents/`
   （改了 agent 內容要重跑腳本才會反映）
-- 用 junction 把 `packs/*` 連到 `~/.claude/skills/`（即時反映，不用重跑）
-- 在 `~/.claude/CLAUDE.md` 寫入/更新 `PROJECTD_CORE_START/END` 標記區塊，
-  說明 session 啟動時的讀取順序
+- Claude：複製 `core/commands/*.md` 到 `~/.claude/commands/`
+- Claude：用 junction 把 `core/skills/*` 與正式 `packs/*` 連到 `~/.claude/skills/`
+- Codex／GitHub Copilot：共用 `~/.agents/skills/`，junction 仍指向相同 canonical Skill
+- 在 `~/.claude/CLAUDE.md` 與 Codex home（預設 `~/.codex/AGENTS.md`）
+  寫入/更新 `PROJECTD_CORE_START/END` 標記區塊；既有其他內容不會被覆蓋
+
+各 AI 目錄只放 junction，不保存獨立內容；修改 repo 的 canonical Skill 會即時反映。`packs/_staging/` 不會接入。
+若已設定 `CODEX_HOME`，Codex 的全域 `AGENTS.md` 會寫入該目錄。
 
 **移機到新裝置**：把整個 `projectD-core` 資料夾複製或 `git clone` 到任意路徑，
 執行 `scripts/setup.bat`（或 `pwsh -File scripts/setup.ps1`）即可，不需要手動

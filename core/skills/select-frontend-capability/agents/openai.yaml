@@ -1,0 +1,4 @@
+interface:
+  display_name: "Select Frontend Capability"
+  short_description: "Choose frontend capabilities without ecosystem lock-in"
+  default_prompt: "Use $select-frontend-capability to evaluate this frontend capability and select an option that fits the current project."
