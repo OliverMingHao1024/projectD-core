@@ -10,6 +10,19 @@ WARNING = (
     "> 本頁內容由 Git 與專案文件回溯推導，狀態均為 `experimental`。"
     "人工確認前，不得視為已驗證事實或推薦方案。\n"
 )
+TYPE_LABELS = {
+    "bug": "錯誤修正",
+    "decision": "技術決策",
+    "experiment": "實驗",
+    "refactor": "重構",
+}
+STATUS_LABELS = {
+    "accepted": "已採用",
+    "rejected": "已否決",
+    "failed": "失敗",
+    "superseded": "已取代",
+    "experimental": "待確認",
+}
 
 
 def file_link(path: Path, label: str) -> str:
@@ -47,12 +60,14 @@ def render_project(
         "",
     ]
     for index, entry in enumerate(entries, start=1):
+        status = str(entry["status"])
+        entry_type = str(entry["type"])
         lines.extend(
             [
                 f"## {index}. {entry['title']}",
                 "",
-                f"- 狀態：`{entry['status']}`",
-                f"- 類型：`{entry['type']}`",
+                f"- 狀態：{STATUS_LABELS.get(status, status)}（`{status}`）",
+                f"- 類型：{TYPE_LABELS.get(entry_type, entry_type)}",
                 "- 證據："
                 + "、".join(
                     evidence_link(project_root, str(item), remote)
@@ -91,14 +106,14 @@ def render_dashboard(
     lines.extend(
         [
             "",
-            "## PoC 評測",
+            "## 概念驗證評測",
             "",
             (
-                f"- Lexical Top-5：{lexical['hits']}/{lexical['total']} "
+                f"- 關鍵字檢索前五名：{lexical['hits']}/{lexical['total']} "
                 f"（{float(lexical['hit_rate']):.0%}）"
             ),
             (
-                f"- Hybrid Top-5：{hybrid['hits']}/{hybrid['total']} "
+                f"- 混合檢索前五名：{hybrid['hits']}/{hybrid['total']} "
                 f"（{float(hybrid['hit_rate']):.0%}）"
             ),
             "- [[retrieval-evaluation|查看 20 題結果]]",
@@ -129,10 +144,10 @@ def render_evaluation(lexical: dict[str, object], hybrid: dict[str, object]) -> 
         "",
         "[[00-project-history-dashboard|← 回到總覽]]",
         "",
-        f"- Lexical Top-5：{lexical['hits']}/{lexical['total']}",
-        f"- Hybrid Top-5：{hybrid['hits']}/{hybrid['total']}",
+        f"- 關鍵字檢索前五名：{lexical['hits']}/{lexical['total']}",
+        f"- 混合檢索前五名：{hybrid['hits']}/{hybrid['total']}",
         "",
-        "| # | 問題 | Lexical | Hybrid |",
+        "| # | 問題 | 關鍵字檢索 | 混合檢索 |",
         "|---:|---|:---:|:---:|",
     ]
     for index, case in enumerate(hybrid["cases"], start=1):  # type: ignore[union-attr]

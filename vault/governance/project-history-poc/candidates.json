@@ -1,148 +1,148 @@
 {
-  "notice": "All entries are retrospective candidates inferred from Git or project documents. They are not confirmed history records and must remain experimental until human review.",
+  "notice": "所有項目都是依 Git 或專案文件回溯推導的候選紀錄，尚未成為正式歷程；人工審核前必須維持 experimental 狀態。",
   "projects": {
     "intentype": [
       {
-        "title": "Extract Windows integration and settings persistence from desktop_ui",
+        "title": "從 desktop_ui 抽離 Windows 整合與設定持久化",
         "type": "refactor",
         "status": "experimental",
         "evidence": ["commit:cecd33f0cb65f5ba1871d5d27004a97ed5157e1f"],
-        "review": ["What coupling triggered the refactor?", "Which earlier boundaries were rejected?"]
+        "review": ["當時是哪一種耦合促成這次重構？", "先前曾否決哪些模組邊界？"]
       },
       {
-        "title": "Preserve settings when pronunciation learning fails",
+        "title": "發音學習失敗時保留原有設定",
         "type": "bug",
         "status": "experimental",
         "evidence": ["commit:1122705703b6a0bcfc4eec34a727b9678a1c48ec"],
-        "review": ["What failure corrupted or risked settings?", "How was non-mutation verified?"]
+        "review": ["哪一種失敗可能破壞或誤改設定？", "如何驗證失敗時沒有改動設定？"]
       },
       {
-        "title": "Make Windows EXE builds reproducible",
+        "title": "讓 Windows EXE 建置可重現",
         "type": "decision",
         "status": "experimental",
         "evidence": ["commit:4d78c95d82dc7742f011fc2772d3bc363a335cf2"],
-        "review": ["Which build inputs were previously unstable?", "What reproducibility check passed?"]
+        "review": ["哪些建置輸入原本不穩定？", "通過了哪些可重現性檢查？"]
       },
       {
-        "title": "Require explicit confirmation before installing AI CLIs",
+        "title": "安裝 AI CLI 前要求使用者明確確認",
         "type": "decision",
         "status": "experimental",
         "evidence": ["commit:407814a68d85a8f0635f07ed6ba79fbe45f0cd1c"],
-        "review": ["Which security boundary motivated confirmation?", "Were silent-install routes rejected?"]
+        "review": ["哪項安全邊界促成確認機制？", "是否明確否決了靜默安裝方案？"]
       },
       {
-        "title": "Provide actionable provider failure guidance",
+        "title": "為 Provider 失敗提供可操作的復原指引",
         "type": "bug",
         "status": "experimental",
         "evidence": ["commit:8b9d822f15faf5e57c4aaee66720e1155733be6c"],
-        "review": ["Which provider failures were ambiguous?", "What recovery actions were verified?"]
+        "review": ["哪些 Provider 失敗訊息原本不清楚？", "哪些復原操作已完成驗證？"]
       },
       {
-        "title": "Return from settings to the control panel",
+        "title": "從設定畫面返回控制面板",
         "type": "bug",
         "status": "experimental",
         "evidence": ["commit:c5aece852ab4f13d3412be266f1f3b5ce41f2a35"],
-        "review": ["What lifecycle state caused the navigation failure?", "Which fix attempts failed?"]
+        "review": ["哪個生命週期狀態造成導覽失敗？", "曾有哪些修正嘗試失敗？"]
       },
       {
-        "title": "Fully exit when the control panel closes",
+        "title": "關閉控制面板時完整退出應用程式",
         "type": "bug",
         "status": "experimental",
         "evidence": ["commit:b15a0796c63d70ff9cc6ac2ff63fd05b9db2cd19"],
-        "review": ["Which processes or tray state remained alive?", "How was full exit verified?"]
+        "review": ["哪些程序或系統匣狀態原本仍然存活？", "如何驗證應用程式已完整退出？"]
       },
       {
-        "title": "Make local transcription reliable on Windows",
+        "title": "提升 Windows 本機語音轉錄的可靠性",
         "type": "bug",
         "status": "experimental",
         "evidence": ["commit:671cbf1efabc0819a1cdf97f139db279daae1729"],
-        "review": ["What was the measured failure mode?", "Which alternative fixes were attempted?"]
+        "review": ["實際量測到的失敗模式是什麼？", "曾嘗試哪些替代修正方案？"]
       },
       {
-        "title": "Capture selected microphones at their native sample rate",
+        "title": "以所選麥克風的原生取樣率錄音",
         "type": "bug",
         "status": "experimental",
         "evidence": ["commit:84fce233af37756028eaaedac5655cabb2ab1dc0"],
-        "review": ["How did sample-rate mismatch manifest?", "Which devices verified the solution?"]
+        "review": ["取樣率不匹配時會出現什麼症狀？", "使用哪些裝置驗證解法？"]
       },
       {
-        "title": "Safely handle Windows native events",
+        "title": "安全處理 Windows 原生事件",
         "type": "bug",
         "status": "experimental",
         "evidence": ["commit:21597b1bdc3735ad2368bef54c51b60fbeba1dc4"],
-        "review": ["Which native event caused unsafe behavior?", "What boundary now contains it?"]
+        "review": ["哪個原生事件曾造成不安全行為？", "目前由哪個邊界負責隔離？"]
       }
     ],
     "photoFilter": [
       {
-        "title": "Parallelize scanning and cancel stale results after folder changes",
+        "title": "平行化掃描並在切換資料夾後取消過期結果",
         "type": "bug",
         "status": "experimental",
         "evidence": ["commit:768607ed28819f04e6dd06a199db29ebae4ff8eb", "docs/dev-log/202604/PHOTOFILTER-2026-028_掃描平行化與換資料夾取消掃描修正.md"],
-        "review": ["What race produced stale results?", "How were cancellation and performance verified?"]
+        "review": ["哪個競態條件產生過期結果？", "如何驗證取消機制與效能改善？"]
       },
       {
-        "title": "Migrate the frontend to React, TypeScript, and Tailwind",
+        "title": "將前端遷移至 React、TypeScript 與 Tailwind",
         "type": "refactor",
         "status": "experimental",
         "evidence": ["commit:4bee0f7d89086cdd47e484268968edee4d4670dc", "docs/dev-log/202604/PHOTOFILTER-2026-027_React化與視覺重設計執行.md"],
-        "review": ["Why was the previous frontend superseded?", "Which migration routes were rejected?"]
+        "review": ["為什麼取代原有前端？", "曾否決哪些遷移路線？"]
       },
       {
-        "title": "Split app.js and style.css by screen",
+        "title": "依畫面拆分 app.js 與 style.css",
         "type": "refactor",
         "status": "experimental",
         "evidence": ["commit:612b5298fcfa3c453a191f4b77660e07837eb85a", "docs/requirements/PHOTOFILTER-2026-026-前端模組化重構.md"],
-        "review": ["Which module seams were chosen?", "What coupling remained?"]
+        "review": ["最後選擇哪些模組接縫？", "仍保留哪些耦合？"]
       },
       {
-        "title": "Remove duplicate modules and unused files",
+        "title": "移除重複模組與未使用檔案",
         "type": "refactor",
         "status": "experimental",
         "evidence": ["commit:1a91401ab418a8450f21f78e8efdf7fa2a101989", "docs/dev-log/202604/PHOTOFILTER-2026-025_清理重複與無用檔案執行.md"],
-        "review": ["How was safe deletion established?", "Were any candidates retained and why?"]
+        "review": ["如何確認刪除是安全的？", "是否保留任何候選檔案，原因是什麼？"]
       },
       {
-        "title": "Converge architecture and begin src packaging",
+        "title": "收斂架構並開始 src 套件化",
         "type": "refactor",
         "status": "experimental",
         "evidence": ["commit:58f83b733d7c2fc2d0b07fcbddd9888947bb2e9a", "docs/dev-log/202604/PHOTOFILTER-2026-020_第二輪架構收斂執行.md"],
-        "review": ["What architectural problem drove packaging?", "Which target structure was deferred?"]
+        "review": ["哪個架構問題促成套件化？", "哪些目標結構被延後處理？"]
       },
       {
-        "title": "Separate models and repositories",
+        "title": "分離模型與 Repository",
         "type": "refactor",
         "status": "experimental",
         "evidence": ["docs/dev-log/202604/PHOTOFILTER-2026-008_Phase2模型與Repository分離.md"],
-        "review": ["Which dependency direction changed?", "What behavior tests protected the split?"]
+        "review": ["依賴方向發生什麼改變？", "哪些行為測試保護這次拆分？"]
       },
       {
-        "title": "Extract the scoring domain",
+        "title": "抽離評分 Domain",
         "type": "refactor",
         "status": "experimental",
         "evidence": ["docs/dev-log/202604/PHOTOFILTER-2026-008_Phase3評分Domain拆分.md"],
-        "review": ["What belonged in the scoring domain?", "Which alternative boundary was rejected?"]
+        "review": ["哪些職責被歸入評分 Domain？", "曾否決哪種替代邊界？"]
       },
       {
-        "title": "Resolve PR conflicts and consolidate test evidence",
+        "title": "解決 PR 衝突並彙整測試證據",
         "type": "bug",
         "status": "experimental",
         "evidence": ["commit:18685541d5addd51a1f7d9b5a7d650702b941740", "docs/dev-log/202604/PHOTOFILTER-2026-015_PR衝突解消與測試報告整理.md"],
-        "review": ["Which conflicting behaviors required judgment?", "What was re-tested after resolution?"]
+        "review": ["哪些衝突行為需要人工判斷？", "解決衝突後重新測試了哪些項目？"]
       },
       {
-        "title": "Automate Windows EXE release after merge",
+        "title": "合併後自動發布 Windows EXE",
         "type": "decision",
         "status": "experimental",
         "evidence": ["commit:11866bacfd8c95b97f9a1e4915fbdf4b1f8b569e", "docs/dev-log/202604/PHOTOFILTER-2026-012_PR合併後自動Release EXE.md"],
-        "review": ["Why was post-merge release selected?", "Which release failures remain possible?"]
+        "review": ["為什麼選擇合併後才發布？", "目前仍可能發生哪些發布失敗？"]
       },
       {
-        "title": "Add Lightroom-oriented logging for read failures",
+        "title": "為 Lightroom 圖片讀取失敗加入診斷紀錄",
         "type": "bug",
         "status": "experimental",
         "evidence": ["commit:0fb14c1136ee439bef8d4ece18d2ac022bb60962", "docs/dev-log/202604/PHOTOFILTER-2026-006_識別字英文化_Lightroom版型與讀取失敗Log.md"],
-        "review": ["Which read failures were previously invisible?", "Does logging exclude sensitive paths?"]
+        "review": ["哪些讀取失敗原本無法觀察？", "診斷紀錄是否已排除敏感路徑？"]
       }
     ]
   }

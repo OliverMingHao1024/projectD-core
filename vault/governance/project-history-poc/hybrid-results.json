@@ -18,15 +18,15 @@
       ]
     },
     {
-      "query": "How did we stop the app completely after closing its main panel?",
+      "query": "關閉主控制面板後，如何讓應用程式完整退出？",
       "expected": "b15a0796c63d70ff9cc6ac2ff63fd05b9db2cd19",
       "rank": 1,
       "top_sources": [
         "git:D:\\workspaces\\intentype@b15a0796c63d70ff9cc6ac2ff63fd05b9db2cd19",
         "git:D:\\workspaces\\intentype@c5aece852ab4f13d3412be266f1f3b5ce41f2a35",
-        "git:D:\\workspaces\\intentype@21b2c5313a1c4b01fac0cd16e9e9a0643a09dbd9",
-        "git:D:\\workspaces\\intentype@407814a68d85a8f0635f07ed6ba79fbe45f0cd1c",
-        "D:\\workspaces\\intentype\\docs\\specs\\mvp.md"
+        "git:D:\\workspaces\\intentype@f460300b9a8126209ba9e1d62ddabc623b764032",
+        "git:D:\\workspaces\\intentype@d9e53c2f527517277fca4fe825c67faa98a43cb6",
+        "git:D:\\workspaces\\intentype@4da8eb375777846689d753622c84fc360bd584b8"
       ]
     },
     {
@@ -54,15 +54,15 @@
       ]
     },
     {
-      "query": "Which change separated operating-system integration from the desktop UI?",
+      "query": "哪次變更把作業系統整合從桌面 UI 抽離？",
       "expected": "cecd33f0cb65f5ba1871d5d27004a97ed5157e1f",
-      "rank": 1,
+      "rank": 5,
       "top_sources": [
-        "git:D:\\workspaces\\intentype@cecd33f0cb65f5ba1871d5d27004a97ed5157e1f",
+        "git:D:\\workspaces\\intentype@21b2c5313a1c4b01fac0cd16e9e9a0643a09dbd9",
+        "git:D:\\workspaces\\intentype@52e709a5615b9d26ae6d53826d0191c1c8e24430",
         "git:D:\\workspaces\\intentype@b084aff1c686902232e8071aa11bf9aa363b6dc7",
         "git:D:\\workspaces\\intentype@fbd80cdf3314acba6ad28c598a85002b8a618a0e",
-        "git:D:\\workspaces\\intentype@c28e6ac1116c7a132f956bce139bb48cc6e3ff7a",
-        "git:D:\\workspaces\\intentype@21b2c5313a1c4b01fac0cd16e9e9a0643a09dbd9"
+        "git:D:\\workspaces\\intentype@cecd33f0cb65f5ba1871d5d27004a97ed5157e1f"
       ]
     },
     {
@@ -90,15 +90,18 @@
       ]
     },
     {
-      "query": "How were provider errors changed into actionable recovery guidance?",
-      "expected": "8b9d822f15faf5e57c4aaee66720e1155733be6c",
+      "query": "如何把 Provider 錯誤改成可操作的復原指引？",
+      "expected": [
+        "8b9d822f15faf5e57c4aaee66720e1155733be6c",
+        "77bf3de4e78d0830f855bcec1ca281212fa8a2ce"
+      ],
       "rank": 1,
       "top_sources": [
-        "git:D:\\workspaces\\intentype@8b9d822f15faf5e57c4aaee66720e1155733be6c",
         "git:D:\\workspaces\\intentype@77bf3de4e78d0830f855bcec1ca281212fa8a2ce",
         "git:D:\\workspaces\\intentype@f460300b9a8126209ba9e1d62ddabc623b764032",
         "git:D:\\workspaces\\intentype@15b94c181701172bf16fbe2631a06e591338dc04",
-        "D:\\workspaces\\intentype\\AGENTS.md"
+        "D:\\workspaces\\intentype\\AGENTS.md",
+        "D:\\workspaces\\intentype\\docs\\specs\\mvp.md"
       ]
     },
     {
@@ -141,15 +144,15 @@
       ]
     },
     {
-      "query": "When was the old frontend replaced by React and TypeScript?",
+      "query": "何時以 React 與 TypeScript 取代原有前端？",
       "expected": "4bee0f7d89086cdd47e484268968edee4d4670dc",
       "rank": 1,
       "top_sources": [
         "git:D:\\workspaces\\photoFilter@4bee0f7d89086cdd47e484268968edee4d4670dc",
-        "git:D:\\workspaces\\photoFilter@36b2f44afcd53d12020808e874ec9edb8e173201",
         "D:\\workspaces\\photoFilter\\docs\\dev-log\\202604\\PHOTOFILTER-2026-027_React化與視覺重設計執行.md",
-        "D:\\workspaces\\photoFilter\\frontend\\README.md",
-        "D:\\workspaces\\photoFilter\\docs\\requirements\\PHOTOFILTER-2026-027-React化與視覺重設計.md"
+        "D:\\workspaces\\photoFilter\\docs\\requirements\\PHOTOFILTER-2026-027-React化與視覺重設計.md",
+        "git:D:\\workspaces\\photoFilter@36b2f44afcd53d12020808e874ec9edb8e173201",
+        "D:\\workspaces\\photoFilter\\frontend\\README.md"
       ]
     },
     {
