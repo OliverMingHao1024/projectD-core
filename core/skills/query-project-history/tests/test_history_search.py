@@ -4,9 +4,11 @@ import importlib.util
 import json
 import sqlite3
 import subprocess
+import sys
 from pathlib import Path
 
 SCRIPT = Path(__file__).parents[1] / "scripts" / "history_search.py"
+sys.path.insert(0, str(SCRIPT.parent))
 SPEC = importlib.util.spec_from_file_location("history_search", SCRIPT)
 assert SPEC and SPEC.loader
 history_search = importlib.util.module_from_spec(SPEC)
@@ -305,7 +307,18 @@ def test_lexical_search_matches_cjk_phrase_inside_sentence(tmp_path: Path) -> No
     history = repo / "docs" / "history"
     history.mkdir(parents=True)
     (history / "frontend.md").write_text(
-        "# 前端模組化\napp.js 依畫面拆分。", encoding="utf-8"
+        """---
+project: sample
+date: 2026-07-27
+type: refactor
+status: accepted
+evidence_level: verified
+---
+# 前端模組化
+
+app.js 依畫面拆分。
+""",
+        encoding="utf-8",
     )
     db = tmp_path / "history.db"
     history_search.index_project(db, repo, include_auxiliary=False)
@@ -315,3 +328,35 @@ def test_lexical_search_matches_cjk_phrase_inside_sentence(tmp_path: Path) -> No
     )
 
     assert results[0]["title"] == "前端模組化"
+
+
+def test_formal_record_rejects_inferred_evidence(tmp_path: Path) -> None:
+    repo = tmp_path / "sample"
+    history = repo / "docs" / "history"
+    history.mkdir(parents=True)
+    (history / "invalid.md").write_text(
+        """---
+project: sample
+date: 2026-07-27
+type: decision
+status: accepted
+evidence_level: inferred
+---
+# Invalid formal record
+
+## Context
+This remains an inference.
+""",
+        encoding="utf-8",
+    )
+
+    try:
+        history_search.index_project(
+            tmp_path / "history.db",
+            repo,
+            include_auxiliary=False,
+        )
+    except ValueError as error:
+        assert "evidence level" in str(error)
+    else:
+        raise AssertionError("formal HistoryRecord must reject inferred evidence")

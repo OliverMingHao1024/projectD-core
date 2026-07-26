@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 from urllib.parse import quote
 
+from project_history_records import HistoryCandidate
+
 WARNING = (
     "> [!warning] 未確認的歷程候選\n"
     "> 本頁內容由 Git 與專案文件回溯推導，狀態均為 `experimental`。"
@@ -194,13 +196,20 @@ def export(
     candidates = json.loads(candidates_path.read_text(encoding="utf-8"))
     lexical = json.loads(lexical_path.read_text(encoding="utf-8"))
     hybrid = json.loads(hybrid_path.read_text(encoding="utf-8"))
-    projects = candidates["projects"]
-    for entries in projects.values():
+    raw_projects = candidates["projects"]
+    projects: dict[str, list[dict[str, object]]] = {}
+    for project, entries in raw_projects.items():
+        normalized_entries: list[dict[str, object]] = []
         for entry in entries:
             entry.setdefault(
                 "evidence_level",
                 candidates.get("default_evidence_level", "inferred"),
             )
+            entry.setdefault("project", project)
+            normalized_entries.append(
+                HistoryCandidate.from_mapping(entry).to_mapping()
+            )
+        projects[project] = normalized_entries
     output_dir.mkdir(parents=True, exist_ok=True)
     files = {
         output_dir / "00-project-history-dashboard.md": render_dashboard(

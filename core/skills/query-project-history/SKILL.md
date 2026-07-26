@@ -81,6 +81,11 @@ uncommitted failed attempts:
 python scripts/history_search.py candidates --project <repo> --limit 10
 ```
 
+If candidate output is persisted, write it only below
+`.local/project-history/candidates/` or another non-repository temporary directory.
+Never commit a `HistoryCandidate`. Only a confirmed `HistoryRecord` belongs in
+`docs/history/`.
+
 ## Evaluate
 
 Compare lexical and hybrid retrieval against the same reviewed question set. Require

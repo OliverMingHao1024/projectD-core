@@ -12,6 +12,13 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Protocol
 
+from project_history_records import (
+    HistoryCandidate,
+    HistoryRecord,
+    markdown_title,
+    parse_frontmatter,
+)
+
 DEFAULT_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 ALLOWED_STATUSES = {
     "accepted",
@@ -171,36 +178,6 @@ def connect(db_path: Path) -> sqlite3.Connection:
     return connection
 
 
-def parse_frontmatter(text: str) -> tuple[dict[str, object], str]:
-    if not text.startswith("---\n"):
-        return {}, text
-    end = text.find("\n---\n", 4)
-    if end < 0:
-        return {}, text
-    metadata: dict[str, object] = {}
-    for line in text[4:end].splitlines():
-        if ":" not in line:
-            continue
-        key, raw_value = line.split(":", 1)
-        value = raw_value.strip()
-        if value.startswith("[") and value.endswith("]"):
-            metadata[key.strip()] = [
-                item.strip().strip("'\"")
-                for item in value[1:-1].split(",")
-                if item.strip()
-            ]
-        else:
-            metadata[key.strip()] = value.strip("'\"")
-    return metadata, text[end + 5 :]
-
-
-def markdown_title(body: str, fallback: str) -> str:
-    for line in body.splitlines():
-        if line.startswith("# "):
-            return line[2:].strip()
-    return fallback
-
-
 def cjk_bigrams(text: str) -> str:
     groups = re.findall(r"[\u3400-\u9fff]+", text)
     return " ".join(
@@ -235,20 +212,17 @@ def history_documents(repo: Path) -> list[dict[str, str]]:
         return []
     documents: list[dict[str, str]] = []
     for path in sorted(root.glob("*.md")):
-        metadata, body = parse_frontmatter(path.read_text(encoding="utf-8"))
-        status = str(metadata.get("status", "experimental"))
-        if status not in ALLOWED_STATUSES:
-            status = "experimental"
+        record = HistoryRecord.from_path(path)
         documents.append(
             {
-                "project": str(metadata.get("project", repo.name)),
-                "kind": str(metadata.get("type", "history")),
-                "status": status,
-                "evidence_level": str(metadata.get("evidence_level", "unknown")),
-                "date": str(metadata.get("date", "")),
+                "project": record.project,
+                "kind": record.kind,
+                "status": record.status,
+                "evidence_level": record.evidence_level,
+                "date": record.date,
                 "source": str(path.resolve()),
-                "title": markdown_title(body, path.stem),
-                "content": body.strip(),
+                "title": record.title,
+                "content": record.body,
             }
         )
     return documents
@@ -497,20 +471,19 @@ def git_candidates(repo: Path, limit: int) -> list[dict[str, object]]:
         if len(fields) != 3:
             continue
         commit, date, subject = fields
-        candidates.append(
-            {
-                "project": repo.name,
-                "date": date,
-                "title": subject,
-                "type": classify_commit(subject),
-                "status": "experimental",
-                "evidence_level": "inferred",
-                "rationale": "unknown",
-                "commits": [commit],
-                "needs_review": True,
-                "warning": "Git alone cannot prove root cause or failed attempts.",
-            }
+        candidate = HistoryCandidate(
+            project=repo.name,
+            date=date,
+            title=subject,
+            kind=classify_commit(subject),
+            evidence_level="inferred",
+            rationale="unknown",
+            commits=(commit,),
+            evidence=(f"commit:{commit}",),
         )
+        mapping = candidate.to_mapping()
+        mapping["warning"] = "Git alone cannot prove root cause or failed attempts."
+        candidates.append(mapping)
     return candidates
 
 

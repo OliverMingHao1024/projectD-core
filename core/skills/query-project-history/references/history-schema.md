@@ -1,6 +1,10 @@
 # Project history schema
 
 Store confirmed records at `<project>/docs/history/YYYY-MM-DD-slug.md`.
+Store unconfirmed `HistoryCandidate` files only under the ignored local runtime
+directory. Never commit them or include them in the formal index. A retained
+Candidate becomes a `HistoryRecord`; a deferred Candidate remains local; an excluded
+Candidate is deleted and leaves only a content-free local `CandidateDisposition`.
 
 ```markdown
 ---
@@ -40,9 +44,9 @@ Commands, tests, or observations that support the result.
 Where this lesson applies and where it does not.
 ```
 
-Allowed statuses are `accepted`, `rejected`, `failed`, `superseded`, and
-`experimental`. A retrospective candidate remains `experimental` until a human
-confirms both the content and final status.
+Formal Record statuses are `accepted`, `rejected`, `failed`, and `superseded`.
+A retrospective Candidate is always `experimental` until a human confirms both the
+content and final Record status.
 
 Evidence levels:
 

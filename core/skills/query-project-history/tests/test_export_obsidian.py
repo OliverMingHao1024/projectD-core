@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import sys
 from pathlib import Path
 
 SCRIPT = Path(__file__).parents[1] / "scripts" / "export_obsidian.py"
+sys.path.insert(0, str(SCRIPT.parent))
 SPEC = importlib.util.spec_from_file_location("export_obsidian", SCRIPT)
 assert SPEC and SPEC.loader
 export_obsidian = importlib.util.module_from_spec(SPEC)
@@ -22,6 +24,8 @@ def test_export_marks_candidates_unconfirmed(tmp_path: Path) -> None:
                 "projects": {
                     "sample": [
                         {
+                            "project": "sample",
+                            "date": "2026-07-27",
                             "title": "Candidate",
                             "type": "bug",
                             "status": "experimental",
@@ -65,3 +69,47 @@ def test_export_marks_candidates_unconfirmed(tmp_path: Path) -> None:
     assert "Confirm root cause?" not in project_page
     assert "推論（`inferred`）" in project_page
     assert "https://github.com/example/sample/commit/abc123" in project_page
+
+
+def test_export_normalizes_candidate_status_to_experimental(tmp_path: Path) -> None:
+    candidates = tmp_path / "candidates.json"
+    lexical = tmp_path / "lexical.json"
+    hybrid = tmp_path / "hybrid.json"
+    output = tmp_path / "obsidian"
+    project = tmp_path / "sample"
+    project.mkdir()
+    candidates.write_text(
+        json.dumps(
+            {
+                "projects": {
+                    "sample": [
+                        {
+                            "project": "sample",
+                            "date": "2026-07-27",
+                            "title": "Unreviewed",
+                            "type": "decision",
+                            "status": "accepted",
+                            "evidence_level": "inferred",
+                            "evidence": ["commit:abc1234"],
+                        }
+                    ]
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    result = {"hits": 0, "total": 0, "hit_rate": 0.0, "cases": []}
+    lexical.write_text(json.dumps(result), encoding="utf-8")
+    hybrid.write_text(json.dumps(result), encoding="utf-8")
+
+    export_obsidian.export(
+        candidates,
+        lexical,
+        hybrid,
+        output,
+        {"sample": project},
+    )
+
+    page = (output / "sample-history.md").read_text(encoding="utf-8")
+    assert "待確認（`experimental`）" in page
+    assert "已採用（`accepted`）" not in page
