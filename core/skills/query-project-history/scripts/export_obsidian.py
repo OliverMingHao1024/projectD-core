@@ -23,6 +23,11 @@ STATUS_LABELS = {
     "superseded": "已取代",
     "experimental": "待確認",
 }
+CONFIRMATION_OPTIONS = [
+    "確認並保留：我記得曾處理過這件事，而且值得納入歷程。",
+    "不確定，暫時保留：我無法確認細節，先維持候選狀態。",
+    "排除：這筆不屬於我的重要經歷，或不值得保存。",
+]
 
 
 def file_link(path: Path, label: str) -> str:
@@ -73,12 +78,17 @@ def render_project(
                     evidence_link(project_root, str(item), remote)
                     for item in entry["evidence"]  # type: ignore[union-attr]
                 ),
-                "- 待確認：",
+                "",
+                "**確認方式（請勾選一項）：**",
             ]
         )
+        lines.extend(f"- [ ] {option}" for option in CONFIRMATION_OPTIONS)
         lines.extend(
-            f"  - [ ] {question}"
-            for question in entry["review"]  # type: ignore[union-attr]
+            [
+                "",
+                "> [!note] 不需要回想技術細節",
+                "> 無法由 commit、diff、測試或文件證明的內容，會標記為「未知」。",
+            ]
         )
         lines.append("")
     return "\n".join(lines).rstrip() + "\n"

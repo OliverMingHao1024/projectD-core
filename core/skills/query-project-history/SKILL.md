@@ -85,4 +85,6 @@ python scripts/export_obsidian.py `
 ```
 
 Keep the unconfirmed warning and `experimental` status visible. Exporting a candidate
-does not confirm it.
+does not confirm it. Ask the reviewer only whether to keep, defer, or exclude a
+candidate. Do not require them to reconstruct technical details from memory; mark
+details unsupported by commits, diffs, tests, or documents as unknown.

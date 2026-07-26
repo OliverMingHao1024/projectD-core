@@ -56,5 +56,10 @@ def test_export_marks_candidates_unconfirmed(tmp_path: Path) -> None:
     assert len(paths) == 3
     assert "未確認的歷程候選" in project_page
     assert "`experimental`" in project_page
-    assert "- [ ] Confirm root cause?" in project_page
+    assert "確認方式（請勾選一項）" in project_page
+    assert "- [ ] 確認並保留：" in project_page
+    assert "- [ ] 不確定，暫時保留：" in project_page
+    assert "- [ ] 排除：" in project_page
+    assert "不需要回想技術細節" in project_page
+    assert "Confirm root cause?" not in project_page
     assert "https://github.com/example/sample/commit/abc123" in project_page
