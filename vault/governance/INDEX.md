@@ -25,6 +25,8 @@
 - 前端能力選型：`../../core/skills/select-frontend-capability/SKILL.md`，再依目前 workspace
   路由至 `../../packs/frontend-react-angular/references/{react,angular}-capabilities.md`
 - 可重複踩坑：`../after-action/`
+- 跨專案歷程查詢 PoC：`../../core/skills/query-project-history/SKILL.md`；
+  候選與基準集位於 `project-history-poc/`，候選未經人工確認不得視為歷程事實。
 - Skill 引入機制（從 GitHub 收錄高星 Skill 的流程）：`prd-skill-import.md`（PRD）、
   `sa-analysis-skill-import.md`（技術分析）、`skill-candidates.md`（決策紀錄）、
   `../../core/commands/skill-scout.md`（slash command）、`../../packs/_staging/README.md`（staging 說明）

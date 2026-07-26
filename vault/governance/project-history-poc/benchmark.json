@@ -1,0 +1,22 @@
+[
+  {"project": "intentype", "query": "設定視窗關掉之後如何回到主控制畫面？", "expected": "c5aece852ab4f13d3412be266f1f3b5ce41f2a35"},
+  {"project": "intentype", "query": "How did we stop the app completely after closing its main panel?", "expected": "b15a0796c63d70ff9cc6ac2ff63fd05b9db2cd19"},
+  {"project": "intentype", "query": "Windows 本機語音辨識不穩定時以前怎麼修？", "expected": "671cbf1efabc0819a1cdf97f139db279daae1729"},
+  {"project": "intentype", "query": "麥克風取樣率不同造成錄音問題的處理方式", "expected": "84fce233af37756028eaaedac5655cabb2ab1dc0"},
+  {"project": "intentype", "query": "Which change separated operating-system integration from the desktop UI?", "expected": "cecd33f0cb65f5ba1871d5d27004a97ed5157e1f"},
+  {"project": "intentype", "query": "發音學習失敗時不要改動使用者設定", "expected": "1122705703b6a0bcfc4eec34a727b9678a1c48ec"},
+  {"project": "intentype", "query": "AI 命令列工具安裝前需要使用者同意", "expected": "407814a68d85a8f0635f07ed6ba79fbe45f0cd1c"},
+  {"project": "intentype", "query": "How were provider errors changed into actionable recovery guidance?", "expected": "8b9d822f15faf5e57c4aaee66720e1155733be6c"},
+  {"project": "intentype", "query": "可重現的 Windows EXE 建置", "expected": "4d78c95d82dc7742f011fc2772d3bc363a335cf2"},
+  {"project": "intentype", "query": "Windows 原生事件如何做安全邊界處理？", "expected": "21597b1bdc3735ad2368bef54c51b60fbeba1dc4"},
+  {"project": "photoFilter", "query": "切換照片資料夾後為何還顯示上一輪掃描結果？", "expected": ["768607ed28819f04e6dd06a199db29ebae4ff8eb", "PHOTOFILTER-2026-028_掃描平行化與換資料夾取消掃描修正.md"]},
+  {"project": "photoFilter", "query": "When was the old frontend replaced by React and TypeScript?", "expected": "4bee0f7d89086cdd47e484268968edee4d4670dc"},
+  {"project": "photoFilter", "query": "前端大檔案依不同畫面拆分的歷程", "expected": ["612b5298fcfa3c453a191f4b77660e07837eb85a", "PHOTOFILTER-2026-026-前端模組化重構.md"]},
+  {"project": "photoFilter", "query": "如何安全清掉重複模組與沒用到的檔案？", "expected": "1a91401ab418a8450f21f78e8efdf7fa2a101989"},
+  {"project": "photoFilter", "query": "src 套件化最初是為了解決什麼架構問題？", "expected": "58f83b733d7c2fc2d0b07fcbddd9888947bb2e9a"},
+  {"project": "photoFilter", "query": "模型和資料存取層分離的紀錄", "expected": "PHOTOFILTER-2026-008_Phase2模型與Repository分離.md"},
+  {"project": "photoFilter", "query": "評分規則何時從其他程式碼抽成 domain？", "expected": "PHOTOFILTER-2026-008_Phase3評分Domain拆分.md"},
+  {"project": "photoFilter", "query": "PR 衝突處理完後如何整理測試證據？", "expected": "PHOTOFILTER-2026-015_PR衝突解消與測試報告整理.md"},
+  {"project": "photoFilter", "query": "合併主分支後自動產生 Windows 發布檔", "expected": "PHOTOFILTER-2026-012_PR合併後自動Release EXE.md"},
+  {"project": "photoFilter", "query": "Lightroom 圖片讀取失敗以前怎麼留下診斷資訊？", "expected": "PHOTOFILTER-2026-006_識別字英文化_Lightroom版型與讀取失敗Log.md"}
+]

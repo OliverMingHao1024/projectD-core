@@ -1,0 +1,149 @@
+{
+  "notice": "All entries are retrospective candidates inferred from Git or project documents. They are not confirmed history records and must remain experimental until human review.",
+  "projects": {
+    "intentype": [
+      {
+        "title": "Extract Windows integration and settings persistence from desktop_ui",
+        "type": "refactor",
+        "status": "experimental",
+        "evidence": ["commit:cecd33f0cb65f5ba1871d5d27004a97ed5157e1f"],
+        "review": ["What coupling triggered the refactor?", "Which earlier boundaries were rejected?"]
+      },
+      {
+        "title": "Preserve settings when pronunciation learning fails",
+        "type": "bug",
+        "status": "experimental",
+        "evidence": ["commit:1122705703b6a0bcfc4eec34a727b9678a1c48ec"],
+        "review": ["What failure corrupted or risked settings?", "How was non-mutation verified?"]
+      },
+      {
+        "title": "Make Windows EXE builds reproducible",
+        "type": "decision",
+        "status": "experimental",
+        "evidence": ["commit:4d78c95d82dc7742f011fc2772d3bc363a335cf2"],
+        "review": ["Which build inputs were previously unstable?", "What reproducibility check passed?"]
+      },
+      {
+        "title": "Require explicit confirmation before installing AI CLIs",
+        "type": "decision",
+        "status": "experimental",
+        "evidence": ["commit:407814a68d85a8f0635f07ed6ba79fbe45f0cd1c"],
+        "review": ["Which security boundary motivated confirmation?", "Were silent-install routes rejected?"]
+      },
+      {
+        "title": "Provide actionable provider failure guidance",
+        "type": "bug",
+        "status": "experimental",
+        "evidence": ["commit:8b9d822f15faf5e57c4aaee66720e1155733be6c"],
+        "review": ["Which provider failures were ambiguous?", "What recovery actions were verified?"]
+      },
+      {
+        "title": "Return from settings to the control panel",
+        "type": "bug",
+        "status": "experimental",
+        "evidence": ["commit:c5aece852ab4f13d3412be266f1f3b5ce41f2a35"],
+        "review": ["What lifecycle state caused the navigation failure?", "Which fix attempts failed?"]
+      },
+      {
+        "title": "Fully exit when the control panel closes",
+        "type": "bug",
+        "status": "experimental",
+        "evidence": ["commit:b15a0796c63d70ff9cc6ac2ff63fd05b9db2cd19"],
+        "review": ["Which processes or tray state remained alive?", "How was full exit verified?"]
+      },
+      {
+        "title": "Make local transcription reliable on Windows",
+        "type": "bug",
+        "status": "experimental",
+        "evidence": ["commit:671cbf1efabc0819a1cdf97f139db279daae1729"],
+        "review": ["What was the measured failure mode?", "Which alternative fixes were attempted?"]
+      },
+      {
+        "title": "Capture selected microphones at their native sample rate",
+        "type": "bug",
+        "status": "experimental",
+        "evidence": ["commit:84fce233af37756028eaaedac5655cabb2ab1dc0"],
+        "review": ["How did sample-rate mismatch manifest?", "Which devices verified the solution?"]
+      },
+      {
+        "title": "Safely handle Windows native events",
+        "type": "bug",
+        "status": "experimental",
+        "evidence": ["commit:21597b1bdc3735ad2368bef54c51b60fbeba1dc4"],
+        "review": ["Which native event caused unsafe behavior?", "What boundary now contains it?"]
+      }
+    ],
+    "photoFilter": [
+      {
+        "title": "Parallelize scanning and cancel stale results after folder changes",
+        "type": "bug",
+        "status": "experimental",
+        "evidence": ["commit:768607ed28819f04e6dd06a199db29ebae4ff8eb", "docs/dev-log/202604/PHOTOFILTER-2026-028_掃描平行化與換資料夾取消掃描修正.md"],
+        "review": ["What race produced stale results?", "How were cancellation and performance verified?"]
+      },
+      {
+        "title": "Migrate the frontend to React, TypeScript, and Tailwind",
+        "type": "refactor",
+        "status": "experimental",
+        "evidence": ["commit:4bee0f7d89086cdd47e484268968edee4d4670dc", "docs/dev-log/202604/PHOTOFILTER-2026-027_React化與視覺重設計執行.md"],
+        "review": ["Why was the previous frontend superseded?", "Which migration routes were rejected?"]
+      },
+      {
+        "title": "Split app.js and style.css by screen",
+        "type": "refactor",
+        "status": "experimental",
+        "evidence": ["commit:612b5298fcfa3c453a191f4b77660e07837eb85a", "docs/requirements/PHOTOFILTER-2026-026-前端模組化重構.md"],
+        "review": ["Which module seams were chosen?", "What coupling remained?"]
+      },
+      {
+        "title": "Remove duplicate modules and unused files",
+        "type": "refactor",
+        "status": "experimental",
+        "evidence": ["commit:1a91401ab418a8450f21f78e8efdf7fa2a101989", "docs/dev-log/202604/PHOTOFILTER-2026-025_清理重複與無用檔案執行.md"],
+        "review": ["How was safe deletion established?", "Were any candidates retained and why?"]
+      },
+      {
+        "title": "Converge architecture and begin src packaging",
+        "type": "refactor",
+        "status": "experimental",
+        "evidence": ["commit:58f83b733d7c2fc2d0b07fcbddd9888947bb2e9a", "docs/dev-log/202604/PHOTOFILTER-2026-020_第二輪架構收斂執行.md"],
+        "review": ["What architectural problem drove packaging?", "Which target structure was deferred?"]
+      },
+      {
+        "title": "Separate models and repositories",
+        "type": "refactor",
+        "status": "experimental",
+        "evidence": ["docs/dev-log/202604/PHOTOFILTER-2026-008_Phase2模型與Repository分離.md"],
+        "review": ["Which dependency direction changed?", "What behavior tests protected the split?"]
+      },
+      {
+        "title": "Extract the scoring domain",
+        "type": "refactor",
+        "status": "experimental",
+        "evidence": ["docs/dev-log/202604/PHOTOFILTER-2026-008_Phase3評分Domain拆分.md"],
+        "review": ["What belonged in the scoring domain?", "Which alternative boundary was rejected?"]
+      },
+      {
+        "title": "Resolve PR conflicts and consolidate test evidence",
+        "type": "bug",
+        "status": "experimental",
+        "evidence": ["commit:18685541d5addd51a1f7d9b5a7d650702b941740", "docs/dev-log/202604/PHOTOFILTER-2026-015_PR衝突解消與測試報告整理.md"],
+        "review": ["Which conflicting behaviors required judgment?", "What was re-tested after resolution?"]
+      },
+      {
+        "title": "Automate Windows EXE release after merge",
+        "type": "decision",
+        "status": "experimental",
+        "evidence": ["commit:11866bacfd8c95b97f9a1e4915fbdf4b1f8b569e", "docs/dev-log/202604/PHOTOFILTER-2026-012_PR合併後自動Release EXE.md"],
+        "review": ["Why was post-merge release selected?", "Which release failures remain possible?"]
+      },
+      {
+        "title": "Add Lightroom-oriented logging for read failures",
+        "type": "bug",
+        "status": "experimental",
+        "evidence": ["commit:0fb14c1136ee439bef8d4ece18d2ac022bb60962", "docs/dev-log/202604/PHOTOFILTER-2026-006_識別字英文化_Lightroom版型與讀取失敗Log.md"],
+        "review": ["Which read failures were previously invisible?", "Does logging exclude sensitive paths?"]
+      }
+    ]
+  }
+}

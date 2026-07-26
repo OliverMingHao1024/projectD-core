@@ -1,0 +1,4 @@
+interface:
+  display_name: "Query Project History"
+  short_description: "Search verified project decisions and debugging history"
+  default_prompt: "Use $query-project-history to find prior solutions, failed attempts, and supporting evidence across my projects."

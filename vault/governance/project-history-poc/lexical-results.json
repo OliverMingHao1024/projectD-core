@@ -1,0 +1,244 @@
+{
+  "mode": "lexical",
+  "limit": 5,
+  "hits": 14,
+  "total": 20,
+  "hit_rate": 0.7,
+  "cases": [
+    {
+      "query": "設定視窗關掉之後如何回到主控制畫面？",
+      "expected": "c5aece852ab4f13d3412be266f1f3b5ce41f2a35",
+      "rank": null,
+      "top_sources": [
+        "git:D:\\workspaces\\intentype@21b2c5313a1c4b01fac0cd16e9e9a0643a09dbd9"
+      ]
+    },
+    {
+      "query": "How did we stop the app completely after closing its main panel?",
+      "expected": "b15a0796c63d70ff9cc6ac2ff63fd05b9db2cd19",
+      "rank": null,
+      "top_sources": [
+        "D:\\workspaces\\intentype\\release\\README.md",
+        "D:\\workspaces\\intentype\\docs\\specs\\mvp.md",
+        "D:\\workspaces\\intentype\\resources\\dictionaries\\README.md",
+        "D:\\workspaces\\intentype\\README.md",
+        "git:D:\\workspaces\\intentype@407814a68d85a8f0635f07ed6ba79fbe45f0cd1c"
+      ]
+    },
+    {
+      "query": "Windows 本機語音辨識不穩定時以前怎麼修？",
+      "expected": "671cbf1efabc0819a1cdf97f139db279daae1729",
+      "rank": null,
+      "top_sources": [
+        "git:D:\\workspaces\\intentype@a07ab9f1b8d63800d76941e0c4a4d994ba97fcbd",
+        "git:D:\\workspaces\\intentype@4d78c95d82dc7742f011fc2772d3bc363a335cf2",
+        "git:D:\\workspaces\\intentype@21597b1bdc3735ad2368bef54c51b60fbeba1dc4",
+        "git:D:\\workspaces\\intentype@687c1ed018afb40a3f5568895d469c324fcbadfe",
+        "git:D:\\workspaces\\intentype@061167cc8dfa8b8fcfd96064d11f1a5ed2c54f61"
+      ]
+    },
+    {
+      "query": "麥克風取樣率不同造成錄音問題的處理方式",
+      "expected": "84fce233af37756028eaaedac5655cabb2ab1dc0",
+      "rank": null,
+      "top_sources": [
+        "D:\\workspaces\\intentype\\docs\\verification\\provider-e2e-2026-07-26.md"
+      ]
+    },
+    {
+      "query": "Which change separated operating-system integration from the desktop UI?",
+      "expected": "cecd33f0cb65f5ba1871d5d27004a97ed5157e1f",
+      "rank": 1,
+      "top_sources": [
+        "git:D:\\workspaces\\intentype@cecd33f0cb65f5ba1871d5d27004a97ed5157e1f",
+        "D:\\workspaces\\intentype\\docs\\specs\\mvp.md",
+        "D:\\workspaces\\intentype\\README.md",
+        "D:\\workspaces\\intentype\\release\\README.md",
+        "D:\\workspaces\\intentype\\resources\\dictionaries\\README.md"
+      ]
+    },
+    {
+      "query": "發音學習失敗時不要改動使用者設定",
+      "expected": "1122705703b6a0bcfc4eec34a727b9678a1c48ec",
+      "rank": null,
+      "top_sources": [
+        "D:\\workspaces\\intentype\\docs\\verification\\provider-e2e-2026-07-26.md",
+        "git:D:\\workspaces\\intentype@21b2c5313a1c4b01fac0cd16e9e9a0643a09dbd9"
+      ]
+    },
+    {
+      "query": "AI 命令列工具安裝前需要使用者同意",
+      "expected": "407814a68d85a8f0635f07ed6ba79fbe45f0cd1c",
+      "rank": 3,
+      "top_sources": [
+        "D:\\workspaces\\intentype\\docs\\verification\\provider-e2e-2026-07-26.md",
+        "git:D:\\workspaces\\intentype@32d8cffc04d32e233297b6400cc1162162267272",
+        "git:D:\\workspaces\\intentype@407814a68d85a8f0635f07ed6ba79fbe45f0cd1c",
+        "git:D:\\workspaces\\intentype@cdcca2e18d6366e224c74dcb81756118e00d6c28",
+        "git:D:\\workspaces\\intentype@5590f738b9c2efc5bee0156f538138a4217c34cb"
+      ]
+    },
+    {
+      "query": "How were provider errors changed into actionable recovery guidance?",
+      "expected": "8b9d822f15faf5e57c4aaee66720e1155733be6c",
+      "rank": 1,
+      "top_sources": [
+        "git:D:\\workspaces\\intentype@8b9d822f15faf5e57c4aaee66720e1155733be6c",
+        "D:\\workspaces\\intentype\\README.md",
+        "git:D:\\workspaces\\intentype@77bf3de4e78d0830f855bcec1ca281212fa8a2ce",
+        "D:\\workspaces\\intentype\\docs\\specs\\mvp.md",
+        "git:D:\\workspaces\\intentype@b084aff1c686902232e8071aa11bf9aa363b6dc7"
+      ]
+    },
+    {
+      "query": "可重現的 Windows EXE 建置",
+      "expected": "4d78c95d82dc7742f011fc2772d3bc363a335cf2",
+      "rank": 1,
+      "top_sources": [
+        "git:D:\\workspaces\\intentype@4d78c95d82dc7742f011fc2772d3bc363a335cf2",
+        "git:D:\\workspaces\\intentype@061167cc8dfa8b8fcfd96064d11f1a5ed2c54f61",
+        "D:\\workspaces\\intentype\\README.md",
+        "D:\\workspaces\\intentype\\release\\README.md",
+        "git:D:\\workspaces\\intentype@21b2c5313a1c4b01fac0cd16e9e9a0643a09dbd9"
+      ]
+    },
+    {
+      "query": "Windows 原生事件如何做安全邊界處理？",
+      "expected": "21597b1bdc3735ad2368bef54c51b60fbeba1dc4",
+      "rank": 4,
+      "top_sources": [
+        "D:\\workspaces\\intentype\\docs\\verification\\provider-e2e-2026-07-26.md",
+        "git:D:\\workspaces\\intentype@a07ab9f1b8d63800d76941e0c4a4d994ba97fcbd",
+        "git:D:\\workspaces\\intentype@4d78c95d82dc7742f011fc2772d3bc363a335cf2",
+        "git:D:\\workspaces\\intentype@21597b1bdc3735ad2368bef54c51b60fbeba1dc4",
+        "git:D:\\workspaces\\intentype@687c1ed018afb40a3f5568895d469c324fcbadfe"
+      ]
+    },
+    {
+      "query": "切換照片資料夾後為何還顯示上一輪掃描結果？",
+      "expected": [
+        "768607ed28819f04e6dd06a199db29ebae4ff8eb",
+        "PHOTOFILTER-2026-028_掃描平行化與換資料夾取消掃描修正.md"
+      ],
+      "rank": 1,
+      "top_sources": [
+        "git:D:\\workspaces\\photoFilter@768607ed28819f04e6dd06a199db29ebae4ff8eb",
+        "D:\\workspaces\\photoFilter\\docs\\dev-log\\202604\\PHOTOFILTER-2026-028_掃描平行化與換資料夾取消掃描修正.md",
+        "D:\\workspaces\\photoFilter\\docs\\dev-log\\202604\\PHOTOFILTER-2026-006_識別字英文化_Lightroom版型與讀取失敗Log.md",
+        "D:\\workspaces\\photoFilter\\docs\\dev-log\\202604\\PHOTOFILTER-2026-007_桌面版流程層級與配色調整.md",
+        "D:\\workspaces\\photoFilter\\docs\\dev-log\\202604\\PHOTOFILTER-2026-014_編輯風格前端重構.md"
+      ]
+    },
+    {
+      "query": "When was the old frontend replaced by React and TypeScript?",
+      "expected": "4bee0f7d89086cdd47e484268968edee4d4670dc",
+      "rank": 3,
+      "top_sources": [
+        "D:\\workspaces\\photoFilter\\frontend\\README.md",
+        "git:D:\\workspaces\\photoFilter@36b2f44afcd53d12020808e874ec9edb8e173201",
+        "git:D:\\workspaces\\photoFilter@4bee0f7d89086cdd47e484268968edee4d4670dc",
+        "D:\\workspaces\\photoFilter\\docs\\dev-log\\202604\\PHOTOFILTER-2026-027_React化與視覺重設計執行.md",
+        "D:\\workspaces\\photoFilter\\docs\\requirements\\PHOTOFILTER-2026-027-React化與視覺重設計.md"
+      ]
+    },
+    {
+      "query": "前端大檔案依不同畫面拆分的歷程",
+      "expected": [
+        "612b5298fcfa3c453a191f4b77660e07837eb85a",
+        "PHOTOFILTER-2026-026-前端模組化重構.md"
+      ],
+      "rank": 1,
+      "top_sources": [
+        "git:D:\\workspaces\\photoFilter@612b5298fcfa3c453a191f4b77660e07837eb85a",
+        "D:\\workspaces\\photoFilter\\docs\\requirements\\PHOTOFILTER-2026-026-前端模組化重構.md",
+        "D:\\workspaces\\photoFilter\\docs\\requirements\\PHOTOFILTER-2026-027-React化與視覺重設計.md",
+        "D:\\workspaces\\photoFilter\\docs\\requirements\\202604\\20260414_UI與流程需求整理.md",
+        "D:\\workspaces\\photoFilter\\docs\\requirements\\202604\\PHOTOFILTER-2026-014_editorial-frontend.md"
+      ]
+    },
+    {
+      "query": "如何安全清掉重複模組與沒用到的檔案？",
+      "expected": "1a91401ab418a8450f21f78e8efdf7fa2a101989",
+      "rank": 1,
+      "top_sources": [
+        "git:D:\\workspaces\\photoFilter@1a91401ab418a8450f21f78e8efdf7fa2a101989",
+        "git:D:\\workspaces\\photoFilter@9878fbeea7d335b80eb5c19865039161659de9e0",
+        "D:\\workspaces\\photoFilter\\docs\\requirements\\PHOTOFILTER-2026-024-調整架構.md",
+        "D:\\workspaces\\photoFilter\\docs\\requirements\\PHOTOFILTER-2026-026-前端模組化重構.md",
+        "D:\\workspaces\\photoFilter\\docs\\requirements\\PHOTOFILTER-2026-025-清理重複與無用檔案.md"
+      ]
+    },
+    {
+      "query": "src 套件化最初是為了解決什麼架構問題？",
+      "expected": "58f83b733d7c2fc2d0b07fcbddd9888947bb2e9a",
+      "rank": 1,
+      "top_sources": [
+        "git:D:\\workspaces\\photoFilter@58f83b733d7c2fc2d0b07fcbddd9888947bb2e9a",
+        "git:D:\\workspaces\\photoFilter@51dcc2c50f71c7f53ee8d50ef7a2127afc679565",
+        "D:\\workspaces\\photoFilter\\docs\\dev-log\\202604\\PHOTOFILTER-2026-021_套件化評估決策.md",
+        "D:\\workspaces\\photoFilter\\docs\\requirements\\202604\\PHOTOFILTER-2026-021_第三輪架構完成需求書.md",
+        "D:\\workspaces\\photoFilter\\docs\\dev-log\\202604\\PHOTOFILTER-2026-020_第二輪架構收斂執行.md"
+      ]
+    },
+    {
+      "query": "模型和資料存取層分離的紀錄",
+      "expected": "PHOTOFILTER-2026-008_Phase2模型與Repository分離.md",
+      "rank": 1,
+      "top_sources": [
+        "D:\\workspaces\\photoFilter\\docs\\dev-log\\202604\\PHOTOFILTER-2026-008_Phase2模型與Repository分離.md",
+        "D:\\workspaces\\photoFilter\\docs\\requirements\\PHOTOFILTER-2026-024-調整架構.md",
+        "D:\\workspaces\\photoFilter\\docs\\dev-log\\202604\\PHOTOFILTER-2026-008_Phase4服務層封裝.md",
+        "D:\\workspaces\\photoFilter\\docs\\dev-log\\202604\\PHOTOFILTER-2026-008_整體驗收與PR草稿.md",
+        "git:D:\\workspaces\\photoFilter@768607ed28819f04e6dd06a199db29ebae4ff8eb"
+      ]
+    },
+    {
+      "query": "評分規則何時從其他程式碼抽成 domain？",
+      "expected": "PHOTOFILTER-2026-008_Phase3評分Domain拆分.md",
+      "rank": null,
+      "top_sources": [
+        "D:\\workspaces\\photoFilter\\docs\\requirements\\PHOTOFILTER-2026-024-調整架構.md",
+        "git:D:\\workspaces\\photoFilter@6c2f0fe87480841af817ea609205018c6f7e7054",
+        "D:\\workspaces\\photoFilter\\docs\\requirements\\202604\\20260414_UI與流程需求整理.md",
+        "D:\\workspaces\\photoFilter\\README.md",
+        "D:\\workspaces\\photoFilter\\AGENTS.md"
+      ]
+    },
+    {
+      "query": "PR 衝突處理完後如何整理測試證據？",
+      "expected": "PHOTOFILTER-2026-015_PR衝突解消與測試報告整理.md",
+      "rank": 1,
+      "top_sources": [
+        "D:\\workspaces\\photoFilter\\docs\\dev-log\\202604\\PHOTOFILTER-2026-015_PR衝突解消與測試報告整理.md",
+        "git:D:\\workspaces\\photoFilter@18685541d5addd51a1f7d9b5a7d650702b941740",
+        "D:\\workspaces\\photoFilter\\AGENTS.md",
+        "D:\\workspaces\\photoFilter\\CLAUDE.md",
+        "D:\\workspaces\\photoFilter\\docs\\dev-log\\202604\\PHOTOFILTER-2026-019_架構文件整理與待審版調整.md"
+      ]
+    },
+    {
+      "query": "合併主分支後自動產生 Windows 發布檔",
+      "expected": "PHOTOFILTER-2026-012_PR合併後自動Release EXE.md",
+      "rank": 1,
+      "top_sources": [
+        "D:\\workspaces\\photoFilter\\docs\\dev-log\\202604\\PHOTOFILTER-2026-012_PR合併後自動Release EXE.md",
+        "git:D:\\workspaces\\photoFilter@11866bacfd8c95b97f9a1e4915fbdf4b1f8b569e",
+        "D:\\workspaces\\photoFilter\\docs\\dev-log\\202604\\PHOTOFILTER-2026-011_GitHub Release EXE 自動化.md",
+        "D:\\workspaces\\photoFilter\\AGENTS.md",
+        "D:\\workspaces\\photoFilter\\README.md"
+      ]
+    },
+    {
+      "query": "Lightroom 圖片讀取失敗以前怎麼留下診斷資訊？",
+      "expected": "PHOTOFILTER-2026-006_識別字英文化_Lightroom版型與讀取失敗Log.md",
+      "rank": 1,
+      "top_sources": [
+        "D:\\workspaces\\photoFilter\\docs\\dev-log\\202604\\PHOTOFILTER-2026-006_識別字英文化_Lightroom版型與讀取失敗Log.md",
+        "git:D:\\workspaces\\photoFilter@0fb14c1136ee439bef8d4ece18d2ac022bb60962",
+        "git:D:\\workspaces\\photoFilter@971d8fffe2073350ee4c006fff20c0b92c96ab19",
+        "D:\\workspaces\\photoFilter\\docs\\dev-log\\202604\\PHOTOFILTER-2026-004_攝影師工具風格前端重設計.md",
+        "D:\\workspaces\\photoFilter\\docs\\dev-log\\202604\\PHOTOFILTER-2026-007_桌面版流程層級與配色調整.md"
+      ]
+    }
+  ]
+}
