@@ -16,3 +16,7 @@ Read project evidence before using these candidates. Existing maintainable choic
 Do not place server data in Redux or Zustand merely because they are already installed. Do not add a
 library for a simple transition, local component state, or a platform capability that already meets the
 requirement.
+
+Candidate examples were partially informed by `emilkowalski/skills`, `pick-ui-library`, commit
+`e695d13cb298db0f46d5ef05be2ad13fa12908a6`, MIT License. Its closed recommendation list was not
+adopted; every candidate remains conditional and requires current primary-source verification.

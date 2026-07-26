@@ -1,0 +1,4 @@
+interface:
+  display_name: "Improve Animations"
+  short_description: "Audit motion and prepare approved plans"
+  default_prompt: "Use $improve-animations to audit motion and prioritize evidence-based improvements."

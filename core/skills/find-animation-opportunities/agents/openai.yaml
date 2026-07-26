@@ -1,0 +1,4 @@
+interface:
+  display_name: "Find Animation Opportunities"
+  short_description: "Find justified motion opportunities without editing code"
+  default_prompt: "Use $find-animation-opportunities to identify a small set of justified motion opportunities in this interface."

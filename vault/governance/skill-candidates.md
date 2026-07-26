@@ -15,16 +15,40 @@
 
 <!-- 畢業並移入正式 pack 者。每筆務必補「目標 pack」。 -->
 
-### emilkowalski/skills — apple-design
-- id：emilkowalski-skills
-- 來源連結：https://github.com/emilkowalski/skills/tree/main/skills/apple-design
+### mattpocock/skills（codebase-design / domain-modeling / improve-codebase-architecture / writing-great-skills）
+- id：mattpocock-skills
+- 來源連結：https://github.com/mattpocock/skills
 - 授權條款：MIT
-- star 數（評估時）：20914
+- star 數（評估時）：189187
 - 最近更新：2026-07-23
 - 評估日期：2026-07-26
 - 結論：部分收錄
-- 理由：只收錄 apple-design 的核心原則並改寫為 projectD 版本；保留直接操控、空間一致性、可中斷動效、排版、漸進增強與無障礙原則。修正 Motion duration-based spring 不承接 velocity 的錯誤；補齊 Pointer Events 取消／清理、React／Angular lifecycle、backdrop-filter／實驗性 media query／Vibration API fallback，並限縮 Apple 風格與 never／always 絕對規則。倉庫其餘 Skills 未收錄。
-- 目標 pack：core/skills/apple-design
+- 理由：使用者指名要收 improve-codebase-architecture 與 writing-great-skills。improve-codebase-architecture 依賴 codebase-design（詞彙）與 domain-modeling（CONTEXT.md/ADR 收斂），兩者皆未收錄；使用者確認四者一起收錄才能保持功能完整（同一 id 下已有 grill-me/grilling 先前收錄，未留痕於本檔，屬歷史缺口）。PG 乾跑找出並已修正：(1) codebase-design/DEEPENING.md 內建「刪除舊測試」指令，改為需明確使用者核准才刪；(2) domain-modeling 原版就地寫入 CONTEXT.md/ADR，改為提案後才寫（與 emilkowalski 收錄時同一類寫入授權問題）；(3) improve-codebase-architecture 的 `subagent_type=Explore`、`/skill` 斜線語法、Windows `start`/`%TEMP%` 均為 Claude Code 專屬寫法，已改寫為工具中立表述並修正 Git Bash/PowerShell 相容性；(4) 為 codebase-design 加入「使用者指示 > 專案既有慣例 > 本 skill 詞彙」優先序前言，避免強加 DDD/命名體系覆蓋既有專案慣例；(5) 四者皆補上 LICENSE 與 `## Source` 溯源段（比照既有 grill-me/grilling 格式）。此結論不涵蓋同來源的 tdd/code-review（見上方「已拒絕・暫緩」同一 id 的舊評估，範圍不同、未重新檢視）。
+- 目標 pack：core/skills/{codebase-design,domain-modeling,improve-codebase-architecture,writing-great-skills}
+- 發現管道：使用者指定（本機已安裝 plugin marketplace `~/.claude/plugins/marketplaces/mattpocock`）+ PG dry-run
+
+### mattpocock/skills（第二批：to-questionnaire / resolving-merge-conflicts / diagnosing-bugs / research / prototype / wayfinder）
+- id：mattpocock-skills
+- 來源連結：https://github.com/mattpocock/skills
+- 授權條款：MIT
+- star 數（評估時）：189187
+- 最近更新：2026-07-23
+- 評估日期：2026-07-26
+- 結論：部分收錄
+- 理由：使用者從 README 概覽中選定這六個（排除 git-guardrails-claude-code，留待之後單獨評估）。wayfinder 依賴 research 與 prototype（Research/Prototype 票種）；使用者確認三者一起收，但明確不收 setup-matt-pocock-skills（per-repo 一次性 issue tracker 設定流程）。PG 乾跑找出並已修正：(1) resolving-merge-conflicts 原版「stage everything and commit」「never --abort」直接違反 L0 不可逆操作需授權，改為只 stage 衝突相關檔案、commit 前出示 diff 並取得同意、abort 改為使用者的選擇而非 agent 自行排除的選項；(2) research 的 background-agent 派工與 findings 寫檔皆改為條件式/需確認；(3) prototype 的 SKILL.md/UI.md 把「commit 到 throwaway branch」「刪除落選 variant」「改 package.json/Makefile」全部改為提案後才動手，且不再假設一定有 issue tracker；(4) diagnosing-bugs 修正 CONTEXT.md/ADR 存在假設與 `/improve-codebase-architecture`、`scripts/hitl-loop.template.sh` 的死引用；(5) wayfinder 改動最大：移除對未收錄 setup-matt-pocock-skills 的依賴，改為就地定義 local-markdown tracker fallback（claim/blocking/frontier 皆給出 markdown 慣例的對應寫法）；所有 `/skill` 斜線引用改寫成工具中立的 Skill 名稱＋降級語；「update or delete tickets」改為「一律 close 並記錄原因，不刪除」；不確定 assignee 時改為詢問而非猜測；每一次 tracker 寫入（建 issue、指派、留言、關閉、開分支）都要求先出示批次內容再取得使用者確認。六者皆補上 LICENSE 與 `## Source` 溯源段。
+- 目標 pack：core/skills/{to-questionnaire,resolving-merge-conflicts,diagnosing-bugs,research,prototype,wayfinder}
+- 發現管道：使用者指定（本機已安裝 plugin marketplace）+ PG dry-run
+
+### emilkowalski/skills
+- id：emilkowalski-skills
+- 來源連結：https://github.com/emilkowalski/skills
+- 授權條款：MIT
+- star 數（評估時）：20922
+- 最近更新：2026-07-23
+- 評估日期：2026-07-26
+- 結論：部分收錄
+- 理由：部分收錄並全面改寫 apple-design、animation-vocabulary、emil-design-eng、find-animation-opportunities、improve-animations、review-animations。保留設計／動效核心方法，修正 duration-based spring、效能保證、絕對 duration、Pointer Events、無障礙、跨框架與寫入授權問題。原版 pick-ui-library 的封閉清單違反 L0 生態中立，不建立 active Skill；僅把經驗證且附條件的 React 候選整合至既有能力 adapter。
+- 目標 pack：core/skills/{apple-design,animation-vocabulary,design-engineering,find-animation-opportunities,improve-animations,review-animations} + packs/frontend-react-angular/references/react-capabilities.md
 - 發現管道：使用者指定 + gh repo/API 實檔審查 + PG dry-run
 
 ## 評估中
@@ -359,7 +383,7 @@
 
 <!-- 拒絕或暫緩者。理由必填，供日後 /skill-scout 重跑時列出供使用者複審。 -->
 
-### mattpocock/skills
+### mattpocock/skills（tdd / code-review 兩個 skill，此為舊評估範圍）
 - id：mattpocock-skills
 - 來源連結：https://github.com/mattpocock/skills
 - 授權條款：MIT
@@ -367,6 +391,6 @@
 - 最近更新：2026-07-23
 - 評估日期：2026-07-24
 - 結論：暫緩
-- 理由：PG 乾跑發現三項阻擋：強制每次測試前由使用者確認 seam、將 Refactor 排除在 TDD loop 外、依賴未擷取的 code-review skill。折衷方案是只吸收公開介面測試、系統邊界 mock 與 Red→Green→Refactor 原則；將 seam 確認改為需求／風險不明時才詢問，移除未擷取依賴，並修正 Jest／Fetch 範例後再試用。
-- 目標 pack：（待定）
+- 理由：PG 乾跑發現三項阻擋：強制每次測試前由使用者確認 seam、將 Refactor 排除在 TDD loop 外、依賴未擷取的 code-review skill。折衷方案是只吸收公開介面測試、系統邊界 mock 與 Red→Green→Refactor 原則；將 seam 確認改為需求／風險不明時才詢問，移除未擷取依賴，並修正 Jest／Fetch 範例後再試用。此結論僅涵蓋 tdd/code-review 兩個 skill；同一來源其他 skill 分別評估，見「評估中」區塊同一 id 的另一筆。
+- 目標 pack：（待定，僅 tdd/code-review 範圍）
 - 發現管道：gh search + gh code search + WebSearch

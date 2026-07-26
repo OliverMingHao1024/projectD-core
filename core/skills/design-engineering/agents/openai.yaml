@@ -1,0 +1,4 @@
+interface:
+  display_name: "Design Engineering"
+  short_description: "Review UI craft and interaction quality from project evidence"
+  default_prompt: "Use $design-engineering to review this interface for high-leverage design and interaction improvements."

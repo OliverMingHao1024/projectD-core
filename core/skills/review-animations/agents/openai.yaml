@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review Animations"
+  short_description: "Review motion purpose accessibility and performance"
+  default_prompt: "Use $review-animations to review animation changes against project interaction and accessibility standards."

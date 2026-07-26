@@ -33,3 +33,7 @@ lastUpdated: 2026-07-26
   新增 `select-frontend-capability`，React／Angular 候選留在各自 adapter，且只能作為附帶
   適用條件的候選。專案既有決策與可維護依賴優先，只有需求、維護、安全、授權、相容性、
   成本或使用者要求發生變化時才重新選型。
+- 從 `emilkowalski/skills` 部分收錄並改寫 `apple-design`、`animation-vocabulary`、
+  `design-engineering`、`find-animation-opportunities`、`improve-animations` 與
+  `review-animations`。修正來源中的絕對動效規則、spring／效能保證、跨框架與寫入授權問題；
+  原版 `pick-ui-library` 不建立 active Skill，只把附帶條件的候選整合至 React adapter。
