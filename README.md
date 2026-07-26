@@ -47,6 +47,19 @@
 **移除全域接線**：`scripts/uninstall.ps1`（或 `scripts/uninstall.bat`），
 repo 本身不會被刪除。
 
+## 可選：本機專案歷程搜尋
+
+治理接線完成後，可另外執行 `scripts/setup-project-history.ps1`，建立本機
+SQLite＋Hybrid Search。此能力是可選的，不會由一般 setup 自動安裝或下載。
+
+- 所有 runtime、模型、allowlist 與 index 都在 `.local/project-history/`，不進 Git。
+- 缺少 Python、套件或模型時會先詢問；未取得同意不下載。
+- 公司與個人電腦只共用工具，不共用專案內容、模型 cache 或 index。
+- 專案必須明確加入本機 allowlist，不會自動掃描整台電腦。
+
+完整移機與受限網路說明見
+[`portable-setup.md`](core/skills/query-project-history/references/portable-setup.md)。
+
 ## 設計原則
 
 - 內容依實際使用累積，不預先假設涵蓋不到的情境

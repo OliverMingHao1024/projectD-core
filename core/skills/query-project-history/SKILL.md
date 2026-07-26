@@ -8,6 +8,16 @@ description: Search verified project decisions, debugging history, failed attemp
 Use the bundled CLI to retrieve local project history. Treat source Markdown and Git
 objects as evidence; treat the SQLite index as disposable derived data.
 
+For normal local use, run the repository wrapper:
+
+```powershell
+.\scripts\project-history.ps1 query "<question>"
+```
+
+If the optional runtime is not installed, read
+[portable-setup.md](references/portable-setup.md). Do not add repositories to the
+local allowlist without the user's explicit selection.
+
 ## Query
 
 1. Locate the index path from the repository configuration or ask for it.
@@ -43,6 +53,10 @@ cached/downloaded model. Add `--mode hybrid` to both `index` and `query`. Use
 `--project <name>` when the question targets one repository. Do not claim hybrid
 retrieval succeeded when the embedding backend is unavailable.
 
+Use `project-history.ps1 update` after a confirmed history record is written. Use
+`rebuild` after the allowlist changes or when the index must be recreated. Do not add
+Git hooks, background monitors, or automatic filesystem scanning.
+
 ## Capture a history candidate
 
 At task close, draft a candidate only when the change affects architecture, security,
@@ -76,8 +90,13 @@ materially improve semantic paraphrase queries.
 
 ```powershell
 python scripts/history_search.py evaluate --db <index.db> `
-  --benchmark <benchmark.json> --mode hybrid --output <results.json>
+  --benchmark <benchmark.json> --mode hybrid `
+  --cache-dir <local-model-cache> --output <results.json>
 ```
+
+The Python CLI refuses implicit model downloads. Pass `--allow-download` only after
+the user explicitly approves that download; normal queries should use an existing
+cache in offline mode.
 
 ## Export to Obsidian
 

@@ -33,6 +33,25 @@ class FakeEmbedding:
         return [float(any(word in lowered for word in group)) for group in groups]
 
 
+def test_prepare_model_reports_backend_and_dimension() -> None:
+    result = history_search.prepare_model(FakeEmbedding())
+
+    assert result == {"model": "fake-multilingual", "dimensions": 3}
+
+
+def test_fastembed_requires_explicit_local_cache(
+    monkeypatch: object,
+) -> None:
+    monkeypatch.delenv("FASTEMBED_CACHE_PATH", raising=False)  # type: ignore[attr-defined]
+
+    try:
+        history_search.FastEmbedEmbedding()
+    except history_search.EmbeddingUnavailable as error:
+        assert "explicit local model cache" in str(error)
+    else:
+        raise AssertionError("hybrid mode must not use an implicit download cache")
+
+
 def write_history(repo: Path) -> None:
     history = repo / "docs" / "history"
     history.mkdir(parents=True)
@@ -132,6 +151,35 @@ def test_connect_migrates_existing_index_with_evidence_level(tmp_path: Path) -> 
     migrated.close()
 
     assert "evidence_level" in columns
+
+
+def test_index_status_does_not_create_missing_database(tmp_path: Path) -> None:
+    db = tmp_path / "missing.db"
+
+    status = history_search.index_status(db)
+
+    assert status == {
+        "exists": False,
+        "path": str(db.resolve()),
+        "total": 0,
+        "projects": [],
+    }
+    assert not db.exists()
+
+
+def test_index_status_reports_project_counts(tmp_path: Path) -> None:
+    repo = tmp_path / "sample"
+    write_history(repo)
+    db = tmp_path / "history.db"
+    history_search.index_project(db, repo, include_auxiliary=False)
+
+    status = history_search.index_status(db)
+
+    assert status["exists"] is True
+    assert status["total"] == 2
+    assert status["projects"] == [
+        {"project": "sample", "records": 2, "confirmed": 2, "auxiliary": 0}
+    ]
 
 
 def test_candidate_output_is_unconfirmed(tmp_path: Path) -> None:

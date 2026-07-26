@@ -257,5 +257,6 @@ Write-Host ""
 Write-Host "Claude 全域入口：$ClaudeClaudeMd" -ForegroundColor Gray
 Write-Host "Codex  全域入口：$CodexAgentsMd" -ForegroundColor Gray
 Write-Host "移機到新裝置：複製/clone 整個 projectD-core 到任意路徑，重跑本腳本即可。" -ForegroundColor Gray
+Write-Host "可選本機歷程搜尋：.\scripts\setup-project-history.ps1（不會自動下載）" -ForegroundColor Gray
 Write-Host "回滾：pwsh -File scripts\uninstall.ps1" -ForegroundColor DarkGray
 Write-Host ""

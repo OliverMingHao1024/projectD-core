@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import os
 import re
 import sqlite3
 import subprocess
@@ -43,7 +44,31 @@ class Embedding(Protocol):
 
 
 class FastEmbedEmbedding:
-    def __init__(self, model_name: str = DEFAULT_MODEL) -> None:
+    def __init__(
+        self,
+        model_name: str = DEFAULT_MODEL,
+        cache_dir: Path | None = None,
+        allow_download: bool = False,
+    ) -> None:
+        configured_cache = cache_dir or (
+            Path(value) if (value := os.environ.get("FASTEMBED_CACHE_PATH")) else None
+        )
+        if configured_cache is None:
+            raise EmbeddingUnavailable(
+                "Hybrid mode requires an explicit local model cache. Set "
+                "FASTEMBED_CACHE_PATH or pass --cache-dir. Downloads remain disabled "
+                "unless --allow-download is also passed."
+            )
+        configured_cache = configured_cache.resolve()
+        if allow_download:
+            configured_cache.mkdir(parents=True, exist_ok=True)
+        elif not configured_cache.is_dir():
+            raise EmbeddingUnavailable(
+                f"The local model cache does not exist: {configured_cache}"
+            )
+        else:
+            os.environ["HF_HUB_OFFLINE"] = "1"
+
         try:
             from fastembed import TextEmbedding
         except ImportError as error:
@@ -52,7 +77,10 @@ class FastEmbedEmbedding:
                 "Install it in an isolated environment before indexing."
             ) from error
         self.name = model_name
-        self._model = TextEmbedding(model_name=model_name)
+        self._model = TextEmbedding(
+            model_name=model_name,
+            cache_dir=str(configured_cache),
+        )
 
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
         return [vector.tolist() for vector in self._model.embed(texts)]
@@ -60,6 +88,47 @@ class FastEmbedEmbedding:
     def embed_query(self, text: str) -> list[float]:
         vectors = list(self._model.query_embed([text]))
         return vectors[0].tolist()
+
+
+def prepare_model(embedding: Embedding) -> dict[str, object]:
+    vector = embedding.embed_query("本機模型驗證 local model verification")
+    if not vector:
+        raise EmbeddingUnavailable("The embedding model returned an empty vector.")
+    return {"model": embedding.name, "dimensions": len(vector)}
+
+
+def index_status(db_path: Path) -> dict[str, object]:
+    resolved = db_path.resolve()
+    if not db_path.exists():
+        return {
+            "exists": False,
+            "path": str(resolved),
+            "total": 0,
+            "projects": [],
+        }
+    connection = connect(db_path)
+    project_rows = list(
+        connection.execute(
+            """
+            SELECT
+                project,
+                COUNT(*) AS records,
+                SUM(CASE WHEN status != 'experimental' THEN 1 ELSE 0 END) AS confirmed,
+                SUM(CASE WHEN status = 'experimental' THEN 1 ELSE 0 END) AS auxiliary
+            FROM documents
+            GROUP BY project
+            ORDER BY project
+            """
+        )
+    )
+    total = connection.execute("SELECT COUNT(*) FROM documents").fetchone()[0]
+    connection.close()
+    return {
+        "exists": True,
+        "path": str(resolved),
+        "total": total,
+        "projects": [dict(row) for row in project_rows],
+    }
 
 
 def connect(db_path: Path) -> sqlite3.Connection:
@@ -533,12 +602,16 @@ def build_parser() -> argparse.ArgumentParser:
     index.add_argument("--include-auxiliary", action="store_true")
     index.add_argument("--mode", choices=("lexical", "hybrid"), default="lexical")
     index.add_argument("--model", default=DEFAULT_MODEL)
+    index.add_argument("--cache-dir", type=Path)
+    index.add_argument("--allow-download", action="store_true")
 
     query = subparsers.add_parser("query")
     query.add_argument("--db", type=Path, required=True)
     query.add_argument("--query", required=True)
     query.add_argument("--mode", choices=("lexical", "hybrid"), default="lexical")
     query.add_argument("--model", default=DEFAULT_MODEL)
+    query.add_argument("--cache-dir", type=Path)
+    query.add_argument("--allow-download", action="store_true")
     query.add_argument("--limit", type=int, default=5)
     query.add_argument("--project")
     query.add_argument("--json", action="store_true")
@@ -553,8 +626,18 @@ def build_parser() -> argparse.ArgumentParser:
     evaluation.add_argument("--benchmark", type=Path, required=True)
     evaluation.add_argument("--mode", choices=("lexical", "hybrid"), default="lexical")
     evaluation.add_argument("--model", default=DEFAULT_MODEL)
+    evaluation.add_argument("--cache-dir", type=Path)
+    evaluation.add_argument("--allow-download", action="store_true")
     evaluation.add_argument("--limit", type=int, default=5)
     evaluation.add_argument("--output", type=Path)
+
+    prepare = subparsers.add_parser("prepare")
+    prepare.add_argument("--model", default=DEFAULT_MODEL)
+    prepare.add_argument("--cache-dir", type=Path)
+    prepare.add_argument("--allow-download", action="store_true")
+
+    status = subparsers.add_parser("status")
+    status.add_argument("--db", type=Path, required=True)
     return parser
 
 
@@ -563,7 +646,9 @@ def main(arguments: list[str] | None = None) -> int:
     try:
         if args.command == "index":
             embedding = (
-                FastEmbedEmbedding(args.model) if args.mode == "hybrid" else None
+                FastEmbedEmbedding(args.model, args.cache_dir, args.allow_download)
+                if args.mode == "hybrid"
+                else None
             )
             total = 0
             for project in args.project:
@@ -577,7 +662,9 @@ def main(arguments: list[str] | None = None) -> int:
             return 0
         if args.command == "query":
             embedding = (
-                FastEmbedEmbedding(args.model) if args.mode == "hybrid" else None
+                FastEmbedEmbedding(args.model, args.cache_dir, args.allow_download)
+                if args.mode == "hybrid"
+                else None
             )
             results = search(
                 args.db,
@@ -591,7 +678,9 @@ def main(arguments: list[str] | None = None) -> int:
             return 0
         if args.command == "evaluate":
             embedding = (
-                FastEmbedEmbedding(args.model) if args.mode == "hybrid" else None
+                FastEmbedEmbedding(args.model, args.cache_dir, args.allow_download)
+                if args.mode == "hybrid"
+                else None
             )
             report = evaluate(
                 args.db,
@@ -606,6 +695,15 @@ def main(arguments: list[str] | None = None) -> int:
                 args.output.write_text(output + "\n", encoding="utf-8")
             else:
                 print(output)
+            return 0
+        if args.command == "prepare":
+            result = prepare_model(
+                FastEmbedEmbedding(args.model, args.cache_dir, args.allow_download)
+            )
+            print(json.dumps(result, ensure_ascii=False))
+            return 0
+        if args.command == "status":
+            print(json.dumps(index_status(args.db), ensure_ascii=False, indent=2))
             return 0
         candidates = git_candidates(args.project.resolve(), args.limit)
         output = json.dumps(candidates, ensure_ascii=False, indent=2)
