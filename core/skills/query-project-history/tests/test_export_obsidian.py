@@ -25,6 +25,7 @@ def test_export_marks_candidates_unconfirmed(tmp_path: Path) -> None:
                             "title": "Candidate",
                             "type": "bug",
                             "status": "experimental",
+                            "evidence_level": "inferred",
                             "evidence": ["commit:abc123"],
                             "review": ["Confirm root cause?"],
                         }
@@ -62,4 +63,5 @@ def test_export_marks_candidates_unconfirmed(tmp_path: Path) -> None:
     assert "- [ ] 排除：" in project_page
     assert "不需要回想技術細節" in project_page
     assert "Confirm root cause?" not in project_page
+    assert "推論（`inferred`）" in project_page
     assert "https://github.com/example/sample/commit/abc123" in project_page

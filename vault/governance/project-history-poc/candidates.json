@@ -1,5 +1,7 @@
 {
   "notice": "所有項目都是依 Git 或專案文件回溯推導的候選紀錄，尚未成為正式歷程；人工審核前必須維持 experimental 狀態。",
+  "default_evidence_level": "inferred",
+  "default_rationale": "unknown",
   "projects": {
     "intentype": [
       {

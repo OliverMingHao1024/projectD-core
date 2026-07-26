@@ -73,6 +73,7 @@ def connect(db_path: Path) -> sqlite3.Connection:
             project TEXT NOT NULL,
             kind TEXT NOT NULL,
             status TEXT NOT NULL,
+            evidence_level TEXT NOT NULL DEFAULT 'unknown',
             date TEXT NOT NULL,
             source TEXT NOT NULL,
             title TEXT NOT NULL,
@@ -90,6 +91,14 @@ def connect(db_path: Path) -> sqlite3.Connection:
         );
         """
     )
+    columns = {
+        row["name"] for row in connection.execute("PRAGMA table_info(documents)")
+    }
+    if "evidence_level" not in columns:
+        connection.execute(
+            "ALTER TABLE documents ADD COLUMN "
+            "evidence_level TEXT NOT NULL DEFAULT 'unknown'"
+        )
     return connection
 
 
@@ -166,6 +175,7 @@ def history_documents(repo: Path) -> list[dict[str, str]]:
                 "project": str(metadata.get("project", repo.name)),
                 "kind": str(metadata.get("type", "history")),
                 "status": status,
+                "evidence_level": str(metadata.get("evidence_level", "unknown")),
                 "date": str(metadata.get("date", "")),
                 "source": str(path.resolve()),
                 "title": markdown_title(body, path.stem),
@@ -201,6 +211,7 @@ def auxiliary_documents(repo: Path, commit_limit: int = 300) -> list[dict[str, s
                 "project": repo.name,
                 "kind": "document",
                 "status": "experimental",
+                "evidence_level": "inferred",
                 "date": "",
                 "source": str(path.resolve()),
                 "title": markdown_title(body, path.stem),
@@ -231,6 +242,7 @@ def auxiliary_documents(repo: Path, commit_limit: int = 300) -> list[dict[str, s
                 "project": repo.name,
                 "kind": "commit",
                 "status": "experimental",
+                "evidence_level": "inferred",
                 "date": date,
                 "source": f"git:{repo.resolve()}@{commit}",
                 "title": subject,
@@ -281,14 +293,15 @@ def index_project(
             cursor = connection.execute(
                 """
                 INSERT INTO documents(
-                    project, kind, status, date, source, title, content,
+                    project, kind, status, evidence_level, date, source, title, content,
                     vector, embedding_model
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     item["project"],
                     item["kind"],
                     item["status"],
+                    item["evidence_level"],
                     item["date"],
                     item["source"],
                     item["title"],
@@ -422,6 +435,8 @@ def git_candidates(repo: Path, limit: int) -> list[dict[str, object]]:
                 "title": subject,
                 "type": classify_commit(subject),
                 "status": "experimental",
+                "evidence_level": "inferred",
+                "rationale": "unknown",
                 "commits": [commit],
                 "needs_review": True,
                 "warning": "Git alone cannot prove root cause or failed attempts.",

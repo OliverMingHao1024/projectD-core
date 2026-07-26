@@ -37,3 +37,10 @@ lastUpdated: 2026-07-26
   `design-engineering`、`find-animation-opportunities`、`improve-animations` 與
   `review-animations`。修正來源中的絕對動效規則、spring／效能保證、跨框架與寫入授權問題；
   原版 `pick-ui-library` 不建立 active Skill，只把附帶條件的候選整合至 React adapter。
+
+## 2026-07-27
+
+- 為避免 Git 只留下「改了什麼」而遺失「為什麼」，建立重要決策／可重複教訓的最小留痕
+  閉環：L0 要求重要理由可追溯且禁止事後捏造；L5 定義觸發條件與
+  `verified`／`user-confirmed`／`inferred`／`unknown` 證據分級；L6 在任務結束時由 AI
+  提出候選，使用者只需選擇保留、暫留或排除。一般修改不產生流水帳，完整對話不保存。

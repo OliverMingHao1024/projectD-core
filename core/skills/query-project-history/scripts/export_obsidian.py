@@ -23,6 +23,12 @@ STATUS_LABELS = {
     "superseded": "已取代",
     "experimental": "待確認",
 }
+EVIDENCE_LABELS = {
+    "verified": "已驗證",
+    "user-confirmed": "使用者確認",
+    "inferred": "推論",
+    "unknown": "未知",
+}
 CONFIRMATION_OPTIONS = [
     "確認並保留：我記得曾處理過這件事，而且值得納入歷程。",
     "不確定，暫時保留：我無法確認細節，先維持候選狀態。",
@@ -67,12 +73,18 @@ def render_project(
     for index, entry in enumerate(entries, start=1):
         status = str(entry["status"])
         entry_type = str(entry["type"])
+        evidence_level = str(entry.get("evidence_level", "inferred"))
         lines.extend(
             [
                 f"## {index}. {entry['title']}",
                 "",
                 f"- 狀態：{STATUS_LABELS.get(status, status)}（`{status}`）",
                 f"- 類型：{TYPE_LABELS.get(entry_type, entry_type)}",
+                (
+                    f"- 證據等級："
+                    f"{EVIDENCE_LABELS.get(evidence_level, evidence_level)}"
+                    f"（`{evidence_level}`）"
+                ),
                 "- 證據："
                 + "、".join(
                     evidence_link(project_root, str(item), remote)
@@ -183,6 +195,12 @@ def export(
     lexical = json.loads(lexical_path.read_text(encoding="utf-8"))
     hybrid = json.loads(hybrid_path.read_text(encoding="utf-8"))
     projects = candidates["projects"]
+    for entries in projects.values():
+        for entry in entries:
+            entry.setdefault(
+                "evidence_level",
+                candidates.get("default_evidence_level", "inferred"),
+            )
     output_dir.mkdir(parents=True, exist_ok=True)
     files = {
         output_dir / "00-project-history-dashboard.md": render_dashboard(

@@ -45,11 +45,20 @@ retrieval succeeded when the embedding backend is unavailable.
 
 ## Capture a history candidate
 
-After a meaningful debugging or design session, draft a candidate using
+At task close, draft a candidate only when the change affects architecture, security,
+observable behavior, operations, a reusable bug cause, a material trade-off, a failed
+or superseded approach, or the user explicitly requests retention. Skip formatting,
+renaming, mechanical refactors, and direct implementations with no reusable rationale.
+
+Draft the candidate using
 [history-schema.md](references/history-schema.md). Show it to the user and write it
 to `<project>/docs/history/YYYY-MM-DD-slug.md` only after explicit confirmation.
 Do not save full conversations, secrets, raw runtime logs, dependencies, or build
 artifacts.
+
+Separate `verified`, `user-confirmed`, `inferred`, and `unknown` claims. Never fill
+missing rationale from code shape alone. Ask the user only to keep, defer, or exclude
+the candidate; do not require retrospective reconstruction.
 
 Use `candidates` only to propose retrospective records. Git evidence cannot prove
 uncommitted failed attempts:

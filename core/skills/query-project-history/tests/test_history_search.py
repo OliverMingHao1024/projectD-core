@@ -42,6 +42,7 @@ project: {repo.name}
 date: 2026-07-27
 type: bug
 status: accepted
+evidence_level: verified
 commits: [abc1234]
 ---
 # Return to control panel
@@ -55,6 +56,7 @@ project: {repo.name}
 date: 2026-07-26
 type: experiment
 status: failed
+evidence_level: verified
 ---
 # Direct process exit
 The direct exit approach failed verification.
@@ -73,6 +75,7 @@ def test_index_and_lexical_query_preserve_status(tmp_path: Path) -> None:
 
     assert count == 2
     assert results[0]["status"] == "failed"
+    assert results[0]["evidence_level"] == "verified"
     assert results[0]["source"].endswith("2026-07-26-failed-route.md")
 
 
@@ -103,6 +106,34 @@ def test_hybrid_without_vectors_fails_explicitly(tmp_path: Path) -> None:
         raise AssertionError("hybrid search must not silently become lexical")
 
 
+def test_connect_migrates_existing_index_with_evidence_level(tmp_path: Path) -> None:
+    db = tmp_path / "old.db"
+    connection = sqlite3.connect(db)
+    connection.execute(
+        """
+        CREATE TABLE documents (
+            id INTEGER PRIMARY KEY,
+            project TEXT NOT NULL,
+            kind TEXT NOT NULL,
+            status TEXT NOT NULL,
+            date TEXT NOT NULL,
+            source TEXT NOT NULL,
+            title TEXT NOT NULL,
+            content TEXT NOT NULL,
+            vector TEXT,
+            embedding_model TEXT
+        )
+        """
+    )
+    connection.close()
+
+    migrated = history_search.connect(db)
+    columns = {row["name"] for row in migrated.execute("PRAGMA table_info(documents)")}
+    migrated.close()
+
+    assert "evidence_level" in columns
+
+
 def test_candidate_output_is_unconfirmed(tmp_path: Path) -> None:
     repo = tmp_path / "sample"
     repo.mkdir()
@@ -128,6 +159,8 @@ def test_candidate_output_is_unconfirmed(tmp_path: Path) -> None:
 
     assert candidates[0]["status"] == "experimental"
     assert candidates[0]["needs_review"] is True
+    assert candidates[0]["evidence_level"] == "inferred"
+    assert candidates[0]["rationale"] == "unknown"
 
 
 def test_auxiliary_index_keeps_commits_with_empty_bodies(tmp_path: Path) -> None:
