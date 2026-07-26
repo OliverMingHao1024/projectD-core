@@ -50,6 +50,32 @@ class Embedding(Protocol):
     def embed_query(self, text: str) -> list[float]: ...
 
 
+class GitReader(Protocol):
+    def run(self, repo: Path, arguments: Sequence[str]) -> str: ...
+
+
+class SubprocessGitReader:
+    def run(self, repo: Path, arguments: Sequence[str]) -> str:
+        result = subprocess.run(
+            [
+                "git",
+                "-c",
+                f"safe.directory={repo.resolve()}",
+                "-c",
+                "core.quotepath=false",
+                "-C",
+                str(repo),
+                *arguments,
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        return result.stdout
+
+
 class FastEmbedEmbedding:
     def __init__(
         self,
@@ -186,24 +212,7 @@ def cjk_bigrams(text: str) -> str:
 
 
 def git(repo: Path, arguments: Sequence[str]) -> str:
-    result = subprocess.run(
-        [
-            "git",
-            "-c",
-            f"safe.directory={repo.resolve()}",
-            "-c",
-            "core.quotepath=false",
-            "-C",
-            str(repo),
-            *arguments,
-        ],
-        check=True,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-    return result.stdout
+    return SubprocessGitReader().run(repo, arguments)
 
 
 def history_documents(repo: Path) -> list[dict[str, str]]:
@@ -228,10 +237,16 @@ def history_documents(repo: Path) -> list[dict[str, str]]:
     return documents
 
 
-def auxiliary_documents(repo: Path, commit_limit: int = 300) -> list[dict[str, str]]:
+def auxiliary_documents(
+    repo: Path,
+    commit_limit: int = 300,
+    *,
+    git_reader: GitReader | None = None,
+) -> list[dict[str, str]]:
+    reader = git_reader or SubprocessGitReader()
     documents: list[dict[str, str]] = []
     try:
-        tracked = git(repo, ["ls-files"]).splitlines()
+        tracked = reader.run(repo, ["ls-files"]).splitlines()
     except subprocess.CalledProcessError:
         return documents
     for relative in tracked:
@@ -263,7 +278,7 @@ def auxiliary_documents(repo: Path, commit_limit: int = 300) -> list[dict[str, s
         )
     format_string = "%H%x1f%ad%x1f%s%x1f%b%x1e"
     try:
-        log = git(
+        log = reader.run(
             repo,
             [
                 "log",
@@ -301,11 +316,12 @@ def index_project(
     *,
     include_auxiliary: bool,
     embedding: Embedding | None = None,
+    git_reader: GitReader | None = None,
 ) -> int:
     repo = repo.resolve()
     documents = history_documents(repo)
     if include_auxiliary:
-        documents.extend(auxiliary_documents(repo))
+        documents.extend(auxiliary_documents(repo, git_reader=git_reader))
     vectors: list[list[float] | None]
     if embedding and documents:
         vectors = list(
@@ -454,9 +470,14 @@ def search(
     return results
 
 
-def git_candidates(repo: Path, limit: int) -> list[dict[str, object]]:
+def git_candidates(
+    repo: Path,
+    limit: int,
+    *,
+    git_reader: GitReader | None = None,
+) -> list[dict[str, object]]:
     format_string = "%H%x1f%ad%x1f%s%x1e"
-    output = git(
+    output = (git_reader or SubprocessGitReader()).run(
         repo,
         [
             "log",

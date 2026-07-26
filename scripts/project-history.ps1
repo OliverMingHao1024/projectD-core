@@ -1,136 +1,67 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory, Position = 0)]
-    [ValidateSet('status', 'rebuild', 'update', 'query')]
+    [ValidateSet(
+        'status', 'rebuild', 'update', 'query', 'project', 'candidate', 'mode'
+    )]
     [string]$Command,
 
     [Parameter(Position = 1)]
     [string]$Text,
 
+    [Parameter(Position = 2)]
+    [string]$Value,
+
     [string]$Project,
     [ValidateRange(1, 50)]
-    [int]$Limit = 5
+    [int]$Limit = 5,
+    [switch]$IncludeAuxiliary,
+    [switch]$Yes,
+    [string]$RecordPath,
+    [string]$RuntimeRoot
 )
 
 $ErrorActionPreference = 'Stop'
-$Started = Get-Date
-$Succeeded = $false
-$ErrorType = $null
 
-function Rotate-OperationLogs {
-    param([Parameter(Mandatory)][string]$Directory)
-
-    if (-not (Test-Path -LiteralPath $Directory)) {
-        return
-    }
-    $cutoff = (Get-Date).AddDays(-7)
-    Get-ChildItem -LiteralPath $Directory -Filter '*.jsonl' -File |
-        Where-Object LastWriteTime -LT $cutoff |
-        Remove-Item -Force
-
-    $files = @(Get-ChildItem -LiteralPath $Directory -Filter '*.jsonl' -File |
-        Sort-Object LastWriteTime)
-    $total = ($files | Measure-Object Length -Sum).Sum
-    while ($files.Count -gt 1 -and $total -gt 10MB) {
-        $oldest = $files[0]
-        $total -= $oldest.Length
-        Remove-Item -LiteralPath $oldest.FullName -Force
-        $files = @($files | Select-Object -Skip 1)
-    }
-}
-
-function Write-OperationLog {
-    param(
-        [Parameter(Mandatory)][string]$Operation,
-        [Parameter(Mandatory)][bool]$Success,
-        [string]$FailureType
-    )
-
-    New-Item -ItemType Directory -Path $LogRoot -Force | Out-Null
-    $record = [ordered]@{
-        timestamp_utc = (Get-Date).ToUniversalTime().ToString('o')
-        command = $Operation
-        success = $Success
-        elapsed_ms = [math]::Round(((Get-Date) - $Started).TotalMilliseconds)
-        error_type = $FailureType
-    }
-    $logName = "$(Get-Date -Format 'yyyy-MM-dd-HHmmss-fffffff')-$PID.jsonl"
-    $record | ConvertTo-Json -Compress |
-        Set-Content -LiteralPath (Join-Path $LogRoot $logName) `
-            -Encoding utf8
-    Rotate-OperationLogs -Directory $LogRoot
-}
-
-function Invoke-HistoryPython {
+function Invoke-HistoryRuntime {
     param([Parameter(Mandatory)][string[]]$Arguments)
 
-    & $VenvPython $HistoryScript @Arguments
+    & $VenvPython $CliScript `
+        '--core-root' $Core `
+        '--runtime-root' $LocalRoot `
+        @Arguments
     if ($LASTEXITCODE -ne 0) {
         throw "project history command failed (exit $LASTEXITCODE)"
     }
 }
 
-function Read-Allowlist {
-    if (-not (Test-Path -LiteralPath $ConfigPath -PathType Leaf)) {
-        throw "找不到 allowlist：$ConfigPath。請先執行 setup-project-history.ps1。"
-    }
-    $configuration = Get-Content -Raw -LiteralPath $ConfigPath | ConvertFrom-Json
-    if ($configuration.schema_version -ne 1) {
-        throw "不支援的 projects.json schema_version：$($configuration.schema_version)"
-    }
-    return @($configuration.projects)
-}
+function Confirm-Mutation {
+    param([Parameter(Mandatory)][string]$Description)
 
-function Update-AllowlistedProjects {
-    param([Parameter(Mandatory)][object[]]$Projects)
-
-    foreach ($entry in $Projects) {
-        if (-not $entry.name -or -not $entry.path) {
-            throw 'allowlist 每個項目都必須包含 name 與 path。'
-        }
-        $projectPath = [IO.Path]::GetFullPath([string]$entry.path)
-        if (-not (Test-Path -LiteralPath $projectPath -PathType Container)) {
-            throw "allowlist 專案不存在：$projectPath"
-        }
-        $directoryName = Split-Path $projectPath.TrimEnd('\') -Leaf
-        if (-not [string]::Equals(
-            [string]$entry.name,
-            $directoryName,
-            [StringComparison]::OrdinalIgnoreCase
-        )) {
-            throw "allowlist name 必須等於專案資料夾名稱：$directoryName"
-        }
-        $arguments = @(
-            $HistoryScript, 'index',
-            '--db', $DatabasePath,
-            '--project', $projectPath,
-            '--mode', 'hybrid'
-        )
-        if ($entry.include_auxiliary -eq $true) {
-            $arguments += '--include-auxiliary'
-        }
-        & $VenvPython @arguments
-        if ($LASTEXITCODE -ne 0) {
-            throw "索引專案失敗：$($entry.name)"
-        }
+    Write-Host $Description -ForegroundColor Yellow
+    if ($Yes) {
+        return
+    }
+    $answer = Read-Host '是否套用此變更？[y/N]'
+    if ($answer -notmatch '^(?i:y|yes)$') {
+        throw '變更未獲確認。'
     }
 }
 
 $Core = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
-$LocalRoot = Join-Path $Core '.local\project-history'
+$LocalRoot = if ([string]::IsNullOrWhiteSpace($RuntimeRoot)) {
+    Join-Path $Core '.local\project-history'
+} else {
+    [IO.Path]::GetFullPath($RuntimeRoot)
+}
 $VenvPython = Join-Path $LocalRoot '.venv\Scripts\python.exe'
-$ModelRoot = Join-Path $LocalRoot 'models'
-$LogRoot = Join-Path $LocalRoot 'logs'
-$ConfigPath = Join-Path $LocalRoot 'projects.json'
-$DatabasePath = Join-Path $LocalRoot 'index.db'
-$HistoryScript = Join-Path $Core 'core\skills\query-project-history\scripts\history_search.py'
-$env:FASTEMBED_CACHE_PATH = $ModelRoot
+$CliScript = Join-Path $Core `
+    'core\skills\query-project-history\scripts\project_history_cli.py'
 
 try {
     if ($Command -eq 'status' -and -not (Test-Path -LiteralPath $VenvPython)) {
         Write-Host 'Project history 尚未安裝。'
         Write-Host '執行：.\scripts\setup-project-history.ps1'
-        $Succeeded = $true
         return
     }
     if (-not (Test-Path -LiteralPath $VenvPython -PathType Leaf)) {
@@ -139,44 +70,13 @@ try {
 
     switch ($Command) {
         'status' {
-            Invoke-HistoryPython -Arguments @('status', '--db', $DatabasePath)
-            if (Test-Path -LiteralPath $ConfigPath) {
-                $projects = Read-Allowlist
-                Write-Host "Allowlist 專案數：$($projects.Count)"
-                Write-Host "設定檔：$ConfigPath"
-            }
+            Invoke-HistoryRuntime -Arguments @('status')
         }
         'rebuild' {
-            $projects = Read-Allowlist
-            if (-not $projects) {
-                throw "allowlist 是空的；請先編輯 $ConfigPath"
-            }
-            $resolvedDatabase = [IO.Path]::GetFullPath($DatabasePath)
-            if (-not $resolvedDatabase.StartsWith(
-                [IO.Path]::GetFullPath($LocalRoot),
-                [StringComparison]::OrdinalIgnoreCase
-            )) {
-                throw "不安全的 index 路徑：$resolvedDatabase"
-            }
-            foreach ($derivedFile in @(
-                $resolvedDatabase,
-                "$resolvedDatabase-wal",
-                "$resolvedDatabase-shm"
-            )) {
-                if (Test-Path -LiteralPath $derivedFile) {
-                    Remove-Item -LiteralPath $derivedFile -Force
-                }
-            }
-            Update-AllowlistedProjects -Projects $projects
-            Invoke-HistoryPython -Arguments @('status', '--db', $DatabasePath)
+            Invoke-HistoryRuntime -Arguments @('rebuild')
         }
         'update' {
-            $projects = Read-Allowlist
-            if (-not $projects) {
-                throw "allowlist 是空的；請先編輯 $ConfigPath"
-            }
-            Update-AllowlistedProjects -Projects $projects
-            Invoke-HistoryPython -Arguments @('status', '--db', $DatabasePath)
+            Invoke-HistoryRuntime -Arguments @('update')
         }
         'query' {
             if ([string]::IsNullOrWhiteSpace($Text)) {
@@ -185,24 +85,117 @@ try {
             if ([string]::IsNullOrWhiteSpace($Text)) {
                 throw '查詢文字不可為空。'
             }
-            if (-not (Test-Path -LiteralPath $DatabasePath -PathType Leaf)) {
-                throw '索引尚未建立；請先執行 rebuild。'
-            }
-            $arguments = @(
-                'query', '--db', $DatabasePath, '--query', $Text,
-                '--mode', 'hybrid', '--limit', [string]$Limit
-            )
+            $arguments = @('query', $Text, '--limit', [string]$Limit)
             if ($Project) {
                 $arguments += @('--project', $Project)
             }
-            Invoke-HistoryPython -Arguments $arguments
+            Invoke-HistoryRuntime -Arguments $arguments
+        }
+        'mode' {
+            if ($Text -notin @('lexical', 'hybrid')) {
+                throw 'mode 必須是 lexical 或 hybrid。'
+            }
+            Invoke-HistoryRuntime -Arguments @('mode', $Text)
+        }
+        'project' {
+            switch ($Text) {
+                'list' {
+                    Invoke-HistoryRuntime -Arguments @('project', 'list')
+                }
+                'add' {
+                    if ([string]::IsNullOrWhiteSpace($Value)) {
+                        throw '用法：project-history.ps1 project add <path>'
+                    }
+                    $projectPath = [IO.Path]::GetFullPath($Value)
+                    if (-not (Test-Path -LiteralPath $projectPath -PathType Container)) {
+                        throw "專案不存在：$projectPath"
+                    }
+                    $auxiliary = if ($IncludeAuxiliary) {
+                        '包含 Git 與核准文件'
+                    } else {
+                        '只含正式 docs/history Records'
+                    }
+                    Confirm-Mutation `
+                        -Description "Allowlist add：$projectPath（$auxiliary）"
+                    $arguments = @('project', 'add', $projectPath, '--yes')
+                    if ($IncludeAuxiliary) {
+                        $arguments += '--include-auxiliary'
+                    }
+                    Invoke-HistoryRuntime -Arguments $arguments
+                }
+                'remove' {
+                    if ([string]::IsNullOrWhiteSpace($Value)) {
+                        throw '用法：project-history.ps1 project remove <name>'
+                    }
+                    Confirm-Mutation -Description "Allowlist remove：$Value"
+                    Invoke-HistoryRuntime -Arguments @(
+                        'project', 'remove', $Value, '--yes'
+                    )
+                }
+                default {
+                    throw 'project action 必須是 list、add 或 remove。'
+                }
+            }
+        }
+        'candidate' {
+            switch ($Text) {
+                'list' {
+                    Invoke-HistoryRuntime -Arguments @('candidate', 'list')
+                }
+                'scan' {
+                    if ([string]::IsNullOrWhiteSpace($Value)) {
+                        throw '用法：project-history.ps1 candidate scan <project>'
+                    }
+                    Invoke-HistoryRuntime -Arguments @(
+                        'candidate', 'scan', $Value, '--limit', [string]$Limit
+                    )
+                }
+                'defer' {
+                    if ([string]::IsNullOrWhiteSpace($Value)) {
+                        throw '用法：project-history.ps1 candidate defer <id>'
+                    }
+                    Invoke-HistoryRuntime -Arguments @(
+                        'candidate', 'defer', $Value
+                    )
+                }
+                'exclude' {
+                    if ([string]::IsNullOrWhiteSpace($Value)) {
+                        throw '用法：project-history.ps1 candidate exclude <id>'
+                    }
+                    Confirm-Mutation -Description "Candidate exclude：$Value"
+                    Invoke-HistoryRuntime -Arguments @(
+                        'candidate', 'exclude', $Value, '--yes'
+                    )
+                }
+                'retain' {
+                    if (
+                        [string]::IsNullOrWhiteSpace($Value) -or
+                        [string]::IsNullOrWhiteSpace($RecordPath)
+                    ) {
+                        throw (
+                            '用法：project-history.ps1 candidate retain <id> ' +
+                            '-RecordPath <confirmed-record.md>'
+                        )
+                    }
+                    $resolvedRecord = [IO.Path]::GetFullPath($RecordPath)
+                    if (-not (Test-Path -LiteralPath $resolvedRecord -PathType Leaf)) {
+                        throw "Record draft 不存在：$resolvedRecord"
+                    }
+                    Confirm-Mutation -Description "Candidate retain：$Value"
+                    Invoke-HistoryRuntime -Arguments @(
+                        'candidate', 'retain', $Value,
+                        '--record', $resolvedRecord, '--yes'
+                    )
+                }
+                default {
+                    throw (
+                        'candidate action 必須是 list、scan、defer、exclude 或 retain。'
+                    )
+                }
+            }
         }
     }
-    $Succeeded = $true
 } catch {
-    $ErrorType = $_.Exception.GetType().Name
     Write-Error $_
     exit 1
-} finally {
-    Write-OperationLog -Operation $Command -Success $Succeeded -FailureType $ErrorType
 }

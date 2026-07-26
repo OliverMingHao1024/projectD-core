@@ -281,6 +281,16 @@ class RecordLifecycle:
         value = json.loads(path.read_text(encoding="utf-8"))
         return HistoryCandidate.from_mapping(value)
 
+    def list_candidates(self) -> list[HistoryCandidate]:
+        if not self.candidates_root.exists():
+            return []
+        return [
+            HistoryCandidate.from_mapping(
+                json.loads(path.read_text(encoding="utf-8"))
+            )
+            for path in sorted(self.candidates_root.glob("*.json"))
+        ]
+
     def defer(self, candidate_id: str) -> HistoryCandidate:
         candidate = self.load_candidate(candidate_id)
         if candidate is None:

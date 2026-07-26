@@ -4,8 +4,11 @@ param(
     [string]$Wheelhouse,
     [string]$PackageIndexUrl,
     [string]$ModelSource,
+    [ValidateSet('lexical', 'hybrid')]
+    [string]$Mode,
     [switch]$AllowDownload,
-    [switch]$NonInteractive
+    [switch]$NonInteractive,
+    [string]$RuntimeRoot
 )
 
 $ErrorActionPreference = 'Stop'
@@ -71,21 +74,21 @@ function Invoke-Checked {
 }
 
 $Core = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
-$LocalRoot = Join-Path $Core '.local\project-history'
+$LocalRoot = if ([string]::IsNullOrWhiteSpace($RuntimeRoot)) {
+    Join-Path $Core '.local\project-history'
+} else {
+    [IO.Path]::GetFullPath($RuntimeRoot)
+}
 $VenvRoot = Join-Path $LocalRoot '.venv'
 $VenvPython = Join-Path $VenvRoot 'Scripts\python.exe'
 $ModelRoot = Join-Path $LocalRoot 'models'
-$LogRoot = Join-Path $LocalRoot 'logs'
 $ConfigPath = Join-Path $LocalRoot 'projects.json'
 $Requirements = Join-Path $Core 'core\skills\query-project-history\scripts\requirements.txt'
 $HistoryScript = Join-Path $Core 'core\skills\query-project-history\scripts\history_search.py'
-$ConfigTemplate = Join-Path $Core 'core\skills\query-project-history\assets\projects.example.json'
+$CliScript = Join-Path $Core 'core\skills\query-project-history\scripts\project_history_cli.py'
+$RuntimeConfig = Join-Path $LocalRoot 'runtime.json'
 
-New-Item -ItemType Directory -Path $LocalRoot, $ModelRoot, $LogRoot -Force | Out-Null
-if (-not (Test-Path -LiteralPath $ConfigPath)) {
-    Copy-Item -LiteralPath $ConfigTemplate -Destination $ConfigPath
-    Write-Host "已建立空白 allowlist：$ConfigPath" -ForegroundColor Green
-}
+New-Item -ItemType Directory -Path $LocalRoot, $ModelRoot -Force | Out-Null
 
 if (-not (Test-Path -LiteralPath $VenvPython -PathType Leaf)) {
     $Python = Resolve-PythonExecutable
@@ -100,56 +103,85 @@ if (-not (Test-Path -LiteralPath $VenvPython -PathType Leaf)) {
     Invoke-Checked -Executable $Python -Arguments @('-m', 'venv', $VenvRoot)
 }
 
-$fastEmbedReady = & $VenvPython -c 'import importlib.util; raise SystemExit(0 if importlib.util.find_spec("fastembed") else 1)'
-if ($LASTEXITCODE -ne 0) {
-    if ($Wheelhouse) {
-        $resolvedWheelhouse = (Resolve-Path -LiteralPath $Wheelhouse).Path
-        Invoke-Checked -Executable $VenvPython -Arguments @(
-            '-m', 'pip', 'install', '--no-index', '--find-links', $resolvedWheelhouse,
-            '-r', $Requirements
-        )
-    } elseif ($PackageIndexUrl) {
-        Invoke-Checked -Executable $VenvPython -Arguments @(
-            '-m', 'pip', 'install', '--index-url', $PackageIndexUrl,
-            '-r', $Requirements
-        )
-    } else {
-        if (-not (Confirm-Download '缺少 FastEmbed，需要從 PyPI 下載固定版本套件')) {
-            throw '缺少 FastEmbed；未取得下載授權。可改用 -Wheelhouse 或 -PackageIndexUrl。'
+$EffectiveMode = if ($PSBoundParameters.ContainsKey('Mode')) {
+    $Mode
+} elseif (Test-Path -LiteralPath $RuntimeConfig -PathType Leaf) {
+    [string](Get-Content -Raw -LiteralPath $RuntimeConfig | ConvertFrom-Json).mode
+} else {
+    'hybrid'
+}
+if ($EffectiveMode -notin @('lexical', 'hybrid')) {
+    throw "不支援的既有 runtime mode：$EffectiveMode"
+}
+
+if ($EffectiveMode -eq 'hybrid') {
+    $fastEmbedReady = & $VenvPython -c 'import importlib.util; raise SystemExit(0 if importlib.util.find_spec("fastembed") else 1)'
+    if ($LASTEXITCODE -ne 0) {
+        if ($Wheelhouse) {
+            $resolvedWheelhouse = (Resolve-Path -LiteralPath $Wheelhouse).Path
+            Invoke-Checked -Executable $VenvPython -Arguments @(
+                '-m', 'pip', 'install', '--no-index', '--find-links', $resolvedWheelhouse,
+                '-r', $Requirements
+            )
+        } elseif ($PackageIndexUrl) {
+            Invoke-Checked -Executable $VenvPython -Arguments @(
+                '-m', 'pip', 'install', '--index-url', $PackageIndexUrl,
+                '-r', $Requirements
+            )
+        } else {
+            if (-not (Confirm-Download '缺少 FastEmbed，需要從 PyPI 下載固定版本套件')) {
+                throw '缺少 FastEmbed；未取得下載授權。可改用 -Wheelhouse 或 -PackageIndexUrl。'
+            }
+            Invoke-Checked -Executable $VenvPython -Arguments @(
+                '-m', 'pip', 'install', '-r', $Requirements
+            )
         }
-        Invoke-Checked -Executable $VenvPython -Arguments @(
-            '-m', 'pip', 'install', '-r', $Requirements
-        )
     }
-}
 
-if ($ModelSource) {
-    $resolvedModelSource = (Resolve-Path -LiteralPath $ModelSource).Path
-    Copy-Item -Path (Join-Path $resolvedModelSource '*') -Destination $ModelRoot `
-        -Recurse -Force
-}
-
-$modelFiles = Get-ChildItem -LiteralPath $ModelRoot -Recurse -File -ErrorAction SilentlyContinue
-$modelDownloadApproved = $AllowDownload
-if (-not $modelFiles) {
-    if (-not (Confirm-Download '缺少本機多語 embedding model，需要從 Hugging Face 下載約 220MB')) {
-        throw '缺少 embedding model；未取得下載授權。可改用 -ModelSource。'
+    if ($ModelSource) {
+        $resolvedModelSource = (Resolve-Path -LiteralPath $ModelSource).Path
+        Copy-Item -Path (Join-Path $resolvedModelSource '*') -Destination $ModelRoot `
+            -Recurse -Force
     }
-    $modelDownloadApproved = $true
+
+    $modelFiles = Get-ChildItem -LiteralPath $ModelRoot -Recurse -File `
+        -ErrorAction SilentlyContinue
+    $modelDownloadApproved = $AllowDownload
+    if (-not $modelFiles) {
+        if (-not (Confirm-Download '缺少本機多語 embedding model，需要從 Hugging Face 下載約 220MB')) {
+            throw '缺少 embedding model；未取得下載授權。可改用 -ModelSource。'
+        }
+        $modelDownloadApproved = $true
+    }
+
+    $env:FASTEMBED_CACHE_PATH = $ModelRoot
+    if (-not $modelDownloadApproved) {
+        $env:HF_HUB_OFFLINE = '1'
+    }
+    $prepareArguments = @($HistoryScript, 'prepare', '--cache-dir', $ModelRoot)
+    if ($modelDownloadApproved) {
+        $prepareArguments += '--allow-download'
+    }
+    Invoke-Checked -Executable $VenvPython -Arguments $prepareArguments
 }
 
-$env:FASTEMBED_CACHE_PATH = $ModelRoot
-if (-not $modelDownloadApproved) {
-    $env:HF_HUB_OFFLINE = '1'
-}
-$prepareArguments = @($HistoryScript, 'prepare', '--cache-dir', $ModelRoot)
-if ($modelDownloadApproved) {
-    $prepareArguments += '--allow-download'
-}
-Invoke-Checked -Executable $VenvPython -Arguments $prepareArguments
+Invoke-Checked -Executable $VenvPython -Arguments @(
+    $CliScript,
+    '--core-root', $Core,
+    '--runtime-root', $LocalRoot,
+    'mode', $EffectiveMode
+)
+Invoke-Checked -Executable $VenvPython -Arguments @(
+    $CliScript,
+    '--core-root', $Core,
+    '--runtime-root', $LocalRoot,
+    'status'
+)
 
 Write-Host ''
 Write-Host 'Project history 本機環境已就緒。' -ForegroundColor Cyan
+Write-Host "Mode：$EffectiveMode"
 Write-Host "設定 allowlist：$ConfigPath"
+Write-Host '管理 allowlist：.\scripts\project-history.ps1 project list'
 Write-Host '查看狀態：.\scripts\project-history.ps1 status'
 Write-Host '建立索引：.\scripts\project-history.ps1 rebuild'

@@ -54,8 +54,10 @@ SQLite＋Hybrid Search。此能力是可選的，不會由一般 setup 自動安
 
 - 所有 runtime、模型、allowlist 與 index 都在 `.local/project-history/`，不進 Git。
 - 缺少 Python、套件或模型時會先詢問；未取得同意不下載。
+- 公司未核准 embedding model 時可明確選擇 `-Mode lexical`，不會靜默降級。
 - 公司與個人電腦只共用工具，不共用專案內容、模型 cache 或 index。
-- 專案必須明確加入本機 allowlist，不會自動掃描整台電腦。
+- 專案透過 `project add/list/remove` 管理本機 allowlist，不會自動掃描整台電腦。
+- `rebuild/update` 使用暫存 index 驗證後原子替換，失敗時保留舊 index。
 
 完整移機與受限網路說明見
 [`portable-setup.md`](core/skills/query-project-history/references/portable-setup.md)。

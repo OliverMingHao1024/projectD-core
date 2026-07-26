@@ -20,13 +20,13 @@ local allowlist without the user's explicit selection.
 
 ## Query
 
-1. Locate the index path from the repository configuration or ask for it.
-2. Run:
+1. Run:
 
 ```powershell
-python scripts/history_search.py query --db <index.db> --query "<question>"
+.\scripts\project-history.ps1 query "<question>"
 ```
 
+2. Confirm the output reports the expected `lexical` or `hybrid` mode.
 3. Read the returned source files or commits before drawing a conclusion.
 4. Label every approach by its recorded status. Never present `failed`, `rejected`,
    `superseded`, or `experimental` evidence as the current recommendation.
@@ -38,24 +38,25 @@ python scripts/history_search.py query --db <index.db> --query "<question>"
 Index confirmed history as primary evidence:
 
 ```powershell
-python scripts/history_search.py index --db <index.db> --project <repo>
+.\scripts\project-history.ps1 project add <repo>
+.\scripts\project-history.ps1 rebuild
 ```
 
 Add Git and selected project documents only when the user wants auxiliary evidence:
 
 ```powershell
-python scripts/history_search.py index --db <index.db> --project <repo> --include-auxiliary
+.\scripts\project-history.ps1 project add <repo> -IncludeAuxiliary
 ```
 
-Use `--mode lexical` for a dependency-free baseline. Hybrid indexing requires the
-local-only FastEmbed dependency from `scripts/requirements.txt` and a locally
-cached/downloaded model. Add `--mode hybrid` to both `index` and `query`. Use
-`--project <name>` when the question targets one repository. Do not claim hybrid
-retrieval succeeded when the embedding backend is unavailable.
+Use `project-history.ps1 mode lexical` for a dependency-free baseline. Hybrid mode
+requires the local-only FastEmbed dependency and an approved local model. Mode changes
+are explicit and require `rebuild`; never claim hybrid retrieval succeeded when the
+embedding backend is unavailable.
 
 Use `project-history.ps1 update` after a confirmed history record is written. Use
-`rebuild` after the allowlist changes or when the index must be recreated. Do not add
-Git hooks, background monitors, or automatic filesystem scanning.
+`rebuild` when the index must be recreated. Both operations are transactional and
+prune removed allowlist entries. Do not add Git hooks, background monitors, or
+automatic filesystem scanning.
 
 ## Capture a history candidate
 
@@ -74,15 +75,19 @@ Separate `verified`, `user-confirmed`, `inferred`, and `unknown` claims. Never f
 missing rationale from code shape alone. Ask the user only to keep, defer, or exclude
 the candidate; do not require retrospective reconstruction.
 
-Use `candidates` only to propose retrospective records. Git evidence cannot prove
-uncommitted failed attempts:
+Use Candidate commands only to propose retrospective records. Git evidence cannot
+prove uncommitted failed attempts:
 
 ```powershell
-python scripts/history_search.py candidates --project <repo> --limit 10
+.\scripts\project-history.ps1 candidate scan <project>
+.\scripts\project-history.ps1 candidate list
 ```
 
-If candidate output is persisted, write it only below
-`.local/project-history/candidates/` or another non-repository temporary directory.
+Candidates are persisted only below `.local/project-history/candidates/`. Use
+`candidate defer <id>` to keep one local, `candidate exclude <id>` to remove its
+content and keep only a local disposition, or `candidate retain <id> -RecordPath
+<confirmed-record.md>` after explicit confirmation. Retain validates that the Record
+can be indexed before removing the Candidate; it never runs Git commit or push.
 Never commit a `HistoryCandidate`. Only a confirmed `HistoryRecord` belongs in
 `docs/history/`.
 
