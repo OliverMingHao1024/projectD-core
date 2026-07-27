@@ -15,6 +15,18 @@
 
 <!-- 畢業並移入正式 pack 者。每筆務必補「目標 pack」。 -->
 
+### mattpocock/skills（grill-with-docs）
+- id：mattpocock-skills
+- 來源連結：https://github.com/mattpocock/skills/tree/ed37663cc5fbef691ddfecd080dff42f7e7e350d/skills/engineering/grill-with-docs
+- 授權條款：MIT
+- star 數（評估時）：191111
+- 最近更新：2026-07-27
+- 評估日期：2026-07-28
+- 結論：收錄
+- 理由：使用者指名收錄。此 Skill 是既有 grilling 與 domain-modeling 的小型組合工作流；相依能力已存在。引入時移除 Claude 專屬 `/skill` 語法與 `disable-model-invocation` metadata，補上跨 Agent 觸發、相依 Skill 缺少時的降級行為，以及逐筆確認後才寫入 CONTEXT.md／ADR 的界線。
+- 目標 pack：core/skills/grill-with-docs
+- 發現管道：使用者指定 + gh repo/API 實檔審查
+
 ### mattpocock/skills（codebase-design / domain-modeling / improve-codebase-architecture / writing-great-skills）
 - id：mattpocock-skills
 - 來源連結：https://github.com/mattpocock/skills
