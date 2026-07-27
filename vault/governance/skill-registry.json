@@ -11,6 +11,7 @@
       "decision_records": [
         "mattpocock/skills（grill-with-docs）",
         "mattpocock/skills（to-spec / to-tickets）",
+        "mattpocock/skills（implement / code-review review gate）",
         "mattpocock/skills（codebase-design / domain-modeling / improve-codebase-architecture / writing-great-skills）",
         "mattpocock/skills（第二批：to-questionnaire / resolving-merge-conflicts / diagnosing-bugs / research / prototype / wayfinder）",
         "mattpocock/skills（tdd / code-review 兩個 skill，此為舊評估範圍）"
@@ -517,6 +518,18 @@
       "migration_status": "complete"
     },
     {
+      "id": "mattpocock-skills--skills-engineering-implement",
+      "source_id": "github-mattpocock-skills",
+      "source_path": "skills/engineering/implement",
+      "observed_commit": "ed37663cc5fbef691ddfecd080dff42f7e7e350d",
+      "upstream_digest": "sha256:2b707cd94b176cbbd4e13752169b0468beff1a50ed091b222a8398c8eed947bd",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/implement",
+      "canonical_name": "implement",
+      "decision_record": "mattpocock/skills（implement / code-review review gate）",
+      "migration_status": "complete"
+    },
+    {
       "id": "mattpocock-skills--skills-engineering-tdd",
       "source_id": "github-mattpocock-skills",
       "source_path": "skills/engineering/tdd",
@@ -533,11 +546,11 @@
       "source_id": "github-mattpocock-skills",
       "source_path": "skills/engineering/code-review",
       "observed_commit": "ed37663cc5fbef691ddfecd080dff42f7e7e350d",
-      "upstream_digest": null,
-      "lifecycle_status": "held",
-      "target": null,
-      "canonical_name": null,
-      "decision_record": "mattpocock/skills（tdd / code-review 兩個 skill，此為舊評估範圍）",
+      "upstream_digest": "sha256:0a4d492b39c8cf1e2c104cbd67b02dbf5d79d31b13ed371098ae2aa82daa143c",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/code-review",
+      "canonical_name": "code-review",
+      "decision_record": "mattpocock/skills（implement / code-review review gate）",
       "migration_status": "complete"
     },
     {

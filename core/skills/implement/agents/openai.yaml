@@ -1,0 +1,4 @@
+interface:
+  display_name: "Implement"
+  short_description: "Implement approved work through a required review gate"
+  default_prompt: "Use $implement to deliver this approved specification or ticket and complete its required review gate."

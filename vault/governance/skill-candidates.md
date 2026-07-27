@@ -17,6 +17,18 @@
 
 <!-- 畢業並移入正式 pack 者。每筆務必補「目標 pack」。 -->
 
+### mattpocock/skills（implement / code-review review gate）
+- id：mattpocock-skills--skills-engineering-implement / mattpocock-skills--skills-engineering-code-review
+- 來源連結：https://github.com/mattpocock/skills/tree/ed37663cc5fbef691ddfecd080dff42f7e7e350d/skills/engineering
+- 授權條款：MIT
+- star 數（評估時）：191168
+- 最近更新：2026-07-27
+- 評估日期：2026-07-28
+- 結論：部分收錄
+- 理由：使用者核准 Implementation Review Gate 規格與兩張依賴 tickets。code-review 保留 Standards／Spec 雙軸，新增 working-tree 模式，移除 setup-matt-pocock-skills 與強制平行 sub-agent，並維持全程唯讀；implement 改為只執行已核准範圍、依專案選擇測試策略而不強制 TDD，但對程式碼與行為設定強制完成有界 code-review gate。兩者皆不自動 commit、push 或修改 tracker。
+- 目標 pack：core/skills/{code-review,implement}
+- 發現管道：使用者指定 + skill-scout 固定 commit 審查 + 核准規格與 tickets
+
 ### mattpocock/skills（to-spec / to-tickets）
 - id：mattpocock-skills--skills-engineering-to-spec / mattpocock-skills--skills-engineering-to-tickets
 - 來源連結：https://github.com/mattpocock/skills/tree/ed37663cc5fbef691ddfecd080dff42f7e7e350d/skills/engineering
@@ -417,6 +429,6 @@
 - 最近更新：2026-07-23
 - 評估日期：2026-07-24
 - 結論：暫緩
-- 理由：PG 乾跑發現三項阻擋：強制每次測試前由使用者確認 seam、將 Refactor 排除在 TDD loop 外、依賴未擷取的 code-review skill。折衷方案是只吸收公開介面測試、系統邊界 mock 與 Red→Green→Refactor 原則；將 seam 確認改為需求／風險不明時才詢問，移除未擷取依賴，並修正 Jest／Fetch 範例後再試用。此結論僅涵蓋 tdd/code-review 兩個 skill；同一來源其他 skill 分別評估，見「評估中」區塊同一 id 的另一筆。
+- 理由：PG 乾跑發現三項阻擋：強制每次測試前由使用者確認 seam、將 Refactor 排除在 TDD loop 外、依賴當時未擷取的 code-review Skill。此舊結論中的 tdd 仍維持暫緩；code-review 已依後續核准的 Implementation Review Gate 規格重新審查並收錄，見「implement / code-review review gate」紀錄。
 - 目標 pack：（待定，僅 tdd/code-review 範圍）
 - 發現管道：gh search + gh code search + WebSearch

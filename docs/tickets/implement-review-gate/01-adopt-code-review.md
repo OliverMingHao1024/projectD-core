@@ -9,16 +9,16 @@ runtime is available.
 
 ## Acceptance criteria
 
-- [ ] The Skill is read-only and never modifies reviewed source.
-- [ ] Working-tree and fixed-point comparison modes are supported.
-- [ ] Repository standards override general review heuristics.
-- [ ] Standards and Spec findings are reported separately with evidence.
-- [ ] A missing specification skips only the Spec axis and is reported clearly.
-- [ ] Sub-agents are optional rather than required.
-- [ ] The upstream setup Skill and Claude-specific assumptions are removed.
-- [ ] Source license, pinned commit, digest, registry lifecycle, UI metadata, and
+- [x] The Skill is read-only and never modifies reviewed source.
+- [x] Working-tree and fixed-point comparison modes are supported.
+- [x] Repository standards override general review heuristics.
+- [x] Standards and Spec findings are reported separately with evidence.
+- [x] A missing specification skips only the Spec axis and is reported clearly.
+- [x] Sub-agents are optional rather than required.
+- [x] The upstream setup Skill and Claude-specific assumptions are removed.
+- [x] Source license, pinned commit, digest, registry lifecycle, UI metadata, and
       GovernanceWiring are complete.
-- [ ] Official Skill and projectD checks pass.
+- [x] Official Skill and projectD checks pass.
 
 ## Blocked by
 

@@ -26,20 +26,20 @@ and behavior-affecting configuration changes.
 
 ## Acceptance criteria
 
-- [ ] `implement` operates only from an approved specification, ticket, or
+- [x] `implement` operates only from an approved specification, ticket, or
       equivalently settled scope.
-- [ ] TDD is optional; validation and relevant tests remain mandatory.
-- [ ] Source-code and behavior-affecting configuration changes must pass
+- [x] TDD is optional; validation and relevant tests remain mandatory.
+- [x] Source-code and behavior-affecting configuration changes must pass
       `code-review`.
-- [ ] Documentation-only work may report `code-review: not applicable`.
-- [ ] `code-review` supports an uncommitted working tree and fixed-point branch,
+- [x] Documentation-only work may report `code-review: not applicable`.
+- [x] `code-review` supports an uncommitted working tree and fixed-point branch,
       tag, or commit comparisons.
-- [ ] Standards and specification findings remain separate.
-- [ ] Review does not require sub-agents; the current Agent can run both axes.
-- [ ] Material fixes receive one focused re-review without creating an
+- [x] Standards and specification findings remain separate.
+- [x] Review does not require sub-agents; the current Agent can run both axes.
+- [x] Material fixes receive one focused re-review without creating an
       unbounded review loop.
-- [ ] Neither Skill commits or pushes without explicit user authorization.
-- [ ] Upstream changes produce a drift report and never overwrite a
+- [x] Neither Skill commits or pushes without explicit user authorization.
+- [x] Upstream changes produce a drift report and never overwrite a
       CanonicalSkill automatically.
 
 ## Implementation decisions

@@ -8,21 +8,21 @@ mandatory `code-review` completion gate for behavioral changes.
 
 ## Acceptance criteria
 
-- [ ] The Skill refuses to invent unresolved product decisions and implements
+- [x] The Skill refuses to invent unresolved product decisions and implements
       only settled scope.
-- [ ] It selects relevant PG and stack guidance without duplicating coding
+- [x] It selects relevant PG and stack guidance without duplicating coding
       standards.
-- [ ] TDD is conditional, while relevant tests and acceptance-criteria
+- [x] TDD is conditional, while relevant tests and acceptance-criteria
       verification remain mandatory.
-- [ ] Code and behavior-affecting configuration changes invoke `code-review`.
-- [ ] Documentation-only work can report `code-review: not applicable`.
-- [ ] Material review findings are fixed or explicitly reported; material fixes
+- [x] Code and behavior-affecting configuration changes invoke `code-review`.
+- [x] Documentation-only work can report `code-review: not applicable`.
+- [x] Material review findings are fixed or explicitly reported; material fixes
       receive one focused re-review.
-- [ ] The workflow cannot enter an unbounded review loop.
-- [ ] Commit and push remain separately authorized actions.
-- [ ] Source license, pinned commit, digest, registry lifecycle, UI metadata, and
+- [x] The workflow cannot enter an unbounded review loop.
+- [x] Commit and push remain separately authorized actions.
+- [x] Source license, pinned commit, digest, registry lifecycle, UI metadata, and
       GovernanceWiring are complete.
-- [ ] Official Skill, projectD, and end-to-end workflow checks pass.
+- [x] Official Skill, projectD, and end-to-end workflow checks pass.
 
 ## Blocked by
 
