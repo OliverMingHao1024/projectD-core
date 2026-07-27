@@ -199,6 +199,11 @@ function ConvertTo-InspectedCandidate {
     )
 
     $reasons = [Collections.Generic.List[string]]::new()
+    if ([bool]$Item.tree_truncated) {
+        $reasons.Add(
+            'Git tree response is truncated; complete content digest cannot be verified.'
+        )
+    }
     if (-not (Test-ClearLicense ([string]$Item.license_spdx))) {
         $reasons.Add('License is missing, unclear, or non-SPDX.')
     }
@@ -321,6 +326,7 @@ function Get-LiveSourceItem {
         updated_at = [string]$repo.pushed_at
         relevance = 100
         matches = @()
+        tree_truncated = [bool]$tree.truncated
         files = $files
         skill_content = $skillContent
     }

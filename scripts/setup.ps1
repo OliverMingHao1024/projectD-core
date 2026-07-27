@@ -45,7 +45,22 @@ Write-WiringPlan $plan
 if ($Mode -eq 'Check') {
     $issues = @($plan | Where-Object State -NE 'Compliant')
     if ($issues.Count -gt 0) {
-        throw "GovernanceWiring check failed with $($issues.Count) issue(s)."
+        $details = @(
+            $issues | ForEach-Object {
+                $identity = if (
+                    $_.Resource.ResourceType -eq 'Environment'
+                ) {
+                    "$($_.Resource.Scope):$($_.Resource.Name)"
+                } else {
+                    $_.Resource.Path
+                }
+                "$identity — $($_.Message)"
+            }
+        ) -join '; '
+        throw (
+            "GovernanceWiring check failed with $($issues.Count) issue(s): " +
+            $details
+        )
     }
     Write-Host '[PASS] 全域治理接線符合 desired state。' -ForegroundColor Green
     return

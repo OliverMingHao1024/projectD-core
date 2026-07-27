@@ -77,6 +77,22 @@
         {"path": "scripts/run.ps1", "sha": "7777777777777777777777777777777777777777"}
       ],
       "skill_content": "---\nname: merge-runner\ndescription: Run a merge-conflict automation script.\n---\n"
+    },
+    {
+      "repository": "example/skills",
+      "source_path": "skills/truncated-tree",
+      "ref": "main",
+      "commit": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "license_spdx": "MIT",
+      "stars": 100,
+      "updated_at": "2026-07-21T00:00:00Z",
+      "relevance": 100,
+      "matches": ["truncated tree"],
+      "tree_truncated": true,
+      "files": [
+        {"path": "SKILL.md", "sha": "8888888888888888888888888888888888888888"}
+      ],
+      "skill_content": "---\nname: truncated-tree\ndescription: Exercise incomplete Git tree handling.\n---\n"
     }
   ]
 }

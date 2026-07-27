@@ -198,9 +198,17 @@ $files=@(Get-ChildItem $core -Recurse -File|Where-Object{$_.FullName -notmatch '
 function Child([string]$n,[scriptblock]$a){
     try {
         $global:LASTEXITCODE = 0
-        &$a | Out-Null
-        if ($global:LASTEXITCODE -ne 0) {
-            throw "Child check exited with code $global:LASTEXITCODE."
+        $childOutput = @(&$a *>&1)
+        $childExitCode = $global:LASTEXITCODE
+        if ($childExitCode -ne 0) {
+            $details = @(
+                $childOutput |
+                    Select-Object -Last 12 |
+                    ForEach-Object { "$_".Trim() } |
+                    Where-Object { $_ }
+            ) -join ' | '
+            $suffix = if ($details) { " Output: $details" } else { '' }
+            throw "Child check exited with code $childExitCode.$suffix"
         }
         Add-Result $n $true 'Child check passed'
     } catch {
@@ -226,5 +234,5 @@ if($null -eq $pwsh){
         )
     }
 }
-if(-not$SkipWiring){if($null -eq $pwsh){if(-not$SkipGlobal){Add-Result 'global-wiring' $false 'pwsh executable not found; install PowerShell 7 to run wiring checks'};Add-Result 'fleet-wiring' $false 'pwsh executable not found; install PowerShell 7 to run wiring checks'}else{if(-not$SkipGlobal){Child 'global-wiring'{& $pwsh.Source -NoProfile -File (Join-Path $PSScriptRoot 'setup.ps1') -Mode Check}};Child 'fleet-wiring'{& $pwsh.Source -NoProfile -File (Join-Path $PSScriptRoot 'fleet-governance.ps1') -Mode Check -FleetPath $FleetPath}}}else{Add-Result 'wiring' $true 'Skipped for isolated fixture checks'}
+if(-not$SkipWiring){if($null -eq $pwsh){if(-not$SkipGlobal){Add-Result 'global-wiring' $false 'pwsh executable not found; install PowerShell 7 to run wiring checks'};Add-Result 'fleet-wiring' $false 'pwsh executable not found; install PowerShell 7 to run wiring checks'}else{if(-not$SkipGlobal){Child 'global-wiring'{& (Join-Path $PSScriptRoot 'setup.ps1') -Mode Check}};Child 'fleet-wiring'{& (Join-Path $PSScriptRoot 'fleet-governance.ps1') -Mode Check -FleetPath $FleetPath}}}else{Add-Result 'wiring' $true 'Skipped for isolated fixture checks'}
 $failed=@($results|?{-not$_.passed});if($Json){[pscustomobject]@{passed=(!$failed.Count);checks=$results}|ConvertTo-Json -Depth 4}else{$results|%{"[$(if($_.passed){'PASS'}else{'FAIL'})] $($_.name): $($_.message)"};"Summary: $(@($results|? passed).Count) passed, $($failed.Count) failed."};if($failed.Count){exit 1}

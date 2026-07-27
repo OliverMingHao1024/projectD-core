@@ -32,6 +32,22 @@ Assert-True (
     'mattpocock-skills--skills-engineering-grill-with-docs'
 ) 'Candidate id must include the complete source path.'
 
+$truncatedResult = & $Script `
+    -Source 'https://github.com/example/skills/tree/main/skills/truncated-tree' `
+    -FixturePath $Fixture |
+    ConvertFrom-Json
+
+Assert-True (
+    @($truncatedResult.candidates).Count -eq 0
+) 'A truncated Git tree must not produce a verifiable candidate.'
+Assert-True (
+    @($truncatedResult.rejections |
+        Where-Object {
+            $_.source -eq 'example/skills/skills/truncated-tree' -and
+            $_.reasons -match 'truncated'
+        }).Count -eq 1
+) 'A truncated Git tree must be rejected with an explicit reason.'
+
 $capabilityResult = & $Script `
     -Capability 'merge conflict' `
     -Query 'merge conflict' `
