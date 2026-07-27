@@ -1,0 +1,4 @@
+interface:
+  display_name: "Skill Update Check"
+  short_description: "Check adopted Skills for upstream changes"
+  default_prompt: "Use $skill-update-check to detect relevant upstream changes without modifying canonical Skills."

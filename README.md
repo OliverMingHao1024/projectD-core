@@ -40,6 +40,14 @@
 各 AI 目錄只放 junction，不保存獨立內容；修改 repo 的 canonical Skill 會即時反映。`packs/_staging/` 不會接入。
 若已設定 `CODEX_HOME`，Codex 的全域 `AGENTS.md` 會寫入該目錄。
 
+### 定向引入外部 Skill
+
+使用 `skill-scout` 依功能需求或指定 GitHub Skill URL 做唯讀檢查。它最多回傳三個
+授權與格式合格的候選，不執行外部程式、不自動 staging，也不自行擴大搜尋。候選的機器
+狀態在 `vault/governance/skill-registry.json`，人工理由在
+`vault/governance/skill-candidates.md`；已採用 Skill 的 upstream 漂移由獨立
+`skill-update-check` 檢查。
+
 全域接線由同一份 `GovernanceWiring` desired state 管理。可先用
 `pwsh -File scripts/setup.ps1 -Mode Check` 唯讀檢查；`Apply` 會先完成所有
 ownership/conflict preflight，全部變更後再驗證，途中失敗只回滾本次異動。
@@ -89,7 +97,8 @@ pwsh -File scripts/projectd-check.ps1 -Json
 ```
 
 The command validates every canonical Skill in `core/skills/` and `packs/`, including
-portable frontmatter, folder/name agreement, and duplicate names. It also validates fleet
-paths/packs, retired pack references, and global/fleet wiring. It returns a non-zero exit
-code when any check fails. Use `-ProjectRoot` for another checkout; `-SkipWiring` is
-reserved for isolated fixture tests.
+portable frontmatter, folder/name agreement, duplicate names, and the Skill registry's
+source/candidate/decision-record relationships. It also validates fleet paths/packs,
+retired pack references, and global/fleet wiring. It returns a non-zero exit code when
+any check fails. Use `-ProjectRoot` for another checkout; `-SkipWiring` is reserved for
+isolated fixture tests.

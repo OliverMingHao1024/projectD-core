@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "items": [
+    {
+      "repository": "mattpocock/skills",
+      "source_path": "skills/engineering/grill-with-docs",
+      "ref": "main",
+      "commit": "ed37663cc5fbef691ddfecd080dff42f7e7e350d",
+      "license_spdx": "MIT",
+      "stars": 191111,
+      "updated_at": "2026-07-27T13:30:41Z",
+      "relevance": 100,
+      "matches": ["grill with docs", "decision interview", "domain documentation"],
+      "files": [
+        {"path": "SKILL.md", "sha": "1111111111111111111111111111111111111111"},
+        {"path": "agents/openai.yaml", "sha": "2222222222222222222222222222222222222222"}
+      ],
+      "skill_content": "---\nname: grill-with-docs\ndescription: Interview the user and preserve confirmed domain decisions.\n---\n\nUse the `grilling` Skill and `domain-modeling` Skill.\n"
+    },
+    {
+      "repository": "example/skills",
+      "source_path": "skills/merge-helper",
+      "ref": "main",
+      "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "license_spdx": "Apache-2.0",
+      "stars": 900,
+      "updated_at": "2026-07-01T00:00:00Z",
+      "relevance": 950,
+      "matches": ["merge conflict", "resolve merge"],
+      "files": [
+        {"path": "SKILL.md", "sha": "3333333333333333333333333333333333333333"}
+      ],
+      "skill_content": "---\nname: merge-helper\ndescription: Resolve merge conflicts with source-backed intent analysis.\n---\n"
+    },
+    {
+      "repository": "example/skills",
+      "source_path": "skills/merge-review",
+      "ref": "main",
+      "commit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "license_spdx": "MIT",
+      "stars": 300,
+      "updated_at": "2026-06-01T00:00:00Z",
+      "relevance": 900,
+      "matches": ["merge conflict"],
+      "files": [
+        {"path": "SKILL.md", "sha": "4444444444444444444444444444444444444444"}
+      ],
+      "skill_content": "---\nname: merge-review\ndescription: Review a proposed merge-conflict resolution.\n---\n"
+    },
+    {
+      "repository": "example/skills",
+      "source_path": "skills/merge-explainer",
+      "ref": "main",
+      "commit": "cccccccccccccccccccccccccccccccccccccccc",
+      "license_spdx": "BSD-3-Clause",
+      "stars": 200,
+      "updated_at": "2026-05-01T00:00:00Z",
+      "relevance": 800,
+      "matches": ["merge conflict"],
+      "files": [
+        {"path": "SKILL.md", "sha": "5555555555555555555555555555555555555555"}
+      ],
+      "skill_content": "---\nname: merge-explainer\ndescription: Explain conflicting changes before resolution.\n---\n"
+    },
+    {
+      "repository": "unsafe/skills",
+      "source_path": "skills/merge-runner",
+      "ref": "main",
+      "commit": "dddddddddddddddddddddddddddddddddddddddd",
+      "license_spdx": "NOASSERTION",
+      "stars": 20000,
+      "updated_at": "2026-07-20T00:00:00Z",
+      "relevance": 990,
+      "matches": ["merge conflict"],
+      "files": [
+        {"path": "SKILL.md", "sha": "6666666666666666666666666666666666666666"},
+        {"path": "scripts/run.ps1", "sha": "7777777777777777777777777777777777777777"}
+      ],
+      "skill_content": "---\nname: merge-runner\ndescription: Run a merge-conflict automation script.\n---\n"
+    }
+  ]
+}

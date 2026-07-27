@@ -1,9 +1,11 @@
 # Skill 候選決策紀錄
 
-> 由 `/skill-scout` 讀取與回填。每個評估過的來源（含被拒絕者）一筆。
+> 保存人工審查理由。機器可讀的來源、單一 Skill ID、commit、digest、生命週期狀態與
+> canonical 目標以 `skill-registry.json` 為準。
 > 格式契約：三個固定 H2 區塊 + 每筆用 `### <owner>/<repo>` H3 標題 + 固定 key 條列。
 > 回填策略：區塊定位搬移，不整檔重寫（避免破壞手改內容）。
-> `id` = `<owner>-<repo>`（全小寫、`/` 換 `-`），與 `packs/_staging/` 子目錄名一致。
+> 本檔既有 repo 級 `id` 是歷史欄位；新候選使用
+> `<owner>-<repo>--<完整-skill-路徑>`，與 registry 及 staging 目錄一致。
 
 固定欄位 key（每筆）：
 `id`、`來源連結`、`授權條款`、`star 數（評估時）`、`最近更新`、`評估日期`、`結論`、
@@ -393,7 +395,7 @@
 
 ## 已拒絕・暫緩
 
-<!-- 拒絕或暫緩者。理由必填，供日後 /skill-scout 重跑時列出供使用者複審。 -->
+<!-- 拒絕或暫緩者。理由必填；是否重新審查由使用者決定，不由 scout 自動展開。 -->
 
 ### mattpocock/skills（tdd / code-review 兩個 skill，此為舊評估範圍）
 - id：mattpocock-skills

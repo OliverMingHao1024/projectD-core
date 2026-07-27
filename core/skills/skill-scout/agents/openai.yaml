@@ -1,0 +1,4 @@
+interface:
+  display_name: "Skill Scout"
+  short_description: "Find and verify targeted GitHub Skills"
+  default_prompt: "Use $skill-scout to find or inspect a specific GitHub Skill without broadening the search."

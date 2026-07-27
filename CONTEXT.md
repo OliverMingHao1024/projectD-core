@@ -4,6 +4,22 @@
 
 ## Language
 
+**CanonicalSkill**:
+由 projectD-core 維護、通過治理審查，並供一個或多個 AI Agent 共用的正式 Skill；其落點依適用範圍分為 `core/skills/` 或 `packs/`。
+_Avoid_: InstalledSkill, ExternalSkill, AgentCopy
+
+**SkillCandidate**:
+從單一外部來源路徑識別、尚未成為 CanonicalSkill 的待審 Skill；具有獨立 ID、來源版本、生命週期狀態與審查紀錄。
+_Avoid_: RepositoryCandidate, InstalledSkill, StagedPack
+
+**SkillSource**:
+提供一個或多個 SkillCandidate 的外部 repository；集中記錄來源位置、授權與最近觀察版本，但不代表其中所有 Skills 都被信任或採用。
+_Avoid_: SkillPack, CanonicalSkill, TrustedRepository
+
+**SkillRegistry**:
+保存 SkillSource、SkillCandidate 與 CanonicalSkill 之間機器可讀關係及生命週期狀態的唯一資料來源；不保存人工決策理由。
+_Avoid_: CandidateLog, SkillDocumentation, SourceOfRationale
+
 **HistoryCandidate**:
 尚未經人工確認、不能視為事實或建議的歷程候選。
 _Avoid_: DraftRecord, UnconfirmedRecord
