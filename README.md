@@ -78,3 +78,14 @@ SQLite＋Hybrid Search。此能力是可選的，不會由一般 setup 自動安
 - PM／SA／SD／PG 是可選能力，不強迫低風險小任務跑完整流水線
 - 行為變更與 bug 修復在條件允許時優先採 Red → Green → Refactor；
   無測試基礎設施的專案使用最小回歸驗證，不為形式擅自加依賴
+
+### Unified projectD check
+
+Run the read-only quality gate with PowerShell 7:
+
+```powershell
+pwsh -File scripts/projectd-check.ps1
+pwsh -File scripts/projectd-check.ps1 -Json
+```
+
+The command validates pack metadata, fleet paths/packs, retired pack references, and global/fleet wiring. It returns a non-zero exit code when any check fails. Use `-ProjectRoot` for another checkout; `-SkipWiring` is reserved for isolated fixture tests.
