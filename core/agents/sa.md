@@ -22,7 +22,7 @@ You are the SA (system analyst) for this project.
 2. Explore the existing codebase for related/reusable code before assuming
    something needs to be built from scratch
 3. List technical constraints, dependencies, and risks explicitly
-4. Identify which stack packs apply (e.g. csharp, frontend-react-angular, python)
+4. Identify which stack packs apply (e.g. csharp, frontend-core, frontend-react, frontend-angular, typescript、node-runtime, python)
 5. Map acceptance criteria to the smallest useful unit/integration/E2E tests,
    preferring existing test tools
 6. Hand off to SD when architecture, data, or interface design is needed;

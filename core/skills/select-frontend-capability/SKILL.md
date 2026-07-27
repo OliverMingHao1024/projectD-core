@@ -58,8 +58,8 @@ Prefer, in order:
 
 For the projectD frontend pack:
 
-- React: read `packs/frontend-react-angular/references/react-capabilities.md`.
-- Angular: read `packs/frontend-react-angular/references/angular-capabilities.md`.
+- React: read `packs/frontend-react/references/react-capabilities.md`.
+- Angular: read `packs/frontend-angular/references/angular-capabilities.md`.
 - Mixed repository: load only the adapter for the affected app; load both only for an actual cross-framework contract.
 - Unsupported stack: apply this workflow from repository evidence and explicitly note the missing adapter.
 

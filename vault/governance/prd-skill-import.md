@@ -17,7 +17,7 @@
 
 ### In-scope
 - **SKILL 來源定義**：以 Claude Code Skill 生態（`SKILL.md` 格式）為候選來源；但收錄後的內容須改寫成跨工具通用的表述，不倚賴 Claude Code 專屬語法。
-- **技術棧範圍**：不限於現有三個 pack（csharp、frontend-react-angular、python）；發現高星且好用者可開新 pack。（使用者已知悉此與憲法第 4 條「不預先假設」的精神張力並選擇開放，本 PRD 不再質疑。）
+- **技術棧範圍**：不限於現有 packs（csharp、frontend-core、frontend-react、frontend-angular、typescript / node-runtime、python）；發現高星且好用者可開新 pack。（使用者已知悉此與憲法第 4 條「不預先假設」的精神張力並選擇開放，本 PRD 不再質疑。）
 - **搜尋與篩選**：以 `gh` CLI 拉結構化資料（star 數、最近更新、關鍵字排序）快速縮小候選；以 WebSearch 找質化推薦（awesome-list、部落格）交叉比對。star 只用於初篩，不作為自動收錄依據。
 - **授權把關**：只收錄具明確開源授權（MIT/Apache/BSD 等）者；每份納入檔案標注來源連結與授權條款。
 - **staging 流程**：新增 `packs/_staging/` 暫存候選，`pg` 做一次乾跑（dry-run）格式／過時／矛盾的基本把關。

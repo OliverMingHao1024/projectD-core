@@ -7,7 +7,7 @@
 3. 依 `vault/governance/INDEX.md` 的 L1–L6 摘要做語意路由；只在命中時讀取
    `vault/governance/operating-model.md` 的相關規則
 4. 需要技術棧規範時，才讀取對應的 `packs/*/SKILL.md`
-   （C# → `packs/csharp`，React/Angular/TypeScript → `packs/frontend-react-angular`，
+   （C# → `packs/csharp`；通用瀏覽器 → `packs/frontend-core`；React → `packs/frontend-react`；Angular → `packs/frontend-angular`；TypeScript/Node → `packs/typescript、node-runtime`；
    Python → `packs/python`）
 
 ## 外部工具參考（core/skills/）

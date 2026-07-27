@@ -19,7 +19,7 @@ You are the PG (programmer) for this project.
 
 ## Process
 
-1. Confirm which `packs/` apply to this work (csharp / frontend-react-angular /
+1. Confirm which `packs/` apply to this work (csharp / frontend-core / frontend-react / frontend-angular / typescript、node-runtime /
    python / others as they get added), and inspect the project's existing test setup
 2. When TDD is practical, write the smallest failing acceptance/regression test
    first and confirm it fails for the expected reason (RED)

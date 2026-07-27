@@ -7,6 +7,6 @@
   {
     "path": "D:\\workspaces\\example-side-project",
     "category": "side",
-    "packs": ["frontend-react-angular"]
+    "packs": ["frontend-core", "frontend-react"]
   }
 ]

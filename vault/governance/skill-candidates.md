@@ -48,7 +48,7 @@
 - 評估日期：2026-07-26
 - 結論：部分收錄
 - 理由：部分收錄並全面改寫 apple-design、animation-vocabulary、emil-design-eng、find-animation-opportunities、improve-animations、review-animations。保留設計／動效核心方法，修正 duration-based spring、效能保證、絕對 duration、Pointer Events、無障礙、跨框架與寫入授權問題。原版 pick-ui-library 的封閉清單違反 L0 生態中立，不建立 active Skill；僅把經驗證且附條件的 React 候選整合至既有能力 adapter。
-- 目標 pack：core/skills/{apple-design,animation-vocabulary,design-engineering,find-animation-opportunities,improve-animations,review-animations} + packs/frontend-react-angular/references/react-capabilities.md
+- 目標 pack：core/skills/{apple-design,animation-vocabulary,design-engineering,find-animation-opportunities,improve-animations,review-animations} + packs/frontend-react/references/react-capabilities.md
 - 發現管道：使用者指定 + gh repo/API 實檔審查 + PG dry-run
 
 ## 評估中
@@ -123,8 +123,8 @@
 - 最近更新：2026-05-20
 - 評估日期：2026-07-24
 - 結論：（待使用者判斷，尚未落 staging）
-- 理由：66 個全端開發技能，規模適中、聚焦度較高，與 frontend-react-angular pack 可能有重疊價值。
-- 目標 pack：（待定，可能 frontend-react-angular）
+- 理由：66 個全端開發技能，規模適中、聚焦度較高，與 frontend-core pack 可能有重疊價值。
+- 目標 pack：（待定，可能 frontend-core）
 - 發現管道：gh search --topic claude-skills
 
 ### KKKKhazix/khazix-skills
@@ -256,7 +256,7 @@
 - 評估日期：2026-07-24
 - 結論：（待使用者判斷，尚未落 staging）
 - 理由：主題「美化 Web 頁面」關鍵字掃描，專門設計美化網頁的 skill（spec first, code second），規模適中、聚焦度高，star 成長曲線合理。
-- 目標 pack：（待定，可能 frontend-react-angular）
+- 目標 pack：（待定，可能 frontend-core）
 - 發現管道：gh search code --filename SKILL.md "web design"
 
 ### superdesigndev/superdesign-skill
@@ -268,7 +268,7 @@
 - 評估日期：2026-07-24
 - 結論：（待使用者判斷，尚未落 staging）
 - 理由：主題「美化 Web 頁面」關鍵字掃描，訴求「Stop shipping AI-slop UI」，superdesign.dev 產品方維護，持續更新中。
-- 目標 pack：（待定，可能 frontend-react-angular）
+- 目標 pack：（待定，可能 frontend-core）
 - 發現管道：gh search --topic claude-code（先前廣掃已見）
 
 ### dominikmartn/hue

@@ -23,7 +23,7 @@
 - 通用 Skill：`../../core/skills/*/SKILL.md`
 - 技術棧 Skill：`../../packs/*/SKILL.md`
 - 前端能力選型：`../../core/skills/select-frontend-capability/SKILL.md`，再依目前 workspace
-  路由至 `../../packs/frontend-react-angular/references/{react,angular}-capabilities.md`
+  路由至 `../../packs/frontend-react/references/react-capabilities.md` 與 `../../packs/frontend-angular/references/angular-capabilities.md`
 - 可重複踩坑：`../after-action/`
 - 跨專案歷程查詢 PoC：`../../core/skills/query-project-history/SKILL.md`；
   候選與基準集位於 `project-history-poc/`，候選未經人工確認不得視為歷程事實。

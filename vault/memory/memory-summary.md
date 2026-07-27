@@ -14,7 +14,7 @@ lastUpdated: 2026-07-26
   `core/skills/` 放跨技術棧能力、`packs/` 放技術棧規範；`setup.ps1` 只以 junction 接到
   `~/.claude/skills/` 與 Codex/Copilot 共用的 `~/.agents/skills/`，不為不同 AI 維護副本。
 - 角色 agent：PM/SA/SD/PG 四個獨立具名 agent。
-- 初始 pack：csharp、frontend-react-angular、python（骨架，內容待實際使用累積）。
+- 初始 pack：csharp、frontend-core、frontend-react、frontend-angular、typescript / node-runtime、python（骨架，內容待實際使用累積）。
 - 建立輕量 L1–L6 運作模型：L0 常駐、其他層按語意載入；四角色依任務規模選用，
   不強制完整流水線，也不引入固定思維框架、自動 recap 或跨專案固定覆蓋率。
 - 開發流程以 TDD 精神為優先：有既有測試基礎設施的行為變更／bug 修復採
