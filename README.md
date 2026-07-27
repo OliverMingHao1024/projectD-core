@@ -88,4 +88,8 @@ pwsh -File scripts/projectd-check.ps1
 pwsh -File scripts/projectd-check.ps1 -Json
 ```
 
-The command validates pack metadata, fleet paths/packs, retired pack references, and global/fleet wiring. It returns a non-zero exit code when any check fails. Use `-ProjectRoot` for another checkout; `-SkipWiring` is reserved for isolated fixture tests.
+The command validates every canonical Skill in `core/skills/` and `packs/`, including
+portable frontmatter, folder/name agreement, and duplicate names. It also validates fleet
+paths/packs, retired pack references, and global/fleet wiring. It returns a non-zero exit
+code when any check fails. Use `-ProjectRoot` for another checkout; `-SkipWiring` is
+reserved for isolated fixture tests.
