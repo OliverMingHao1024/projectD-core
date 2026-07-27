@@ -1,0 +1,4 @@
+interface:
+  display_name: "To Spec"
+  short_description: "Synthesize settled context into an approved specification"
+  default_prompt: "Use $to-spec to draft a specification from the decisions already established in this conversation."

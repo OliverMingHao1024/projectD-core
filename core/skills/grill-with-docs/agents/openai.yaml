@@ -1,0 +1,4 @@
+interface:
+  display_name: "Grill with Docs"
+  short_description: "Stress-test decisions and preserve confirmed docs"
+  default_prompt: "Use $grill-with-docs to challenge this plan one question at a time and propose confirmed glossary or ADR updates."

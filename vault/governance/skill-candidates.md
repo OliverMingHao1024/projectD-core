@@ -1,9 +1,11 @@
 # Skill 候選決策紀錄
 
-> 由 `/skill-scout` 讀取與回填。每個評估過的來源（含被拒絕者）一筆。
+> 保存人工審查理由。機器可讀的來源、單一 Skill ID、commit、digest、生命週期狀態與
+> canonical 目標以 `skill-registry.json` 為準。
 > 格式契約：三個固定 H2 區塊 + 每筆用 `### <owner>/<repo>` H3 標題 + 固定 key 條列。
 > 回填策略：區塊定位搬移，不整檔重寫（避免破壞手改內容）。
-> `id` = `<owner>-<repo>`（全小寫、`/` 換 `-`），與 `packs/_staging/` 子目錄名一致。
+> 本檔既有 repo 級 `id` 是歷史欄位；新候選使用
+> `<owner>-<repo>--<完整-skill-路徑>`，與 registry 及 staging 目錄一致。
 
 固定欄位 key（每筆）：
 `id`、`來源連結`、`授權條款`、`star 數（評估時）`、`最近更新`、`評估日期`、`結論`、
@@ -14,6 +16,42 @@
 ## 已收錄
 
 <!-- 畢業並移入正式 pack 者。每筆務必補「目標 pack」。 -->
+
+### mattpocock/skills（implement / code-review review gate）
+- id：mattpocock-skills--skills-engineering-implement / mattpocock-skills--skills-engineering-code-review
+- 來源連結：https://github.com/mattpocock/skills/tree/ed37663cc5fbef691ddfecd080dff42f7e7e350d/skills/engineering
+- 授權條款：MIT
+- star 數（評估時）：191168
+- 最近更新：2026-07-27
+- 評估日期：2026-07-28
+- 結論：部分收錄
+- 理由：使用者核准 Implementation Review Gate 規格與兩張依賴 tickets。code-review 保留 Standards／Spec 雙軸，新增 working-tree 模式，移除 setup-matt-pocock-skills 與強制平行 sub-agent，並維持全程唯讀；implement 改為只執行已核准範圍、依專案選擇測試策略而不強制 TDD，但對程式碼與行為設定強制完成有界 code-review gate。兩者皆不自動 commit、push 或修改 tracker。
+- 目標 pack：core/skills/{code-review,implement}
+- 發現管道：使用者指定 + skill-scout 固定 commit 審查 + 核准規格與 tickets
+
+### mattpocock/skills（to-spec / to-tickets）
+- id：mattpocock-skills--skills-engineering-to-spec / mattpocock-skills--skills-engineering-to-tickets
+- 來源連結：https://github.com/mattpocock/skills/tree/ed37663cc5fbef691ddfecd080dff42f7e7e350d/skills/engineering
+- 授權條款：MIT
+- star 數（評估時）：191153
+- 最近更新：2026-07-27
+- 評估日期：2026-07-28
+- 結論：部分收錄
+- 理由：使用者確認引入兩者。保留將既有討論收斂為規格，以及將核准範圍拆成 tracer-bullet 垂直切片與 blocking edges 的核心方法；移除作者專用 setup Skill、Claude metadata 與固定 tracker 假設，改用專案既有 glossary、ADR 與 tracker 慣例。規格、檔案、Issue、Label、blocking link 等本地或外部寫入皆須先出示草稿並取得明確確認。
+- 目標 pack：core/skills/{to-spec,to-tickets}
+- 發現管道：使用者指定 + skill-scout 固定 commit 審查
+
+### mattpocock/skills（grill-with-docs）
+- id：mattpocock-skills
+- 來源連結：https://github.com/mattpocock/skills/tree/ed37663cc5fbef691ddfecd080dff42f7e7e350d/skills/engineering/grill-with-docs
+- 授權條款：MIT
+- star 數（評估時）：191111
+- 最近更新：2026-07-27
+- 評估日期：2026-07-28
+- 結論：收錄
+- 理由：使用者指名收錄。此 Skill 是既有 grilling 與 domain-modeling 的小型組合工作流；相依能力已存在。引入時移除 Claude 專屬 `/skill` 語法與 `disable-model-invocation` metadata，補上跨 Agent 觸發、相依 Skill 缺少時的降級行為，以及逐筆確認後才寫入 CONTEXT.md／ADR 的界線。
+- 目標 pack：core/skills/grill-with-docs
+- 發現管道：使用者指定 + gh repo/API 實檔審查
 
 ### mattpocock/skills（codebase-design / domain-modeling / improve-codebase-architecture / writing-great-skills）
 - id：mattpocock-skills
@@ -381,7 +419,7 @@
 
 ## 已拒絕・暫緩
 
-<!-- 拒絕或暫緩者。理由必填，供日後 /skill-scout 重跑時列出供使用者複審。 -->
+<!-- 拒絕或暫緩者。理由必填；是否重新審查由使用者決定，不由 scout 自動展開。 -->
 
 ### mattpocock/skills（tdd / code-review 兩個 skill，此為舊評估範圍）
 - id：mattpocock-skills
@@ -391,6 +429,6 @@
 - 最近更新：2026-07-23
 - 評估日期：2026-07-24
 - 結論：暫緩
-- 理由：PG 乾跑發現三項阻擋：強制每次測試前由使用者確認 seam、將 Refactor 排除在 TDD loop 外、依賴未擷取的 code-review skill。折衷方案是只吸收公開介面測試、系統邊界 mock 與 Red→Green→Refactor 原則；將 seam 確認改為需求／風險不明時才詢問，移除未擷取依賴，並修正 Jest／Fetch 範例後再試用。此結論僅涵蓋 tdd/code-review 兩個 skill；同一來源其他 skill 分別評估，見「評估中」區塊同一 id 的另一筆。
+- 理由：PG 乾跑發現三項阻擋：強制每次測試前由使用者確認 seam、將 Refactor 排除在 TDD loop 外、依賴當時未擷取的 code-review Skill。此舊結論中的 tdd 仍維持暫緩；code-review 已依後續核准的 Implementation Review Gate 規格重新審查並收錄，見「implement / code-review review gate」紀錄。
 - 目標 pack：（待定，僅 tdd/code-review 範圍）
 - 發現管道：gh search + gh code search + WebSearch

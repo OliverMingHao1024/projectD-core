@@ -1,5 +1,10 @@
 # 計畫：從 GitHub 引入高星 Skill 的可重複機制
 
+> **歷史計畫**：其中的預設廣掃、repo 級候選 ID、落點分類與單一 Claude command 架構，
+> 已由 `../../docs/adr/0001-targeted-skill-intake.md` 取代。現行入口是
+> `../../core/skills/skill-scout/SKILL.md`、`skill-registry.json` 與獨立
+> `skill-update-check`；本檔保留最初決策脈絡。
+
 > 本檔是 skill-import 機制的總計畫，彙整 PM/SA/SD 三份文件的決策與目前執行狀態。
 > 詳細內容見各自文件，本檔只做「現在到哪、下一步做什麼」的單一入口。
 

@@ -27,9 +27,13 @@
 - 可重複踩坑：`../after-action/`
 - 跨專案歷程查詢 PoC：`../../core/skills/query-project-history/SKILL.md`；
   候選與基準集位於 `project-history-poc/`，候選未經人工確認不得視為歷程事實。
-- Skill 引入機制（從 GitHub 收錄高星 Skill 的流程）：`prd-skill-import.md`（PRD）、
+- Skill 引入機制（GitHub 定向搜尋與受治理收錄）：`../../docs/adr/0001-targeted-skill-intake.md`
+  （現行架構）、`prd-skill-import.md`（歷史 PRD）、
   `sa-analysis-skill-import.md`（技術分析）、`skill-candidates.md`（決策紀錄）、
-  `../../core/commands/skill-scout.md`（slash command）、`../../packs/_staging/README.md`（staging 說明）
+  `skill-registry.json`（機器狀態）、`../../core/skills/skill-scout/SKILL.md`
+  （跨 Agent 定向搜尋）、`../../core/skills/skill-update-check/SKILL.md`
+  （upstream 更新檢查）、`../../core/commands/skill-scout.md`（Claude 薄入口）、
+  `../../packs/_staging/README.md`（staging 說明）
 
 ## 載入原則
 

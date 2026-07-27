@@ -1,0 +1,593 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "id": "github-mattpocock-skills",
+      "provider": "github",
+      "repository": "mattpocock/skills",
+      "license_spdx": "MIT",
+      "latest_observed_commit": "ed37663cc5fbef691ddfecd080dff42f7e7e350d",
+      "migration_status": "complete",
+      "decision_records": [
+        "mattpocock/skills（grill-with-docs）",
+        "mattpocock/skills（to-spec / to-tickets）",
+        "mattpocock/skills（implement / code-review review gate）",
+        "mattpocock/skills（codebase-design / domain-modeling / improve-codebase-architecture / writing-great-skills）",
+        "mattpocock/skills（第二批：to-questionnaire / resolving-merge-conflicts / diagnosing-bugs / research / prototype / wayfinder）",
+        "mattpocock/skills（tdd / code-review 兩個 skill，此為舊評估範圍）"
+      ]
+    },
+    {
+      "id": "github-emilkowalski-skills",
+      "provider": "github",
+      "repository": "emilkowalski/skills",
+      "license_spdx": "MIT",
+      "latest_observed_commit": "e695d13cb298db0f46d5ef05be2ad13fa12908a6",
+      "migration_status": "complete",
+      "decision_records": ["emilkowalski/skills"]
+    },
+    {
+      "id": "github-addyosmani-agent-skills",
+      "provider": "github",
+      "repository": "addyosmani/agent-skills",
+      "license_spdx": "MIT",
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["addyosmani/agent-skills"]
+    },
+    {
+      "id": "github-agentskills-agentskills",
+      "provider": "github",
+      "repository": "agentskills/agentskills",
+      "license_spdx": "Apache-2.0",
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["agentskills/agentskills"]
+    },
+    {
+      "id": "github-k-dense-ai-scientific-agent-skills",
+      "provider": "github",
+      "repository": "K-Dense-AI/scientific-agent-skills",
+      "license_spdx": "MIT",
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["K-Dense-AI/scientific-agent-skills"]
+    },
+    {
+      "id": "github-sickn33-agentic-awesome-skills",
+      "provider": "github",
+      "repository": "sickn33/agentic-awesome-skills",
+      "license_spdx": "MIT",
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["sickn33/agentic-awesome-skills"]
+    },
+    {
+      "id": "github-alirezarezvani-claude-skills",
+      "provider": "github",
+      "repository": "alirezarezvani/claude-skills",
+      "license_spdx": "MIT",
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["alirezarezvani/claude-skills"]
+    },
+    {
+      "id": "github-jeffallan-claude-skills",
+      "provider": "github",
+      "repository": "Jeffallan/claude-skills",
+      "license_spdx": "MIT",
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["Jeffallan/claude-skills"]
+    },
+    {
+      "id": "github-kkkkhazix-khazix-skills",
+      "provider": "github",
+      "repository": "KKKKhazix/khazix-skills",
+      "license_spdx": "MIT",
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["KKKKhazix/khazix-skills"]
+    },
+    {
+      "id": "github-majiayu000-claude-skill-registry",
+      "provider": "github",
+      "repository": "majiayu000/claude-skill-registry",
+      "license_spdx": "MIT",
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["majiayu000/claude-skill-registry"]
+    },
+    {
+      "id": "github-yusufkaraaslan-skill-seekers",
+      "provider": "github",
+      "repository": "yusufkaraaslan/Skill_Seekers",
+      "license_spdx": "MIT",
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["yusufkaraaslan/Skill_Seekers"]
+    },
+    {
+      "id": "github-voltagent-awesome-agent-skills",
+      "provider": "github",
+      "repository": "VoltAgent/awesome-agent-skills",
+      "license_spdx": "MIT",
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["VoltAgent/awesome-agent-skills"]
+    },
+    {
+      "id": "github-jimliu-baoyu-skills",
+      "provider": "github",
+      "repository": "JimLiu/baoyu-skills",
+      "license_spdx": "MIT",
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["JimLiu/baoyu-skills"]
+    },
+    {
+      "id": "github-orchestra-research-ai-research-skills",
+      "provider": "github",
+      "repository": "Orchestra-Research/AI-Research-SKILLs",
+      "license_spdx": "MIT",
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["Orchestra-Research/AI-Research-SKILLs"]
+    },
+    {
+      "id": "github-anthropics-skills",
+      "provider": "github",
+      "repository": "anthropics/skills",
+      "license_spdx": null,
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": [
+        "anthropics/skills（授權未明，不可收錄）",
+        "anthropics/skills — skills/frontend-design（授權未明，不可收錄）"
+      ]
+    },
+    {
+      "id": "github-composiohq-awesome-claude-skills",
+      "provider": "github",
+      "repository": "ComposioHQ/awesome-claude-skills",
+      "license_spdx": null,
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["ComposioHQ/awesome-claude-skills（授權未明，不可收錄）"]
+    },
+    {
+      "id": "github-travisvn-awesome-claude-skills",
+      "provider": "github",
+      "repository": "travisvn/awesome-claude-skills",
+      "license_spdx": null,
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["travisvn/awesome-claude-skills（授權未明，不可收錄）"]
+    },
+    {
+      "id": "github-hesreallyhim-awesome-claude-code",
+      "provider": "github",
+      "repository": "hesreallyhim/awesome-claude-code",
+      "license_spdx": null,
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["hesreallyhim/awesome-claude-code（授權未明，不可收錄）"]
+    },
+    {
+      "id": "github-xiaopu-ai-web-design",
+      "provider": "github",
+      "repository": "xiaopu-ai/web-design",
+      "license_spdx": "MIT",
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["xiaopu-ai/web-design"]
+    },
+    {
+      "id": "github-superdesigndev-superdesign-skill",
+      "provider": "github",
+      "repository": "superdesigndev/superdesign-skill",
+      "license_spdx": "MIT",
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["superdesigndev/superdesign-skill"]
+    },
+    {
+      "id": "github-dominikmartn-hue",
+      "provider": "github",
+      "repository": "dominikmartn/hue",
+      "license_spdx": "MIT",
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["dominikmartn/hue"]
+    },
+    {
+      "id": "github-wondelai-skills",
+      "provider": "github",
+      "repository": "wondelai/skills",
+      "license_spdx": "MIT",
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["wondelai/skills"]
+    },
+    {
+      "id": "github-nexu-io-html-anything",
+      "provider": "github",
+      "repository": "nexu-io/html-anything",
+      "license_spdx": "Apache-2.0",
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["nexu-io/html-anything（僅留痕，偏工具型）"]
+    },
+    {
+      "id": "github-vercel-labs-agent-skills",
+      "provider": "github",
+      "repository": "vercel-labs/agent-skills",
+      "license_spdx": null,
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["vercel-labs/agent-skills（授權未明，不可收錄）"]
+    },
+    {
+      "id": "github-nextlevelbuilder-ui-ux-pro-max-skill",
+      "provider": "github",
+      "repository": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "license_spdx": "MIT",
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["nextlevelbuilder/ui-ux-pro-max-skill（存疑，疑似洗星）"]
+    },
+    {
+      "id": "github-tryopendata-skills",
+      "provider": "github",
+      "repository": "tryopendata/skills",
+      "license_spdx": "MIT",
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["tryopendata/skills — plugins/opendesign/skills/svg-design"]
+    },
+    {
+      "id": "github-samuraigpt-generative-media-skills",
+      "provider": "github",
+      "repository": "SamurAIGPT/Generative-Media-Skills",
+      "license_spdx": "MIT",
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["SamurAIGPT/Generative-Media-Skills — logo-branding"]
+    },
+    {
+      "id": "github-fucha1122-minimalist-bw-logo-skill",
+      "provider": "github",
+      "repository": "fucha1122/minimalist-bw-logo-skill",
+      "license_spdx": "MIT",
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["fucha1122/minimalist-bw-logo-skill"]
+    }
+  ],
+  "candidates": [
+    {
+      "id": "mattpocock-skills--skills-engineering-codebase-design",
+      "source_id": "github-mattpocock-skills",
+      "source_path": "skills/engineering/codebase-design",
+      "observed_commit": "ed37663cc5fbef691ddfecd080dff42f7e7e350d",
+      "upstream_digest": "sha256:c5779c2cfdaa9186cee089c477cb5a71a25a3372d799dc2a485e3e4491d1590a",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/codebase-design",
+      "canonical_name": "codebase-design",
+      "decision_record": "mattpocock/skills（codebase-design / domain-modeling / improve-codebase-architecture / writing-great-skills）",
+      "migration_status": "complete"
+    },
+    {
+      "id": "mattpocock-skills--skills-engineering-domain-modeling",
+      "source_id": "github-mattpocock-skills",
+      "source_path": "skills/engineering/domain-modeling",
+      "observed_commit": "ed37663cc5fbef691ddfecd080dff42f7e7e350d",
+      "upstream_digest": "sha256:1ec648bb9cd989aecdd853fb1082ad46b04f670ae8deabda4d5154e57f884f13",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/domain-modeling",
+      "canonical_name": "domain-modeling",
+      "decision_record": "mattpocock/skills（codebase-design / domain-modeling / improve-codebase-architecture / writing-great-skills）",
+      "migration_status": "complete"
+    },
+    {
+      "id": "mattpocock-skills--skills-engineering-improve-codebase-architecture",
+      "source_id": "github-mattpocock-skills",
+      "source_path": "skills/engineering/improve-codebase-architecture",
+      "observed_commit": "ed37663cc5fbef691ddfecd080dff42f7e7e350d",
+      "upstream_digest": "sha256:88b597d8ab8aaa9ce906b4c84615502ebafef67b0d3db63efc9e2ca54f0d8951",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/improve-codebase-architecture",
+      "canonical_name": "improve-codebase-architecture",
+      "decision_record": "mattpocock/skills（codebase-design / domain-modeling / improve-codebase-architecture / writing-great-skills）",
+      "migration_status": "complete"
+    },
+    {
+      "id": "mattpocock-skills--skills-productivity-writing-great-skills",
+      "source_id": "github-mattpocock-skills",
+      "source_path": "skills/productivity/writing-great-skills",
+      "observed_commit": "ed37663cc5fbef691ddfecd080dff42f7e7e350d",
+      "upstream_digest": "sha256:8f191bfe5ed5a3561c5d544676b40382c496478f14974f9b176ebd583aae4b53",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/writing-great-skills",
+      "canonical_name": "writing-great-skills",
+      "decision_record": "mattpocock/skills（codebase-design / domain-modeling / improve-codebase-architecture / writing-great-skills）",
+      "migration_status": "complete"
+    },
+    {
+      "id": "mattpocock-skills--skills-in-progress-to-questionnaire",
+      "source_id": "github-mattpocock-skills",
+      "source_path": "skills/in-progress/to-questionnaire",
+      "observed_commit": "ed37663cc5fbef691ddfecd080dff42f7e7e350d",
+      "upstream_digest": "sha256:5938725439d2cc18980bcf543a8eec58f09380785862ba0649d77754007f6823",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/to-questionnaire",
+      "canonical_name": "to-questionnaire",
+      "decision_record": "mattpocock/skills（第二批：to-questionnaire / resolving-merge-conflicts / diagnosing-bugs / research / prototype / wayfinder）",
+      "migration_status": "complete"
+    },
+    {
+      "id": "mattpocock-skills--skills-engineering-resolving-merge-conflicts",
+      "source_id": "github-mattpocock-skills",
+      "source_path": "skills/engineering/resolving-merge-conflicts",
+      "observed_commit": "ed37663cc5fbef691ddfecd080dff42f7e7e350d",
+      "upstream_digest": "sha256:b6546518a2e618e0314f8d2a8ca2c8cfbded61b124aff6ad67cfb26eba7fa1fa",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/resolving-merge-conflicts",
+      "canonical_name": "resolving-merge-conflicts",
+      "decision_record": "mattpocock/skills（第二批：to-questionnaire / resolving-merge-conflicts / diagnosing-bugs / research / prototype / wayfinder）",
+      "migration_status": "complete"
+    },
+    {
+      "id": "mattpocock-skills--skills-engineering-diagnosing-bugs",
+      "source_id": "github-mattpocock-skills",
+      "source_path": "skills/engineering/diagnosing-bugs",
+      "observed_commit": "ed37663cc5fbef691ddfecd080dff42f7e7e350d",
+      "upstream_digest": "sha256:23ccc3698e45745ec1caac7dbf79429bb4dfaf611e914abfb35d55c1f428f4c9",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/diagnosing-bugs",
+      "canonical_name": "diagnosing-bugs",
+      "decision_record": "mattpocock/skills（第二批：to-questionnaire / resolving-merge-conflicts / diagnosing-bugs / research / prototype / wayfinder）",
+      "migration_status": "complete"
+    },
+    {
+      "id": "mattpocock-skills--skills-engineering-research",
+      "source_id": "github-mattpocock-skills",
+      "source_path": "skills/engineering/research",
+      "observed_commit": "ed37663cc5fbef691ddfecd080dff42f7e7e350d",
+      "upstream_digest": "sha256:4d2f833a1d4b1e5cc651f08689af09f2a16be6dfdbc641708c4523696fe9b6d8",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/research",
+      "canonical_name": "research",
+      "decision_record": "mattpocock/skills（第二批：to-questionnaire / resolving-merge-conflicts / diagnosing-bugs / research / prototype / wayfinder）",
+      "migration_status": "complete"
+    },
+    {
+      "id": "mattpocock-skills--skills-engineering-prototype",
+      "source_id": "github-mattpocock-skills",
+      "source_path": "skills/engineering/prototype",
+      "observed_commit": "ed37663cc5fbef691ddfecd080dff42f7e7e350d",
+      "upstream_digest": "sha256:422e0c393b748e914405c555529e2abf9b67b2a1148518307c3a485933fc2b06",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/prototype",
+      "canonical_name": "prototype",
+      "decision_record": "mattpocock/skills（第二批：to-questionnaire / resolving-merge-conflicts / diagnosing-bugs / research / prototype / wayfinder）",
+      "migration_status": "complete"
+    },
+    {
+      "id": "mattpocock-skills--skills-engineering-wayfinder",
+      "source_id": "github-mattpocock-skills",
+      "source_path": "skills/engineering/wayfinder",
+      "observed_commit": "ed37663cc5fbef691ddfecd080dff42f7e7e350d",
+      "upstream_digest": "sha256:df999b8faf0f018fffb99057bf50707fe7a34b85656e7be952496a4eee1f7112",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/wayfinder",
+      "canonical_name": "wayfinder",
+      "decision_record": "mattpocock/skills（第二批：to-questionnaire / resolving-merge-conflicts / diagnosing-bugs / research / prototype / wayfinder）",
+      "migration_status": "complete"
+    },
+    {
+      "id": "mattpocock-skills--skills-productivity-grill-me",
+      "source_id": "github-mattpocock-skills",
+      "source_path": "skills/productivity/grill-me",
+      "observed_commit": "ed37663cc5fbef691ddfecd080dff42f7e7e350d",
+      "upstream_digest": "sha256:68eb7937e97c15c0441264556aa331cbf4d8b5f47d69e901b53560da7fc27108",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/grill-me",
+      "canonical_name": "grill-me",
+      "decision_record": "mattpocock/skills（codebase-design / domain-modeling / improve-codebase-architecture / writing-great-skills）",
+      "migration_status": "complete"
+    },
+    {
+      "id": "mattpocock-skills--skills-productivity-grilling",
+      "source_id": "github-mattpocock-skills",
+      "source_path": "skills/productivity/grilling",
+      "observed_commit": "ed37663cc5fbef691ddfecd080dff42f7e7e350d",
+      "upstream_digest": "sha256:7fbc590b1d653ee810d2714af6e90be0730bfb2f1c81b5be058b85e65782ab61",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/grilling",
+      "canonical_name": "grilling",
+      "decision_record": "mattpocock/skills（codebase-design / domain-modeling / improve-codebase-architecture / writing-great-skills）",
+      "migration_status": "complete"
+    },
+    {
+      "id": "mattpocock-skills--skills-engineering-grill-with-docs",
+      "source_id": "github-mattpocock-skills",
+      "source_path": "skills/engineering/grill-with-docs",
+      "observed_commit": "ed37663cc5fbef691ddfecd080dff42f7e7e350d",
+      "upstream_digest": "sha256:855f74b1869643bf7ca0d4559e7471e66479d485d36c0cad8cadeef3a379f0b1",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/grill-with-docs",
+      "canonical_name": "grill-with-docs",
+      "decision_record": "mattpocock/skills（grill-with-docs）",
+      "migration_status": "complete"
+    },
+    {
+      "id": "emilkowalski-skills--skills-animation-vocabulary",
+      "source_id": "github-emilkowalski-skills",
+      "source_path": "skills/animation-vocabulary",
+      "observed_commit": "e695d13cb298db0f46d5ef05be2ad13fa12908a6",
+      "upstream_digest": "sha256:912298b26d140e5b9983d0583f7c47c547213041a1a5af7a1528dff4995d5472",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/animation-vocabulary",
+      "canonical_name": "animation-vocabulary",
+      "decision_record": "emilkowalski/skills",
+      "migration_status": "complete"
+    },
+    {
+      "id": "emilkowalski-skills--skills-apple-design",
+      "source_id": "github-emilkowalski-skills",
+      "source_path": "skills/apple-design",
+      "observed_commit": "e695d13cb298db0f46d5ef05be2ad13fa12908a6",
+      "upstream_digest": "sha256:96191966877ecc2ebc2fdf7ac627d322b23cc83ea034a919d2a00e0a0add1949",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/apple-design",
+      "canonical_name": "apple-design",
+      "decision_record": "emilkowalski/skills",
+      "migration_status": "complete"
+    },
+    {
+      "id": "emilkowalski-skills--skills-emil-design-eng",
+      "source_id": "github-emilkowalski-skills",
+      "source_path": "skills/emil-design-eng",
+      "observed_commit": "e695d13cb298db0f46d5ef05be2ad13fa12908a6",
+      "upstream_digest": "sha256:be0dd9d71dc6616c522903fc73d0c5a28f6a653ae94246d9005b7bc973073980",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/design-engineering",
+      "canonical_name": "design-engineering",
+      "decision_record": "emilkowalski/skills",
+      "migration_status": "complete"
+    },
+    {
+      "id": "emilkowalski-skills--skills-find-animation-opportunities",
+      "source_id": "github-emilkowalski-skills",
+      "source_path": "skills/find-animation-opportunities",
+      "observed_commit": "e695d13cb298db0f46d5ef05be2ad13fa12908a6",
+      "upstream_digest": "sha256:bf7380b9fd6844097817b9373c4f84c0464714d1a55d977242c2cadcf74eaf7d",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/find-animation-opportunities",
+      "canonical_name": "find-animation-opportunities",
+      "decision_record": "emilkowalski/skills",
+      "migration_status": "complete"
+    },
+    {
+      "id": "emilkowalski-skills--skills-improve-animations",
+      "source_id": "github-emilkowalski-skills",
+      "source_path": "skills/improve-animations",
+      "observed_commit": "e695d13cb298db0f46d5ef05be2ad13fa12908a6",
+      "upstream_digest": "sha256:e66f74bd9a0d38452c8b1ac973ee2b513467d6271e528e2724a9c96832d5cf75",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/improve-animations",
+      "canonical_name": "improve-animations",
+      "decision_record": "emilkowalski/skills",
+      "migration_status": "complete"
+    },
+    {
+      "id": "emilkowalski-skills--skills-review-animations",
+      "source_id": "github-emilkowalski-skills",
+      "source_path": "skills/review-animations",
+      "observed_commit": "e695d13cb298db0f46d5ef05be2ad13fa12908a6",
+      "upstream_digest": "sha256:ab0a2437f1cdcd94ce99c924f3b8d05ace3b0681966b703f1e05acfc34c053fb",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/review-animations",
+      "canonical_name": "review-animations",
+      "decision_record": "emilkowalski/skills",
+      "migration_status": "complete"
+    },
+    {
+      "id": "mattpocock-skills--skills-engineering-to-spec",
+      "source_id": "github-mattpocock-skills",
+      "source_path": "skills/engineering/to-spec",
+      "observed_commit": "ed37663cc5fbef691ddfecd080dff42f7e7e350d",
+      "upstream_digest": "sha256:f655feb0ea5e8bcb6e0d27254f07aa427795e967503c3f38a2a34aa93b415578",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/to-spec",
+      "canonical_name": "to-spec",
+      "decision_record": "mattpocock/skills（to-spec / to-tickets）",
+      "migration_status": "complete"
+    },
+    {
+      "id": "mattpocock-skills--skills-engineering-to-tickets",
+      "source_id": "github-mattpocock-skills",
+      "source_path": "skills/engineering/to-tickets",
+      "observed_commit": "ed37663cc5fbef691ddfecd080dff42f7e7e350d",
+      "upstream_digest": "sha256:df3cf2a44557b366612ac5d1f2e7fc7d252ef47bc780e7cdd567020b24958a96",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/to-tickets",
+      "canonical_name": "to-tickets",
+      "decision_record": "mattpocock/skills（to-spec / to-tickets）",
+      "migration_status": "complete"
+    },
+    {
+      "id": "mattpocock-skills--skills-engineering-implement",
+      "source_id": "github-mattpocock-skills",
+      "source_path": "skills/engineering/implement",
+      "observed_commit": "ed37663cc5fbef691ddfecd080dff42f7e7e350d",
+      "upstream_digest": "sha256:2b707cd94b176cbbd4e13752169b0468beff1a50ed091b222a8398c8eed947bd",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/implement",
+      "canonical_name": "implement",
+      "decision_record": "mattpocock/skills（implement / code-review review gate）",
+      "migration_status": "complete"
+    },
+    {
+      "id": "mattpocock-skills--skills-engineering-tdd",
+      "source_id": "github-mattpocock-skills",
+      "source_path": "skills/engineering/tdd",
+      "observed_commit": "ed37663cc5fbef691ddfecd080dff42f7e7e350d",
+      "upstream_digest": null,
+      "lifecycle_status": "held",
+      "target": null,
+      "canonical_name": null,
+      "decision_record": "mattpocock/skills（tdd / code-review 兩個 skill，此為舊評估範圍）",
+      "migration_status": "complete"
+    },
+    {
+      "id": "mattpocock-skills--skills-engineering-code-review",
+      "source_id": "github-mattpocock-skills",
+      "source_path": "skills/engineering/code-review",
+      "observed_commit": "ed37663cc5fbef691ddfecd080dff42f7e7e350d",
+      "upstream_digest": "sha256:0a4d492b39c8cf1e2c104cbd67b02dbf5d79d31b13ed371098ae2aa82daa143c",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/code-review",
+      "canonical_name": "code-review",
+      "decision_record": "mattpocock/skills（implement / code-review review gate）",
+      "migration_status": "complete"
+    },
+    {
+      "id": "anthropics-skills--skills-frontend-design",
+      "source_id": "github-anthropics-skills",
+      "source_path": "skills/frontend-design",
+      "observed_commit": null,
+      "upstream_digest": null,
+      "lifecycle_status": "rejected",
+      "target": null,
+      "canonical_name": null,
+      "decision_record": "anthropics/skills — skills/frontend-design（授權未明，不可收錄）",
+      "migration_status": "complete"
+    },
+    {
+      "id": "tryopendata-skills--plugins-opendesign-skills-svg-design",
+      "source_id": "github-tryopendata-skills",
+      "source_path": "plugins/opendesign/skills/svg-design",
+      "observed_commit": null,
+      "upstream_digest": null,
+      "lifecycle_status": "discovered",
+      "target": null,
+      "canonical_name": null,
+      "decision_record": "tryopendata/skills — plugins/opendesign/skills/svg-design",
+      "migration_status": "needs-review"
+    },
+    {
+      "id": "samuraigpt-generative-media-skills--library-visual-logo-branding",
+      "source_id": "github-samuraigpt-generative-media-skills",
+      "source_path": "library/visual/logo-branding",
+      "observed_commit": null,
+      "upstream_digest": null,
+      "lifecycle_status": "discovered",
+      "target": null,
+      "canonical_name": null,
+      "decision_record": "SamurAIGPT/Generative-Media-Skills — logo-branding",
+      "migration_status": "needs-review"
+    }
+  ]
+}

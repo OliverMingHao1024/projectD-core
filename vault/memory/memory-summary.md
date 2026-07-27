@@ -1,5 +1,5 @@
 ---
-lastUpdated: 2026-07-26
+lastUpdated: 2026-07-28
 ---
 
 # 記憶快照
@@ -44,3 +44,15 @@ lastUpdated: 2026-07-26
   閉環：L0 要求重要理由可追溯且禁止事後捏造；L5 定義觸發條件與
   `verified`／`user-confirmed`／`inferred`／`unknown` 證據分級；L6 在任務結束時由 AI
   提出候選，使用者只需選擇保留、暫留或排除。一般修改不產生流水帳，完整對話不保存。
+
+## 2026-07-28
+
+- 外部 Skill 引入改為定向、受治理流程：`skill-scout` 只接受功能需求或明確 GitHub
+  Skill 來源，最多三組查詢與三個合格候選，不自動擴大範圍、執行外部程式、寫 staging
+  或收錄。Claude `/skill-scout` 只作薄入口；Claude、Codex、Copilot 共用 canonical Skill。
+- Skill 管理採 `SkillSource`（repository）與 `SkillCandidate`（單一路徑）兩層模型；
+  `skill-registry.json` 保存機器狀態，`skill-candidates.md` 保存人工理由。候選 ID 包含
+  repository 與完整 Skill 路徑，staging 分離 immutable `upstream/` 與 `adapted/`。
+- CanonicalSkill 的正式落點依適用範圍決定：跨技術棧放 `core/skills/`，特定技術棧放
+  `packs/`；來源是否外部不再決定落點。upstream 更新由獨立 `skill-update-check` 唯讀
+  比對路徑 digest，任何採用或升級仍需使用者確認。

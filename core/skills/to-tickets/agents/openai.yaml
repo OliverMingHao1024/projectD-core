@@ -1,0 +1,4 @@
+interface:
+  display_name: "To Tickets"
+  short_description: "Split approved work into dependency-aware vertical tickets"
+  default_prompt: "Use $to-tickets to turn this approved plan or specification into dependency-aware vertical-slice tickets."

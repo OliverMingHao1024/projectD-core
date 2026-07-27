@@ -40,7 +40,10 @@ try {
             ConvertFrom-Json
     )
     Assert-True $json.passed 'Healthy workspace must pass.'
-    Assert-True (@($json.checks).Count -ge 4) 'JSON output must include all checks.'
+    Assert-True (@($json.checks).Count -ge 5) 'JSON output must include all checks.'
+    Assert-True (
+        @($json.checks | Where-Object name -EQ 'skill-registry').Count -eq 1
+    ) 'Unified check must validate the Skill registry.'
 
     Set-Content `
         -LiteralPath $tempFleet `

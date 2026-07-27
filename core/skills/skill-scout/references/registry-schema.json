@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "projectD Skill Registry",
+  "type": "object",
+  "required": ["schema_version", "sources", "candidates"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "provider",
+          "repository",
+          "license_spdx",
+          "migration_status",
+          "decision_records"
+        ]
+      }
+    },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "source_id",
+          "source_path",
+          "lifecycle_status",
+          "decision_record",
+          "migration_status"
+        ]
+      }
+    }
+  }
+}
