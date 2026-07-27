@@ -10,6 +10,7 @@
       "migration_status": "complete",
       "decision_records": [
         "mattpocock/skills（grill-with-docs）",
+        "mattpocock/skills（to-spec / to-tickets）",
         "mattpocock/skills（codebase-design / domain-modeling / improve-codebase-architecture / writing-great-skills）",
         "mattpocock/skills（第二批：to-questionnaire / resolving-merge-conflicts / diagnosing-bugs / research / prototype / wayfinder）",
         "mattpocock/skills（tdd / code-review 兩個 skill，此為舊評估範圍）"
@@ -489,6 +490,30 @@
       "target": "core/skills/review-animations",
       "canonical_name": "review-animations",
       "decision_record": "emilkowalski/skills",
+      "migration_status": "complete"
+    },
+    {
+      "id": "mattpocock-skills--skills-engineering-to-spec",
+      "source_id": "github-mattpocock-skills",
+      "source_path": "skills/engineering/to-spec",
+      "observed_commit": "ed37663cc5fbef691ddfecd080dff42f7e7e350d",
+      "upstream_digest": "sha256:f655feb0ea5e8bcb6e0d27254f07aa427795e967503c3f38a2a34aa93b415578",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/to-spec",
+      "canonical_name": "to-spec",
+      "decision_record": "mattpocock/skills（to-spec / to-tickets）",
+      "migration_status": "complete"
+    },
+    {
+      "id": "mattpocock-skills--skills-engineering-to-tickets",
+      "source_id": "github-mattpocock-skills",
+      "source_path": "skills/engineering/to-tickets",
+      "observed_commit": "ed37663cc5fbef691ddfecd080dff42f7e7e350d",
+      "upstream_digest": "sha256:df3cf2a44557b366612ac5d1f2e7fc7d252ef47bc780e7cdd567020b24958a96",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/to-tickets",
+      "canonical_name": "to-tickets",
+      "decision_record": "mattpocock/skills（to-spec / to-tickets）",
       "migration_status": "complete"
     },
     {

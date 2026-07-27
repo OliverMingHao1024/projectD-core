@@ -17,6 +17,18 @@
 
 <!-- 畢業並移入正式 pack 者。每筆務必補「目標 pack」。 -->
 
+### mattpocock/skills（to-spec / to-tickets）
+- id：mattpocock-skills--skills-engineering-to-spec / mattpocock-skills--skills-engineering-to-tickets
+- 來源連結：https://github.com/mattpocock/skills/tree/ed37663cc5fbef691ddfecd080dff42f7e7e350d/skills/engineering
+- 授權條款：MIT
+- star 數（評估時）：191153
+- 最近更新：2026-07-27
+- 評估日期：2026-07-28
+- 結論：部分收錄
+- 理由：使用者確認引入兩者。保留將既有討論收斂為規格，以及將核准範圍拆成 tracer-bullet 垂直切片與 blocking edges 的核心方法；移除作者專用 setup Skill、Claude metadata 與固定 tracker 假設，改用專案既有 glossary、ADR 與 tracker 慣例。規格、檔案、Issue、Label、blocking link 等本地或外部寫入皆須先出示草稿並取得明確確認。
+- 目標 pack：core/skills/{to-spec,to-tickets}
+- 發現管道：使用者指定 + skill-scout 固定 commit 審查
+
 ### mattpocock/skills（grill-with-docs）
 - id：mattpocock-skills
 - 來源連結：https://github.com/mattpocock/skills/tree/ed37663cc5fbef691ddfecd080dff42f7e7e350d/skills/engineering/grill-with-docs
