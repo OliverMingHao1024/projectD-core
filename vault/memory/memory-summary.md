@@ -56,3 +56,10 @@ lastUpdated: 2026-07-28
 - CanonicalSkill 的正式落點依適用範圍決定：跨技術棧放 `core/skills/`，特定技術棧放
   `packs/`；來源是否外部不再決定落點。upstream 更新由獨立 `skill-update-check` 唯讀
   比對路徑 digest，任何採用或升級仍需使用者確認。
+- System Feature Wiki 第一階段收斂為 `intentype` 開發影響分析 PoC：八個 FeaturePages
+  以使用者可觀察能力切頁，內容放在獨立 private `projectD-knowledge`；來源 repo 仍是
+  最終權威。KnowledgeWorkspace 擁有具體 schema、validator、fixtures 與 CI，
+  projectD-core 只保留 portable allowlist、生命周期／安全底線與 fail-closed adapter。
+- KnowledgePromotion 只透過 GitHub PR；`reviewed` 是事件而非頁面狀態。PoC 使用
+  deterministic lexical index、lint drift 與 query RuntimeStale 防呆，延後自動 ingest、
+  外部技術知識、hybrid search 與正式 training view。

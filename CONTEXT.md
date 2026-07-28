@@ -43,3 +43,27 @@ _Avoid_: Installation, ManualSetup
 **LocalHistoryRuntime**:
 在單一裝置上，依明確核准的專案範圍建立並查詢衍生歷程索引的執行環境。
 _Avoid_: SharedHistoryStore, CloudHistory
+
+**SystemFeatureWiki**:
+以可回讀來源描述系統能力、行為與限制的受治理知識層；協助功能定位、影響分析及角色訓練，但不是變更權威或最終事實來源。
+_Avoid_: CodeWiki, SourceOfTruth, FeatureDocumentation
+
+**FeaturePage**:
+SystemFeatureWiki 中以單一使用者可觀察能力為邊界的知識單位；描述行為、限制與修改影響，程式模組及檔案只作為可回讀的定位資訊。
+_Avoid_: ModulePage, FileSummary, CodeDocumentation
+
+**KnowledgeWorkspace**:
+獨立版本控制、保存來源 manifest、候選內容與經審核 FeaturePage 的知識工作區；可由 projectD 查詢，但不取代來源 repository 的程式碼、測試與正式文件。
+_Avoid_: WikiCopy, SourceRepository, projectDCoreContent
+
+**KnowledgePromotion**:
+將通過 deterministic validation 且經授權 reviewer 核准的 candidate diff，透過 PR 合併為正式 FeaturePage 的治理動作；生成、lint 或 LLM critique 本身都不構成升格。
+_Avoid_: AutoPublish, LLMApproval, Ingest
+
+**RuntimeStale**:
+查詢當下發現目前 source HEAD 或 working tree 與 FeaturePage 的 verified manifest 不一致的暫時狀態；不自動修改 Wiki，但禁止把該頁當成現行事實。
+_Avoid_: Verified, PersistedStale, AutoUpdate
+
+**KnowledgeWorkspaceRegistry**:
+每台裝置本機保存且不進 Git 的 allowlist，將穩定 workspace／repository ID 對應至 canonical local root；不保存 Wiki 內容、來源內容或憑證。
+_Avoid_: GlobalPath, SharedIndex, RemoteRegistry
