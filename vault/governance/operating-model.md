@@ -32,6 +32,10 @@ priority: high
 2. 不輸出秘密；外部輸入在系統邊界驗證，敏感資料只暴露必要範圍。
 3. 高風險操作依 L0 取得精確授權；能預覽、備份、交易或回滾時優先使用。
 4. 安全條件不會因「最小改動」而被省略。
+5. Fleet 與其他跨專案治理只使用明確 allowlist；不得為辨識專案或技術棧而遞迴掃描
+   workspace root、siblings 或多個 repository 的原始碼。必要的原始碼調查必須限制在
+   單一已授權 repository，並使用可回讀的固定腳本或明確命令，不生成跨 repo inline
+   PowerShell 掃描。
 
 ## L2 判斷層
 
