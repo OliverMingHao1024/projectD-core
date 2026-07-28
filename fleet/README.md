@@ -7,6 +7,9 @@
 ## 接線與檢查
 
 ```powershell
+# 安全預檢：只讀 fleet.json 與三個明確入口路徑，不讀專案原始碼
+pwsh -File scripts/fleet-inspect.ps1
+
 # 新增或更新所有 Fleet 專案的受管區塊
 pwsh -File scripts/fleet-governance.ps1 -Mode Apply
 
@@ -25,6 +28,15 @@ pwsh -File scripts/fleet-governance.ps1 -Mode Check
 若同一入口出現重複受管區塊，會停止並要求人工檢查，不自動刪除內容。
 Fleet 與全域 setup/remove 共用相同的 managed-block inspect、plan、apply 與
 rollback lifecycle；本機 state 存在 `.local/`，不會提交到 Git。
+
+`fleet.json` 是唯一專案 allowlist，`packs` 必須明確填寫。Fleet 建立、預檢、接線與
+驗證不得遞迴掃描 `D:\workspaces`、其他 workspace root、siblings 或清單內專案的
+原始碼，也不得用跨 repo inline PowerShell 推測技術棧。若個別開發任務確實需要讀取
+原始碼，必須在該單一 repository 的工作範圍內另行處理。
+
+`fleet-inspect.ps1` 只驗證清單結構、專案目錄、canonical packs，並列出三個可能的
+入口目標；它不建立或修改檔案。入口內容是否符合 desired state，仍由
+`fleet-governance.ps1 -Mode Check` 負責。
 
 ## work / side 區分
 

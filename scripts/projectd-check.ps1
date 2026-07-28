@@ -217,9 +217,15 @@ function Child([string]$n,[scriptblock]$a){
 }
 $pwsh=Get-Command pwsh -ErrorAction SilentlyContinue
 if($null -eq $pwsh){
+    Add-Result 'fleet-inspect-contract' $false 'pwsh executable not found'
     Add-Result 'skill-scout-contract' $false 'pwsh executable not found'
     Add-Result 'skill-update-check-contract' $false 'pwsh executable not found'
 }else{
+    Child 'fleet-inspect-contract' {
+        & $pwsh.Source -NoProfile -File (
+            Join-Path $core 'scripts\tests\fleet-inspect.contract.ps1'
+        )
+    }
     Child 'skill-scout-contract' {
         & $pwsh.Source -NoProfile -File (
             Join-Path $core 'core\skills\skill-scout\tests\skill-scout.contract.ps1'

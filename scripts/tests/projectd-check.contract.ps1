@@ -44,6 +44,10 @@ try {
     Assert-True (
         @($json.checks | Where-Object name -EQ 'skill-registry').Count -eq 1
     ) 'Unified check must validate the Skill registry.'
+    Assert-True (
+        @($json.checks |
+            Where-Object name -EQ 'fleet-inspect-contract').Count -eq 1
+    ) 'Unified check must validate the bounded Fleet inspector.'
 
     Set-Content `
         -LiteralPath $tempFleet `
