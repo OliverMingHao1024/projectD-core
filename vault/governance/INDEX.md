@@ -27,6 +27,10 @@
 - 可重複踩坑：`../after-action/`
 - 跨專案歷程查詢 PoC：`../../core/skills/query-project-history/SKILL.md`；
   候選與基準集位於 `project-history-poc/`，候選未經人工確認不得視為歷程事實。
+- System Feature Wiki（規格已核准、未實作）：`../../docs/specs/external-knowledge-wiki.md`；
+  第一階段以獨立 private KnowledgeWorkspace 為 `intentype` 建立八個能力導向
+  FeaturePages，提供唯讀開發影響分析。架構理由見 `../../docs/adr/0004-*.md` 至
+  `0009-*.md`；`plan-external-llm-wiki.md` 僅保留為歷史研究，不是實作權威。
 - Skill 引入機制（GitHub 定向搜尋與受治理收錄）：`../../docs/adr/0001-targeted-skill-intake.md`
   （現行架構）、`prd-skill-import.md`（歷史 PRD）、
   `sa-analysis-skill-import.md`（技術分析）、`skill-candidates.md`（決策紀錄）、
