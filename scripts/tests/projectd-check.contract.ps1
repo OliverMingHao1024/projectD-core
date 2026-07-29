@@ -48,6 +48,30 @@ try {
         @($json.checks |
             Where-Object name -EQ 'fleet-inspect-contract').Count -eq 1
     ) 'Unified check must validate the bounded Fleet inspector.'
+    $checkContent = Get-Content -Raw -LiteralPath $check
+    Assert-True (
+        -not $checkContent.Contains('Get-ChildItem $core -Recurse')
+    ) 'Project checks must not recursively enumerate the repository root.'
+    foreach ($allowedRoot in @('core', 'packs', 'scripts', 'vault', 'docs')) {
+        Assert-True (
+            $checkContent.Contains("'$allowedRoot'")
+        ) "Text scan allowlist must include $allowedRoot."
+    }
+    foreach ($excludedDirectory in @(
+        '.git',
+        '.local',
+        'node_modules',
+        '_staging',
+        '__pycache__',
+        '.venv'
+    )) {
+        Assert-True (
+            $checkContent.Contains("'$excludedDirectory'")
+        ) "Text scan must prune $excludedDirectory before recursion."
+    }
+    Assert-True (
+        $checkContent.Contains('[IO.FileAttributes]::ReparsePoint')
+    ) 'Text scan must not follow junctions or symbolic links.'
 
     Set-Content `
         -LiteralPath $tempFleet `

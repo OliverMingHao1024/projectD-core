@@ -13,6 +13,25 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+function Assert-SafePackageIndexUrl {
+    param([Parameter(Mandatory)][string]$Value)
+
+    $uri = $null
+    if (
+        -not [Uri]::TryCreate($Value, [UriKind]::Absolute, [ref]$uri) -or
+        $uri.Scheme -ne [Uri]::UriSchemeHttps
+    ) {
+        throw 'PackageIndexUrl must be an absolute HTTPS URL.'
+    }
+    if (
+        -not [string]::IsNullOrEmpty($uri.UserInfo) -or
+        -not [string]::IsNullOrEmpty($uri.Query) -or
+        -not [string]::IsNullOrEmpty($uri.Fragment)
+    ) {
+        throw 'PackageIndexUrl must not contain embedded credentials.'
+    }
+}
+
 function Confirm-Download {
     param([Parameter(Mandatory)][string]$Description)
 
@@ -86,7 +105,13 @@ $ConfigPath = Join-Path $LocalRoot 'projects.json'
 $Requirements = Join-Path $Core 'core\skills\query-project-history\scripts\requirements.txt'
 $HistoryScript = Join-Path $Core 'core\skills\query-project-history\scripts\history_search.py'
 $CliScript = Join-Path $Core 'core\skills\query-project-history\scripts\project_history_cli.py'
+$ModelVerifier = Join-Path $Core 'core\skills\query-project-history\scripts\model_manifest.py'
+$ModelManifest = Join-Path $Core 'core\skills\query-project-history\scripts\model-manifest.json'
 $RuntimeConfig = Join-Path $LocalRoot 'runtime.json'
+
+if ($PackageIndexUrl) {
+    Assert-SafePackageIndexUrl $PackageIndexUrl
+}
 
 New-Item -ItemType Directory -Path $LocalRoot, $ModelRoot -Force | Out-Null
 
@@ -115,17 +140,35 @@ if ($EffectiveMode -notin @('lexical', 'hybrid')) {
 }
 
 if ($EffectiveMode -eq 'hybrid') {
+    $hybridPlatform = & $VenvPython -c (
+        'import json,platform,sys; print(json.dumps({' +
+        '"version":[sys.version_info.major,sys.version_info.minor],' +
+        '"machine":platform.machine(),"system":platform.system()}))'
+    ) | ConvertFrom-Json
+    if (
+        @($hybridPlatform.version)[0] -ne 3 -or
+        @($hybridPlatform.version)[1] -ne 11 -or
+        [string]$hybridPlatform.system -ne 'Windows' -or
+        [string]$hybridPlatform.machine -notin @('AMD64', 'x86_64')
+    ) {
+        throw (
+            'Hybrid mode lock file supports only CPython 3.11 on ' +
+            'Windows x86-64. Use -Mode lexical on other platforms.'
+        )
+    }
     $fastEmbedReady = & $VenvPython -c 'import importlib.util; raise SystemExit(0 if importlib.util.find_spec("fastembed") else 1)'
     if ($LASTEXITCODE -ne 0) {
         if ($Wheelhouse) {
             $resolvedWheelhouse = (Resolve-Path -LiteralPath $Wheelhouse).Path
             Invoke-Checked -Executable $VenvPython -Arguments @(
-                '-m', 'pip', 'install', '--no-index', '--find-links', $resolvedWheelhouse,
+                '-m', 'pip', 'install', '--require-hashes',
+                '--no-index', '--find-links', $resolvedWheelhouse,
                 '-r', $Requirements
             )
         } elseif ($PackageIndexUrl) {
             Invoke-Checked -Executable $VenvPython -Arguments @(
-                '-m', 'pip', 'install', '--index-url', $PackageIndexUrl,
+                '-m', 'pip', 'install', '--require-hashes',
+                '--index-url', $PackageIndexUrl,
                 '-r', $Requirements
             )
         } else {
@@ -133,7 +176,7 @@ if ($EffectiveMode -eq 'hybrid') {
                 throw '缺少 FastEmbed；未取得下載授權。可改用 -Wheelhouse 或 -PackageIndexUrl。'
             }
             Invoke-Checked -Executable $VenvPython -Arguments @(
-                '-m', 'pip', 'install', '-r', $Requirements
+                '-m', 'pip', 'install', '--require-hashes', '-r', $Requirements
             )
         }
     }
@@ -155,14 +198,58 @@ if ($EffectiveMode -eq 'hybrid') {
     }
 
     $env:FASTEMBED_CACHE_PATH = $ModelRoot
+    if ($modelFiles) {
+        $verificationOutput = @(
+            & $VenvPython $ModelVerifier `
+                --cache-root $ModelRoot `
+                --manifest $ModelManifest 2>&1
+        )
+        if ($LASTEXITCODE -ne 0) {
+            if (-not $modelDownloadApproved) {
+                throw (
+                    'Existing embedding model failed manifest verification. ' +
+                    ($verificationOutput -join ' ')
+                )
+            }
+            $manifest = Get-Content -Raw -LiteralPath $ModelManifest |
+                ConvertFrom-Json
+            $managedCache = [IO.Path]::GetFullPath(
+                (Join-Path $ModelRoot ([string]$manifest.cache_path))
+            )
+            $modelBoundary = [IO.Path]::GetFullPath($ModelRoot).TrimEnd('\') + '\'
+            if (-not $managedCache.StartsWith(
+                $modelBoundary,
+                [StringComparison]::OrdinalIgnoreCase
+            )) {
+                throw 'Model manifest cache_path escapes the managed model root.'
+            }
+            if (Test-Path -LiteralPath $managedCache -PathType Container) {
+                Remove-Item -LiteralPath $managedCache -Recurse -Force
+            }
+        }
+    }
     if (-not $modelDownloadApproved) {
         $env:HF_HUB_OFFLINE = '1'
     }
-    $prepareArguments = @($HistoryScript, 'prepare', '--cache-dir', $ModelRoot)
     if ($modelDownloadApproved) {
-        $prepareArguments += '--allow-download'
+        Invoke-Checked -Executable $VenvPython -Arguments @(
+            $ModelVerifier,
+            '--cache-root', $ModelRoot,
+            '--manifest', $ModelManifest,
+            '--download'
+        )
     }
-    Invoke-Checked -Executable $VenvPython -Arguments $prepareArguments
+    $env:HF_HUB_OFFLINE = '1'
+    Invoke-Checked -Executable $VenvPython -Arguments @(
+        $HistoryScript,
+        'prepare',
+        '--cache-dir', $ModelRoot
+    )
+    Invoke-Checked -Executable $VenvPython -Arguments @(
+        $ModelVerifier,
+        '--cache-root', $ModelRoot,
+        '--manifest', $ModelManifest
+    )
 }
 
 Invoke-Checked -Executable $VenvPython -Arguments @(
