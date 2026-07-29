@@ -5,7 +5,7 @@ set "HERE=%~dp0"
 echo.
 echo projectD-core global setup for Claude Code and Codex
 echo.
-pwsh -NoProfile -ExecutionPolicy Bypass -File "%HERE%setup.ps1"
+pwsh -NoProfile -File "%HERE%setup.ps1"
 set "SETUP_EXIT=%ERRORLEVEL%"
 if not "%SETUP_EXIT%"=="0" (
     echo.

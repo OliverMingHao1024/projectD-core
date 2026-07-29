@@ -27,6 +27,7 @@ from project_history_records import (
     HistoryRecord,
     RecordLifecycle,
 )
+from model_manifest import verify_model_manifest
 
 RUNTIME_SCHEMA_VERSION = 1
 PROJECTS_SCHEMA_VERSION = 1
@@ -129,6 +130,20 @@ class LocalHistoryRuntime:
         self.git_reader = git_reader or SubprocessGitReader()
 
     def _default_embedding(self, settings: RuntimeSettings) -> Embedding:
+        verified = verify_model_manifest(
+            self.paths.models,
+            self.core_root
+            / "core"
+            / "skills"
+            / "query-project-history"
+            / "scripts"
+            / "model-manifest.json",
+        )
+        if verified["model_id"] != settings.model:
+            raise RuntimeConfigurationError(
+                f"Runtime model {settings.model} does not match verified manifest "
+                f"model {verified['model_id']}"
+            )
         return FastEmbedEmbedding(
             settings.model,
             cache_dir=self.paths.models,

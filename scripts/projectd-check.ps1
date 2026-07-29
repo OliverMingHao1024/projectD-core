@@ -1,6 +1,18 @@
 [CmdletBinding()]
-param([string]$ProjectRoot=(Split-Path -Parent $PSScriptRoot),[string]$FleetPath,[switch]$Json,[switch]$SkipGlobal,[switch]$SkipWiring)
-$ErrorActionPreference='Stop';$core=[IO.Path]::GetFullPath($ProjectRoot);if([string]::IsNullOrWhiteSpace($FleetPath)){$FleetPath=Join-Path $core 'fleet\fleet.json'};$results=@()
+param(
+    [string]$ProjectRoot = (Split-Path -Parent $PSScriptRoot),
+    [string]$FleetPath,
+    [switch]$Json,
+    [switch]$SkipGlobal,
+    [switch]$SkipWiring
+)
+
+$ErrorActionPreference = 'Stop'
+$core = [IO.Path]::GetFullPath($ProjectRoot)
+if ([string]::IsNullOrWhiteSpace($FleetPath)) {
+    $FleetPath = Join-Path $core 'fleet\fleet.json'
+}
+$results = @()
 function Add-Result([string]$n,[bool]$p,[string]$m){$script:results+=,[pscustomobject]@{name=$n;passed=$p;message=$m}}
 $skillRoots = @(
     Join-Path $core 'core\skills'
@@ -193,8 +205,132 @@ if ($bad.Count) {
         "$($sources.Count) source(s), $($candidates.Count) candidate(s) valid"
     )
 }
-if(-not(Test-Path $FleetPath)){Add-Result 'fleet-catalog' $false "Fleet file not found: $FleetPath"}else{try{$items=@(Get-Content -Raw $FleetPath|ConvertFrom-Json|ForEach-Object{$_});$bad=@();foreach($item in $items){if(-not(Test-Path $item.path)){$bad+="project path missing: $($item.path)"};foreach($pack in @($item.packs)){if(-not(Test-Path (Join-Path $core "packs\$pack\SKILL.md"))){$bad+="$($item.path): missing pack $pack"}}};if($bad.Count){Add-Result 'fleet-catalog' $false ($bad -join '; ')}else{Add-Result 'fleet-catalog' $true "$($items.Count) project(s) valid"}}catch{Add-Result 'fleet-catalog' $false "Invalid JSON: $($_.Exception.Message)"}}
-$files=@(Get-ChildItem $core -Recurse -File|Where-Object{$_.FullName -notmatch '\\.git\\|\\.local\\|\\node_modules\\|\\packs\\_staging\\' -and $_.Name -ne 'projectd-check.ps1'});$hits=@($files|Select-String @('frontend-react-angular','typescript-node') -SimpleMatch -ErrorAction SilentlyContinue);if($hits.Count){Add-Result 'stale-pack-references' $false (($hits|Select-Object -First 10|%{"$($_.Path):$($_.LineNumber)"}) -join '; ')}else{Add-Result 'stale-pack-references' $true 'No retired pack references found'}
+if (-not (Test-Path -LiteralPath $FleetPath -PathType Leaf)) {
+    Add-Result 'fleet-catalog' $false "Fleet file not found: $FleetPath"
+} else {
+    try {
+        $items = @(
+            Get-Content -Raw -LiteralPath $FleetPath |
+                ConvertFrom-Json |
+                ForEach-Object { $_ }
+        )
+        $bad = @()
+        foreach ($item in $items) {
+            if (-not (Test-Path -LiteralPath $item.path)) {
+                $bad += "project path missing: $($item.path)"
+            }
+            foreach ($pack in @($item.packs)) {
+                if (
+                    -not (
+                        Test-Path -LiteralPath (
+                            Join-Path $core "packs\$pack\SKILL.md"
+                        ) -PathType Leaf
+                    )
+                ) {
+                    $bad += "$($item.path): missing pack $pack"
+                }
+            }
+        }
+        if ($bad.Count) {
+            Add-Result 'fleet-catalog' $false ($bad -join '; ')
+        } else {
+            Add-Result 'fleet-catalog' $true "$($items.Count) project(s) valid"
+        }
+    } catch {
+        Add-Result 'fleet-catalog' $false (
+            "Invalid JSON: $($_.Exception.Message)"
+        )
+    }
+}
+
+function Get-ProjectTextFiles {
+    param([Parameter(Mandatory)][string]$Root)
+
+    $allowedRoots = @('core', 'packs', 'scripts', 'vault', 'docs')
+    $allowedExtensions = @(
+        '.md',
+        '.ps1',
+        '.psm1',
+        '.py',
+        '.json',
+        '.yaml',
+        '.yml',
+        '.bat',
+        '.cmd'
+    )
+    $excludedDirectories = @(
+        '.git',
+        '.local',
+        'node_modules',
+        '_staging',
+        '__pycache__',
+        '.venv'
+    )
+    $excluded = [Collections.Generic.HashSet[string]]::new(
+        [StringComparer]::OrdinalIgnoreCase
+    )
+    foreach ($name in $excludedDirectories) {
+        [void]$excluded.Add($name)
+    }
+    $extensions = [Collections.Generic.HashSet[string]]::new(
+        [StringComparer]::OrdinalIgnoreCase
+    )
+    foreach ($extension in $allowedExtensions) {
+        [void]$extensions.Add($extension)
+    }
+    $pending = [Collections.Generic.Stack[string]]::new()
+    foreach ($relativeRoot in $allowedRoots) {
+        $path = Join-Path $Root $relativeRoot
+        if (Test-Path -LiteralPath $path -PathType Container) {
+            $rootItem = Get-Item -LiteralPath $path -Force
+            if (-not ($rootItem.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+                $pending.Push($path)
+            }
+        }
+    }
+    while ($pending.Count -gt 0) {
+        $directory = $pending.Pop()
+        foreach ($child in Get-ChildItem -LiteralPath $directory -Force) {
+            if ($child.PSIsContainer) {
+                if (
+                    -not $excluded.Contains($child.Name) -and
+                    -not (
+                        $child.Attributes -band
+                        [IO.FileAttributes]::ReparsePoint
+                    )
+                ) {
+                    $pending.Push($child.FullName)
+                }
+                continue
+            }
+            if (
+                $child.Name -ne 'projectd-check.ps1' -and
+                $extensions.Contains($child.Extension)
+            ) {
+                $child
+            }
+        }
+    }
+}
+
+$files = @(Get-ProjectTextFiles -Root $core)
+$hits = @(
+    $files |
+        Select-String @('frontend-react-angular', 'typescript-node') `
+            -SimpleMatch `
+            -ErrorAction SilentlyContinue
+)
+if ($hits.Count) {
+    Add-Result 'stale-pack-references' $false (
+        (
+            $hits |
+                Select-Object -First 10 |
+                ForEach-Object { "$($_.Path):$($_.LineNumber)" }
+        ) -join '; '
+    )
+} else {
+    Add-Result 'stale-pack-references' $true 'No retired pack references found'
+}
 function Child([string]$n,[scriptblock]$a){
     try {
         $global:LASTEXITCODE = 0
@@ -240,5 +376,46 @@ if($null -eq $pwsh){
         )
     }
 }
-if(-not$SkipWiring){if($null -eq $pwsh){if(-not$SkipGlobal){Add-Result 'global-wiring' $false 'pwsh executable not found; install PowerShell 7 to run wiring checks'};Add-Result 'fleet-wiring' $false 'pwsh executable not found; install PowerShell 7 to run wiring checks'}else{if(-not$SkipGlobal){Child 'global-wiring'{& (Join-Path $PSScriptRoot 'setup.ps1') -Mode Check}};Child 'fleet-wiring'{& (Join-Path $PSScriptRoot 'fleet-governance.ps1') -Mode Check -FleetPath $FleetPath}}}else{Add-Result 'wiring' $true 'Skipped for isolated fixture checks'}
-$failed=@($results|?{-not$_.passed});if($Json){[pscustomobject]@{passed=(!$failed.Count);checks=$results}|ConvertTo-Json -Depth 4}else{$results|%{"[$(if($_.passed){'PASS'}else{'FAIL'})] $($_.name): $($_.message)"};"Summary: $(@($results|? passed).Count) passed, $($failed.Count) failed."};if($failed.Count){exit 1}
+if (-not $SkipWiring) {
+    if ($null -eq $pwsh) {
+        if (-not $SkipGlobal) {
+            Add-Result 'global-wiring' $false (
+                'pwsh executable not found; install PowerShell 7 to run wiring checks'
+            )
+        }
+        Add-Result 'fleet-wiring' $false (
+            'pwsh executable not found; install PowerShell 7 to run wiring checks'
+        )
+    } else {
+        if (-not $SkipGlobal) {
+            Child 'global-wiring' {
+                & (Join-Path $PSScriptRoot 'setup.ps1') -Mode Check
+            }
+        }
+        Child 'fleet-wiring' {
+            & (Join-Path $PSScriptRoot 'fleet-governance.ps1') `
+                -Mode Check `
+                -FleetPath $FleetPath
+        }
+    }
+} else {
+    Add-Result 'wiring' $true 'Skipped for isolated fixture checks'
+}
+
+$failed = @($results | Where-Object { -not $_.passed })
+if ($Json) {
+    [pscustomobject]@{
+        passed = -not $failed.Count
+        checks = $results
+    } | ConvertTo-Json -Depth 4
+} else {
+    $results | ForEach-Object {
+        $state = if ($_.passed) { 'PASS' } else { 'FAIL' }
+        "[$state] $($_.name): $($_.message)"
+    }
+    "Summary: $(@($results | Where-Object passed).Count) passed, " +
+        "$($failed.Count) failed."
+}
+if ($failed.Count) {
+    exit 1
+}

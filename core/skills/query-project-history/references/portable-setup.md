@@ -25,12 +25,23 @@ It asks before downloading Python, FastEmbed, or the embedding model. In
 non-interactive environments, downloads require `-AllowDownload`; otherwise setup
 fails closed. For restricted company environments:
 
-- Use `-Wheelhouse <path>` for approved offline Python wheels.
+- Hybrid mode is locked to CPython 3.11 on Windows x86-64. Other platforms can
+  use lexical mode until a separately reviewed lock is added.
+- Use `-Wheelhouse <path>` for approved offline Python wheels. Every wheel must
+  match the checked-in SHA-256 lock.
 - Use `-PackageIndexUrl <internal-url>` for an approved internal PyPI mirror.
+  The URL must use HTTPS, must not contain embedded credentials, and cannot
+  bypass the checked-in SHA-256 lock.
 - Use `-ModelSource <path>` for an approved FastEmbed cache.
 - Use `-PythonPath <path>` for an IT-managed or portable Python 3.11+ runtime.
 - Use `-Mode lexical` when no embedding model is approved. This path does not
   install FastEmbed or download a model.
+
+Hybrid mode also verifies the FastEmbed cache against the checked-in model
+manifest before each runtime use. The manifest fixes the upstream repository,
+revision, required file set, and SHA-256 hashes. Existing matching caches are
+reused. Missing, unexpected, or modified model files fail closed; setup replaces
+the managed model cache only when download permission is explicitly granted.
 
 Do not copy `index.db`, `projects.json`, model caches, logs, or personal project
 history between personal and company devices. Clone only projectD-core, set up the

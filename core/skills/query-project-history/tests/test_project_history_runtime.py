@@ -171,6 +171,31 @@ def test_hybrid_never_silently_falls_back_to_lexical(tmp_path: Path) -> None:
     assert not runtime.paths.database.exists()
 
 
+def test_default_embedding_rejects_runtime_model_outside_manifest(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runtime = make_runtime(tmp_path)
+    monkeypatch.setattr(
+        runtime_module,
+        "verify_model_manifest",
+        lambda *_: {"model_id": "approved/model"},
+    )
+    monkeypatch.setattr(
+        runtime_module,
+        "FastEmbedEmbedding",
+        lambda *_args, **_kwargs: object(),
+    )
+
+    with pytest.raises(
+        runtime_module.RuntimeConfigurationError,
+        match="does not match verified manifest",
+    ):
+        runtime._default_embedding(
+            runtime_module.RuntimeSettings(mode="hybrid", model="other/model")
+        )
+
+
 def test_runtime_uses_git_process_adapter_for_auxiliary_evidence(
     tmp_path: Path,
 ) -> None:
