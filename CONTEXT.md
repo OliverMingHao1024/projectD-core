@@ -67,3 +67,11 @@ _Avoid_: Verified, PersistedStale, AutoUpdate
 **KnowledgeWorkspaceRegistry**:
 每台裝置本機保存且不進 Git 的 allowlist，將穩定 workspace／repository ID 對應至 canonical local root；不保存 Wiki 內容、來源內容或憑證。
 _Avoid_: GlobalPath, SharedIndex, RemoteRegistry
+
+**KnowledgeEvidenceSource**:
+可由 source manifest 固定版本、相對路徑與 digest，並作為 FeaturePage 主張依據的受控文件來源；其內容未經 KnowledgePromotion 不屬於 verified knowledge。
+_Avoid_: KnowledgeWorkspace, VerifiedWiki, SourceOfTruth
+
+**KnowledgeProjection**:
+由 verified FeaturePage deterministic 產生、具有明確 ownership marker 的唯讀呈現；可供 Obsidian 等工具閱讀，但不是知識來源，人工修改不得回寫或構成 KnowledgePromotion。
+_Avoid_: SyncedWiki, ObsidianSource, KnowledgeCopy
