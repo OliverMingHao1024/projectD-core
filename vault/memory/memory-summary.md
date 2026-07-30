@@ -1,5 +1,5 @@
 ---
-lastUpdated: 2026-07-28
+lastUpdated: 2026-07-30
 ---
 
 # 記憶快照
@@ -63,3 +63,35 @@ lastUpdated: 2026-07-28
 - KnowledgePromotion 只透過 GitHub PR；`reviewed` 是事件而非頁面狀態。PoC 使用
   deterministic lexical index、lint drift 與 query RuntimeStale 防呆，延後自動 ingest、
   外部技術知識、hybrid search 與正式 training view。
+
+## 2026-07-30
+
+- 為 TBB／LBIB 建立對應的「新增交易代碼」端到端工作流程 Skill（TBB：反射派工路由、
+  多步驟精靈模組結構；LBIB：巢狀 switch/case 路由、反編譯風險檔案）。過程中發現
+  TBB／LBIB 的 `database.instructions.md`（或缺乏此類文件）與實際程式碼的 SQL 慣例
+  有全面落差：兩專案的存儲過程標準文件其實都未被實際程式碼遵守，既有 Handler 一律
+  內嵌 parameterized SQL；兩份 Skill 均已改為依實際慣例撰寫，不引用 `db-migration` skill。
+- 將 `rdl-report` 從 oai-core `shared-skills/rdl-report`（copy-based 同步）遷移進
+  projectD-core `packs/rdl-report/`（junction-based，符合現有 8 個 packs 的既定模式）。
+  遷移時未保留 oai-core 專用的部署 metadata 與 `.oai-shared-skill` 標記；
+  projectD-core 透過 junction 讓 Claude／Codex／Copilot 共用同一份 canonical
+  `SKILL.md`，而 `agents/openai.yaml` 僅是可選的 UI metadata，不是另一份 per-agent
+  Skill 內容。retire 舊部署副本時刻意跳過 oai-core `install-agent-config.ps1` 的完整
+  同步（該次執行還會夾帶其他不相關的待處理變更），改為手動驗證 `.oai-shared-skill`
+  標記後逐一移除，僅處理 rdl-report 範圍。
+  過程中發現 LBIB 專案內還有一個獨立、重疊的 `ssrs-rdl` skill
+  （`lbib_Trade_New/.agents/skills/ssrs-rdl`，與 `~/.codex/skills/ssrs-rdl` 內容相同），
+  其 `references/lbib-rdl-patterns.md` 含有比 `rdl-report` 原本「已知 LBIB 線索」更詳細
+  的參數/資料集/版面資訊，已併入 `rdl-report`；使用者確認後已刪除 `ssrs-rdl` 兩份副本
+  與 `oai-core/.agents/skills/ssrs-rdl` 的失效 junction，並把 `lbib_Trade_New` 的
+  `CLAUDE.md`/`AGENTS.md`/`GEMINI.md` 改指向 `rdl-report`。
+- 盤點 oai-core `shared-skills/` 其餘 8 個 skill 是否仍需要：`bug-fix` 因
+  projectD-core 已有更嚴謹的 `diagnosing-bugs`（6 階段診斷方法論）而確認移除；
+  `code-review` 逐字比對後發現與 projectD-core `core/skills/code-review` 完全相同，
+  且 `~/.claude/skills/code-review`、`~/.agents/skills/code-review` 目前已是指向
+  projectD-core 的 junction——oai-core 版本若曾被完整同步，會透過該 junction
+  **覆寫 projectD-core 自己 repo 內的原始檔**（已確認尚未發生，因先前刻意避開完整
+  同步），故一併移除 oai-core 版本以消除此一潛在污染風險，兩個 junction 本身不動。
+  `doc-writer`／`git-commit`／`new-feature`／`refactor`／`test-gen`／`vault-doc`
+  六個在 projectD-core 沒有對應項且無使用不到的證據，全部保留，暫不遷移進
+  projectD-core（是否遷移留待後續有需要時再決定）。
