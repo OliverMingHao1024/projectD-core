@@ -1,21 +1,36 @@
 ---
 name: frontend-angular
-description: Angular application conventions and capability selection.
+description: Modern Angular application conventions and capability selection. Use when changing Angular components, directives, services, dependency injection, routing, forms, Signals or RxJS, templates, tests, or build configuration; do not use for AngularJS 1.x.
 ---
 
 # Angular Pack
 
-Use with `frontend-core` for Angular applications. Read the affected Angular and
-TypeScript versions, module or standalone conventions, providers, router, and RxJS policy first.
+Use with `frontend-core` for browser-facing work and `typescript` for language and
+build-tool conventions. Treat modern Angular and AngularJS as separate frameworks.
+
+## Establish the Baseline
+
+- Read the Angular and TypeScript versions, module or standalone convention, providers,
+  router, form strategy, rendering mode, test setup, and Signals or RxJS policy.
+- Inspect the existing component system and state, data-access, error, and loading patterns.
+- Preserve repository-level architecture and version constraints.
 
 ## Rules
 
-- Preserve the application's established module or standalone component convention.
-- Keep providers, subscriptions, listeners, and effects within Angular lifecycle and cleanup rules.
-- Prefer the existing service, HttpClient, Signals/RxJS, and form conventions before adding libraries.
-- Do not introduce React ecosystem packages into an Angular application.
-- Preserve the repository's Angular and TypeScript versions; do not modernize dependencies incidentally.
+- Preserve the established module or standalone component convention.
+- Keep providers, subscriptions, listeners, and effects within Angular lifecycle and
+  cleanup boundaries.
+- Prefer the existing service, HttpClient, Signals or RxJS, and form conventions.
+- Keep templates accessible and avoid moving business logic into presentation code.
+- Do not introduce another frontend ecosystem or modernize dependencies incidentally.
+
+## Verification
+
+- Run the repository's focused tests, lint, type check, and production build.
+- Verify the affected route or component, loading and error states, navigation, and cleanup.
+- Check server-rendering or hydration behavior when the application uses it.
 
 ## References
 
-- Capability selection: `references/angular-capabilities.md`
+- Read [angular-capabilities.md](references/angular-capabilities.md) when selecting or
+  changing an Angular-specific capability.

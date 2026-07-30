@@ -1,21 +1,36 @@
 ---
 name: frontend-react
-description: React application conventions and capability selection.
+description: React application conventions and capability selection. Use when changing React components, hooks, effects, routing, client or server state, rendering boundaries, tests, or build configuration.
 ---
 
 # React Pack
 
-Use with `frontend-core` for React applications. Read the affected React version,
-rendering model, router, state libraries, and existing component system first.
+Use with `frontend-core` for browser-facing work and `typescript` when the application
+contains TypeScript.
+
+## Establish the Baseline
+
+- Read the React version, rendering model, router, state and data libraries, component
+  system, test setup, and server or client boundary conventions.
+- Inspect existing loading, error, suspense, caching, and form patterns.
+- Preserve repository-level architecture and version constraints.
 
 ## Rules
 
-- Keep server state in the established query/cache layer; do not move it into Redux or Zustand by default.
+- Keep server state in the established query or cache layer.
 - Prefer component state, context, or URL state before introducing shared client state.
-- Follow existing hook, effect, error-boundary, and component composition conventions.
+- Follow existing hook, effect, error-boundary, and component-composition conventions.
 - Keep asynchronous effects cancellable and clean up subscriptions, listeners, and timers.
-- Preserve the repository's React and TypeScript versions; do not modernize dependencies incidentally.
+- Keep accessible structure and interaction behavior explicit.
+- Do not introduce another frontend ecosystem or modernize dependencies incidentally.
+
+## Verification
+
+- Run the repository's focused tests, lint, type check, and production build.
+- Verify the affected route or component, loading and error states, navigation, and cleanup.
+- Check server rendering or hydration behavior when the application uses it.
 
 ## References
 
-- Capability selection: `references/react-capabilities.md`
+- Read [react-capabilities.md](references/react-capabilities.md) when selecting or changing
+  a React-specific capability.

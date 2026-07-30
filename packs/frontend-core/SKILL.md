@@ -1,24 +1,32 @@
 ---
 name: frontend-core
-description: Framework-neutral HTML, CSS, browser, accessibility, and UI foundations.
+description: Framework-neutral browser UI conventions for HTML, CSS, accessibility, responsive behavior, interaction, and perceived performance. Use for any browser-facing interface work regardless of frontend framework.
 ---
 
 # Frontend Core Pack
 
-Use this pack for browser-facing work regardless of framework. Inspect the existing
-design system, semantic HTML, CSS architecture, responsive behavior, accessibility
-requirements, and performance constraints before selecting libraries.
+Use for browser-facing work regardless of framework. Combine with the applicable framework
+and language packs when the project uses them.
+
+## Establish the Baseline
+
+- Inspect the design system, semantic HTML, CSS architecture, responsive behavior,
+  accessibility requirements, browser support, and performance constraints.
+- Identify established component boundaries, design tokens, motion conventions, and
+  loading, empty, error, and offline states.
 
 ## Rules
 
 - Prefer semantic HTML and native browser capabilities before adding dependencies.
-- Preserve the repository's existing design tokens, layout conventions, and component boundaries.
-- Keep keyboard navigation, focus visibility, reduced motion, contrast, and screen-reader behavior explicit.
+- Preserve existing design tokens, layout conventions, and component boundaries.
+- Keep keyboard navigation, focus visibility, reduced motion, contrast, and screen-reader
+  behavior explicit.
 - Treat loading, empty, error, and offline states as part of the UI contract.
-- Use CSS transitions and existing motion tokens first; add animation only when it clarifies state or interaction.
+- Add motion only when it clarifies state or interaction and follow existing motion tokens.
 - Measure expensive rendering or asset work before optimizing.
 
 ## Verification
 
-- Run the project's existing lint, type-check, and focused UI tests when available.
-- Manually verify keyboard, responsive, reduced-motion, and failure states for changed surfaces.
+- Run the repository's focused UI tests, lint, type check, and production build.
+- Manually verify keyboard, responsive, reduced-motion, and failure-state behavior.
+- Check the affected surface in the project's supported browsers or rendering modes.

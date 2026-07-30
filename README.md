@@ -14,7 +14,7 @@
 | `core/commands/` | Claude Code 相容的 slash command（單檔 command）|
 | `core/skills/` | 跨技術棧通用 Skill；每個子目錄以 `SKILL.md` 為入口 |
 | `vault/` | 跨 session 記憶（身份、決策、制度路由、踩坑紀錄）|
-| `packs/` | 依技術棧選用的技能包，目前：csharp、frontend-core、frontend-react、frontend-angular、typescript、node-runtime、python |
+| `packs/` | 依技術棧選用的技能包，目前：csharp、frontend-core、frontend-react、frontend-angular、frontend-angularjs、typescript、node-runtime、python |
 | `fleet/` | 多專案共用本 repo 的說明與清單範例 |
 | `scripts/` | 全域安裝／移機與 Fleet 治理檢查腳本 |
 
