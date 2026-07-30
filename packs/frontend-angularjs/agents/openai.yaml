@@ -1,0 +1,4 @@
+interface:
+  display_name: "AngularJS 1.x"
+  short_description: "Maintain and migrate AngularJS 1.x applications"
+  default_prompt: "Use $frontend-angularjs to safely maintain this AngularJS 1.x application."

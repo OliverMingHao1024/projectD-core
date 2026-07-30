@@ -1,7 +1,7 @@
 # Angular Capability Adapter
 
-Read the affected Angular application's version, standalone/module conventions and existing providers
-before selecting anything. Existing maintainable choices take precedence.
+Read the affected Angular version, standalone or module convention, and existing providers
+before selecting a capability. Give existing maintainable choices precedence.
 
 | Capability | First checks | Conditional candidates |
 | --- | --- | --- |

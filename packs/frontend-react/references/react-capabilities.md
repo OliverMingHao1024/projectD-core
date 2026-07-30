@@ -1,6 +1,6 @@
 # React Capability Adapter
 
-Read project evidence before using these candidates. Existing maintainable choices take precedence.
+Read project evidence before selecting a capability. Give existing maintainable choices precedence.
 
 | Capability | First checks | Conditional candidates |
 | --- | --- | --- |
