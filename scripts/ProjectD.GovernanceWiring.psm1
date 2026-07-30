@@ -329,6 +329,22 @@ function New-FleetGovernanceWiring {
                 -Content $content `
                 -Owner "projectD-core/fleet/$projectPath"))
         }
+        $gitIgnoreStart = '# PROJECTD_CORE_AI_AGENT_MD_START'
+        $gitIgnoreEnd = '# PROJECTD_CORE_AI_AGENT_MD_END'
+        $gitIgnoreContent = @(
+            $gitIgnoreStart,
+            '# AI agent entry files managed by projectD-core.',
+            '/AGENTS.md',
+            '/CLAUDE.md',
+            '/GEMINI.md',
+            $gitIgnoreEnd
+        ) -join "`n"
+        $resources.Add((New-ManagedBlockResource `
+            -Path (Join-Path $projectPath '.gitignore') `
+            -BlockStart $gitIgnoreStart `
+            -BlockEnd $gitIgnoreEnd `
+            -Content $gitIgnoreContent `
+            -Owner "projectD-core/fleet/$projectPath"))
     }
     return [pscustomobject]@{
         Resources = $resources.ToArray()

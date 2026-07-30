@@ -14,6 +14,8 @@ and language packs when the project uses them.
   accessibility requirements, browser support, and performance constraints.
 - Identify established component boundaries, design tokens, motion conventions, and
   loading, empty, error, and offline states.
+- Inspect shared browser utilities such as Lodash, including their version, loading or
+  import form, type declarations, and bundler behavior.
 
 ## Rules
 
@@ -23,6 +25,8 @@ and language packs when the project uses them.
   behavior explicit.
 - Treat loading, empty, error, and offline states as part of the UI contract.
 - Add motion only when it clarifies state or interaction and follow existing motion tokens.
+- Preserve the application's existing Lodash distribution and import convention; apply
+  its operations with explicit mutation, missing-value, lifecycle, and bundle semantics.
 - Measure expensive rendering or asset work before optimizing.
 
 ## Verification
@@ -30,3 +34,8 @@ and language packs when the project uses them.
 - Run the repository's focused UI tests, lint, type check, and production build.
 - Manually verify keyboard, responsive, reduced-motion, and failure-state behavior.
 - Check the affected surface in the project's supported browsers or rendering modes.
+
+## References
+
+- Read [lodash.md](references/lodash.md) when using Lodash for collection, object, path,
+  equality, cloning, timing, or aggregation operations.

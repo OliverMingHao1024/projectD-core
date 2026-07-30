@@ -175,6 +175,11 @@ Set-Content `
     -Value 'project-owned prefix' `
     -Encoding utf8 `
     -NoNewline
+Set-Content `
+    -LiteralPath (Join-Path $FleetProject '.gitignore') `
+    -Value "project-owned-ignore`n" `
+    -Encoding utf8 `
+    -NoNewline
 $FleetItem = [pscustomobject]@{
     path = $FleetProject
     category = 'side'
@@ -184,6 +189,9 @@ $FleetState = New-FleetGovernanceWiring `
     -Core $Core `
     -FleetItems @($FleetItem) `
     -StatePath (Join-Path $Root 'fleet-state.json')
+Assert-True (
+    $FleetState.Resources.Count -eq 4
+) 'Fleet desired state must include three entry files and one .gitignore.'
 Invoke-GovernanceWiring `
     -Resources $FleetState.Resources `
     -Action Apply `
@@ -202,5 +210,14 @@ Assert-True (
         'project-owned prefix'
     )
 ) 'Fleet Apply must preserve project-owned entry content.'
+$FleetGitIgnore = Get-Content -Raw (Join-Path $FleetProject '.gitignore')
+Assert-True (
+    $FleetGitIgnore.Contains('project-owned-ignore')
+) 'Fleet Apply must preserve project-owned .gitignore content.'
+foreach ($EntryPattern in @('/AGENTS.md', '/CLAUDE.md', '/GEMINI.md')) {
+    Assert-True (
+        $FleetGitIgnore.Contains($EntryPattern)
+    ) "Fleet Apply must ignore $EntryPattern at the project root."
+}
 
 Write-Output 'GOVERNANCE_WIRING_CONTRACT_OK'
