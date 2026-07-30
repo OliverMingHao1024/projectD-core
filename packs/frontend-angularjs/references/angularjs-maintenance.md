@@ -1,7 +1,7 @@
 # AngularJS 1.x Maintenance
 
-Read this reference for digest-cycle, directive, security, testing, performance, or
-migration-sensitive work.
+Read this reference for Lodash, digest-cycle, directive, security, testing, performance,
+or migration-sensitive work.
 
 ## Digest and Lifecycle
 
@@ -22,6 +22,17 @@ migration-sensitive work.
   DOM-manipulating directives.
 - Keep direct DOM manipulation inside a directive that owns the affected DOM boundary.
 - Do not assume `.component()` or lifecycle hooks exist before AngularJS 1.5.
+
+## Lodash
+
+- Read the shared Lodash reference from the `frontend-core` pack before changing utility
+  operations.
+- Preserve the existing global `_`, injected-service, or module-import convention and its
+  script order.
+- Keep repeated full-collection transforms out of templates and hot `$watch` expressions;
+  compute them at an event, service, or controller boundary when possible.
+- Route debounced or throttled callbacks through the correct digest boundary and cancel
+  them when the owning scope is destroyed.
 
 ## Security
 
