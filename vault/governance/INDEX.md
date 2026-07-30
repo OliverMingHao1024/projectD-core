@@ -21,7 +21,8 @@
 - L1–L6 詳細判準：`operating-model.md`
 - 角色分工：`../../core/agents/{pm,sa,sd,pg}.md`
 - 通用 Skill：`../../core/skills/*/SKILL.md`
-- 技術棧 Skill：`../../packs/*/SKILL.md`
+- 技術棧 Skill：`../../packs/*/SKILL.md`（含 F25B/ESOAF 家族 SSRS RDL 報表：`../../packs/rdl-report/SKILL.md`，
+  2026-07-30 由 oai-core `shared-skills/rdl-report` 遷入）
 - 前端能力選型：`../../core/skills/select-frontend-capability/SKILL.md`，再依目前 workspace
   路由至 `../../packs/frontend-react/references/react-capabilities.md` 與 `../../packs/frontend-angular/references/angular-capabilities.md`
 - 可重複踩坑：`../after-action/`
