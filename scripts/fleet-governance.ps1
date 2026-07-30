@@ -51,5 +51,5 @@ $changed = if ($Mode -eq 'Apply') {
 }
 Write-Host (
     "[PASS] Fleet governance: $($fleetItems.Count) project(s), " +
-    "$($wiring.Resources.Count) entry file(s), $changed changed."
+    "$($wiring.Resources.Count) managed file(s), $changed changed."
 ) -ForegroundColor Green
