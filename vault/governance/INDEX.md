@@ -19,6 +19,9 @@
 
 - L0 規則：`../../core/constitution/rules.md`
 - L1–L6 詳細判準：`operating-model.md`
+- Repository hosting：所有 `projectD-*` repository 一律使用 Git／GitHub，不走 F25B
+  TFS；其他專案在 push／PR 前先依 remote 證據路由。詳細邊界見 `operating-model.md`
+  的「Repository hosting boundary」。
 - 角色分工：`../../core/agents/{pm,sa,sd,pg}.md`
 - 通用 Skill：`../../core/skills/*/SKILL.md`
 - 技術棧 Skill：`../../packs/*/SKILL.md`（含 F25B/ESOAF 家族 SSRS RDL 報表：`../../packs/rdl-report/SKILL.md`，
