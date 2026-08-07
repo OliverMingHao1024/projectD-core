@@ -19,6 +19,9 @@
 
 - L0 規則：`../../core/constitution/rules.md`
 - L1–L6 詳細判準：`operating-model.md`
+- Repository hosting：所有 `projectD-*` repository 一律使用 Git／GitHub，不走 F25B
+  TFS；其他專案在 push／PR 前先依 remote 證據路由。詳細邊界見 `operating-model.md`
+  的「Repository hosting boundary」。
 - 角色分工：`../../core/agents/{pm,sa,sd,pg}.md`
 - 通用 Skill：`../../core/skills/*/SKILL.md`
 - 技術棧 Skill：`../../packs/*/SKILL.md`（含 F25B/ESOAF 家族 SSRS RDL 報表：`../../packs/rdl-report/SKILL.md`，
@@ -28,11 +31,16 @@
 - 可重複踩坑：`../after-action/`
 - 跨專案歷程查詢 PoC：`../../core/skills/query-project-history/SKILL.md`；
   候選與基準集位於 `project-history-poc/`，候選未經人工確認不得視為歷程事實。
-- System Feature Wiki（規格已核准、未實作）：`../../docs/specs/external-knowledge-wiki.md`；
-  第一階段以獨立 private KnowledgeWorkspace 為 `intentype` 建立八個能力導向
-  FeaturePages，提供唯讀開發影響分析。架構理由見 `../../docs/adr/0004-*.md` 至
-  `0009-*.md`；`plan-external-llm-wiki.md` 僅保留為歷史研究，不是實作權威。
-- Skill 引入機制（GitHub 定向搜尋與受治理收錄）：`../../docs/adr/0001-targeted-skill-intake.md`
+- System Feature Wiki（規格已核准、Phase 0 進行中）：`../../docs/specs/external-knowledge-wiki.md`；
+  獨立 private KnowledgeWorkspace（`D:\workspaces\projectD-knowledge`）以能力導向
+  FeaturePages 提供唯讀開發影響分析。第一階段納入 `intentype`（8 個 Initial
+  FeaturePages）、`lbib`（跨 `lbib_Web`／`lbib_Trade_New`／`lbib_PlatformDll_New`
+  三個 repository；Initial FeaturePages 尚未選定）及 `tbb`（先以 `TBB_Web`／
+  `TBB_Trade` 的 TA23001 作為 tracer bullet）三個 source system。架構理由見
+  `../../docs/adr/0004-*.md` 至 `0009-*.md`、`0013-expand-knowledge-workspace-to-lbib.md`、
+  `0014-expand-knowledge-workspace-to-tbb.md`；
+  `plan-external-llm-wiki.md` 僅保留為歷史研究，不是實作權威。
+- Skill 引入機制（GitHub 定向搜尋、指定 registry 安裝與受治理收錄）：`../../docs/adr/0001-targeted-skill-intake.md`
   （現行架構）、`prd-skill-import.md`（歷史 PRD）、
   `sa-analysis-skill-import.md`（技術分析）、`skill-candidates.md`（決策紀錄）、
   `skill-registry.json`（機器狀態）、`../../core/skills/skill-scout/SKILL.md`

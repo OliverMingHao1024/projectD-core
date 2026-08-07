@@ -1,10 +1,12 @@
 # System Feature Wiki PoC
 
-> **狀態：approved / implementation not started**
+> **狀態：approved / Phase 0 in progress（intentype 與 lbib 兩個 source system）**
 >
 > 本規格是第一階段實作與驗收的權威。既有
 > [`plan-external-llm-wiki.md`](../../vault/governance/plan-external-llm-wiki.md)
 > 只保留為研究背景；內容若與本規格或 ADR 0004–0009 衝突，以本規格與 ADR 為準。
+> ADR 0013 將 Phase 0 基礎設施（schema／validator／registry）擴大為系統無關建置，
+> `lbib` 與 `intentype` 並列為受管來源系統；衝突時以 ADR 0013 為準。
 
 ## Problem
 
@@ -34,9 +36,15 @@ D:\workspaces\projectD-knowledge
 
 | 邊界 | 擁有內容 | 不擁有 |
 |---|---|---|
-| `intentype` | 程式碼、測試、spec、manual、ADR、HistoryRecord | Wiki synthesis |
+| `intentype`（source system） | 程式碼、測試、spec、manual、ADR、HistoryRecord | Wiki synthesis |
+| `lbib`（source system；對應 `lbib_Web`、`lbib_Trade_New`、`lbib_PlatformDll_New` 三個 git repository） | 程式碼、測試、spec、ADR、Vault 文件 | Wiki synthesis |
 | `projectD-knowledge` | manifest/page schema、validator、fixtures、CI、正式 FeaturePage、index | 原始碼與正式產品決策 |
 | `projectD-core` | workspace registry 規則、支援的 schema version、生命周期與安全底線、query/lint adapter | 具體 schema、validator 或 Wiki 內容 |
+
+一個 source system 可對應多個 git repository：`repository_id` 是單一 repository 的
+resolvable key，`system` 是頁面切分與 query 範圍所用的較上層分組。`lbib` 的三個
+repository 各自有獨立 commit history；跨 repository 的單一能力頁需在
+`source_manifests` 陣列中同時引用對應 repository 的 manifest。
 
 來源 repository 永遠是最終 source of truth。SystemFeatureWiki 是 wayfinder，不是 change
 authority；Agent 不得只依 Wiki 實作功能變更。
@@ -45,7 +53,14 @@ authority；Agent 不得只依 Wiki 實作功能變更。
 
 ### Source system
 
-只納入 `intentype`。
+第一階段納入兩個 source system：
+
+- `intentype`：單一 git repository。
+- `lbib`：跨 `lbib_Web`、`lbib_Trade_New`、`lbib_PlatformDll_New` 三個 git
+  repository（LBIB 容器目錄本身不設 git repo，不是 source）。
+
+ADR 0013 記錄此擴大範圍的決策；Phase 0 基礎設施（schema／validator／registry）
+系統無關，兩個 source system 共用同一套工具與生命週期規則。
 
 ### Primary use case
 
@@ -73,6 +88,9 @@ PoC 固定建立以下八頁：
 8. 診斷資料保存、預覽與匯出。
 
 UI 外觀、聲音提示、打包／發布與廣泛外部技術知識不在本 PoC。
+
+`lbib` 的 Initial FeaturePages 尚未選定，是獨立於 Phase 0 基礎設施建置的後續決策；
+選定前 `wiki/systems/lbib/` 不建立任何 candidate 或 verified 內容。
 
 ## Domain rules
 
@@ -134,7 +152,8 @@ projectD-knowledge/
 │  └─ manifests/
 ├─ wiki/
 │  └─ systems/
-│     └─ intentype/
+│     ├─ intentype/
+│     └─ lbib/
 ├─ fixtures/
 ├─ scripts/
 │  └─ validate.*
@@ -232,13 +251,14 @@ Implementation Map 只保存可回讀定位：
 
 ## Evidence allowlist
 
-第一階段只允許 `intentype` Git repository 內的精確來源：
+第一階段只允許已登錄 source system 的 Git repository 內的精確來源：
 
-- approved spec、README、manual。
-- bounded `src/intentype/**` 程式路徑。
-- 對應 `tests/test_*.py`。
-- ADR、HistoryRecord、Issue／PR URL。
-- 必要的正式設定或 API contract。
+- `intentype`：approved spec、README、manual、bounded `src/intentype/**`、對應
+  `tests/test_*.py`、ADR、HistoryRecord、Issue／PR URL、必要的正式設定或 API
+  contract。
+- `lbib`（`lbib_Web`、`lbib_Trade_New`、`lbib_PlatformDll_New`）：各 repo 的
+  approved spec／`docs/specs/**`、README、對應 bounded 程式路徑、ADR、
+  HistoryRecord、Issue／PR URL、必要的正式設定或 API contract。
 
 排除：
 
@@ -270,7 +290,10 @@ KnowledgeWorkspaceRegistry：
     "projectd-knowledge": "D:\\workspaces\\projectD-knowledge"
   },
   "repositories": {
-    "intentype": "D:\\workspaces\\intentype"
+    "intentype": "D:\\workspaces\\intentype",
+    "lbib-web": "D:\\workspaces\\LBIB\\lbib_Web",
+    "lbib-trade": "D:\\workspaces\\LBIB\\lbib_Trade_New",
+    "lbib-platformdll": "D:\\workspaces\\LBIB\\lbib_PlatformDll_New"
   }
 }
 ```
@@ -459,6 +482,7 @@ PoC 視為失敗。
 - [ADR 0007：PR promotion audit](../adr/0007-use-pull-requests-for-knowledge-promotion.md)
 - [ADR 0008：Drift 不自動修改](../adr/0008-detect-feature-page-drift-without-mutation.md)
 - [ADR 0009：Portable manifests](../adr/0009-keep-knowledge-manifests-portable.md)
+- [ADR 0013：擴大範圍至 lbib](../adr/0013-expand-knowledge-workspace-to-lbib.md)
 - [歷史研究計畫](../../vault/governance/plan-external-llm-wiki.md)
 - [projectD 運作模型](../../vault/governance/operating-model.md)
 - [query-project-history](../../core/skills/query-project-history/SKILL.md)

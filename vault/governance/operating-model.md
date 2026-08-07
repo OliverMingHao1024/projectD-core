@@ -37,6 +37,15 @@ priority: high
    單一已授權 repository，並使用可回讀的固定腳本或明確命令，不生成跨 repo inline
    PowerShell 掃描。
 
+### Repository hosting boundary
+
+- `projectD-core`、`projectD-knowledge` 及其他 `projectD-*` repository 一律使用 Git
+  版本控制與 GitHub remote；branch、commit、push 與 pull request 不得透過 F25B TFS。
+- TFS／Azure DevOps Server workflow 只適用於已明確確認 remote 位於 F25B TFS 的內部
+  應用專案，例如 TBB；不得因目前工作目錄位於 F25B workspace 就推定使用 TFS。
+- 執行任何 push 或建立 pull request 前，必須先以 `git remote -v` 或等價唯讀證據確認
+  repository 的實際 remote，再選擇 GitHub 或 TFS workflow；兩者的授權不得互相沿用。
+
 ## L2 判斷層
 
 觸發情境：架構決策、根因分析、跨模組影響、兩個以上實質可行方案，或方向連續失敗。
