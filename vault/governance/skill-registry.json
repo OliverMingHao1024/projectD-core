@@ -2,6 +2,26 @@
   "schema_version": 1,
   "sources": [
     {
+      "id": "skill-vault-ali",
+      "provider": "skill-vault",
+      "repository": "skill-vault/ali",
+      "license_spdx": null,
+      "latest_observed_commit": null,
+      "latest_observed_version": 2,
+      "migration_status": "complete",
+      "decision_records": ["ali/tfs-code"]
+    },
+    {
+      "id": "skill-vault-ch-chang",
+      "provider": "skill-vault",
+      "repository": "skill-vault/ch-chang",
+      "license_spdx": null,
+      "latest_observed_commit": null,
+      "latest_observed_version": 2,
+      "migration_status": "complete",
+      "decision_records": ["ch-chang/tfs"]
+    },
+    {
       "id": "github-mattpocock-skills",
       "provider": "github",
       "repository": "mattpocock/skills",
@@ -265,6 +285,34 @@
     }
   ],
   "candidates": [
+    {
+      "id": "skill-vault-ali--tfs-code",
+      "source_id": "skill-vault-ali",
+      "source_path": "tfs-code",
+      "observed_commit": null,
+      "observed_version": 2,
+      "upstream_digest": "sha256:150b3ba43414ff13a4dbf10d720022cb96335f1bcca6e65dbf9d6f7881e94b20",
+      "archive_digest": "sha256:4a304fbb6af8d00e4598ed33ac0cab97e303e7db3819c49f770b953ef2b31e57",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/tfs-code",
+      "canonical_name": "tfs-code",
+      "decision_record": "ali/tfs-code",
+      "migration_status": "complete"
+    },
+    {
+      "id": "skill-vault-ch-chang--tfs",
+      "source_id": "skill-vault-ch-chang",
+      "source_path": "tfs",
+      "observed_commit": null,
+      "observed_version": 2,
+      "upstream_digest": "sha256:9d1f0cb9571cee96723d646688eee5940b05afb4a20b0974e2f78448b9171689",
+      "archive_digest": "sha256:e71a7cff7bd9942a8039950ae0d7a19d2140795957c2a9dfa4a6ca39aef50711",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/tfs",
+      "canonical_name": "tfs",
+      "decision_record": "ch-chang/tfs",
+      "migration_status": "complete"
+    },
     {
       "id": "mattpocock-skills--skills-engineering-codebase-design",
       "source_id": "github-mattpocock-skills",

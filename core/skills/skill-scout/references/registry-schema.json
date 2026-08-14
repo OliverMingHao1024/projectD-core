@@ -16,7 +16,11 @@
           "license_spdx",
           "migration_status",
           "decision_records"
-        ]
+        ],
+        "properties": {
+          "provider": {"enum": ["github", "skill-vault"]},
+          "latest_observed_version": {"type": ["integer", "null"]}
+        }
       }
     },
     "candidates": {
@@ -30,7 +34,11 @@
           "lifecycle_status",
           "decision_record",
           "migration_status"
-        ]
+        ],
+        "properties": {
+          "observed_version": {"type": ["integer", "null"]},
+          "archive_digest": {"type": ["string", "null"]}
+        }
       }
     }
   }

@@ -1,0 +1,4 @@
+interface:
+  display_name: "F25B TFS Code"
+  short_description: "搜尋、讀取與 clone F25B TFS 原始碼"
+  default_prompt: "Use $tfs-code to find and inspect source code in F25B TFS safely."

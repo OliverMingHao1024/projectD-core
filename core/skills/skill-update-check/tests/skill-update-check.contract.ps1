@@ -26,7 +26,13 @@ try {
         sources = @(
             [pscustomobject]@{
                 id = 'github-mattpocock-skills'
+                provider = 'github'
                 repository = 'mattpocock/skills'
+            },
+            [pscustomobject]@{
+                id = 'skill-vault-ali'
+                provider = 'skill-vault'
+                repository = 'skill-vault/ali'
             }
         )
         candidates = @(
@@ -36,6 +42,14 @@ try {
                 source_path = 'skills/engineering/grill-with-docs'
                 observed_commit = 'old'
                 upstream_digest = 'sha256:old'
+                lifecycle_status = 'adopted'
+            },
+            [pscustomobject]@{
+                id = 'skill-vault-ali--tfs-code'
+                source_id = 'skill-vault-ali'
+                source_path = 'tfs-code'
+                observed_commit = $null
+                upstream_digest = 'sha256:internal'
                 lifecycle_status = 'adopted'
             }
         )
@@ -54,6 +68,12 @@ try {
     Assert-True (
         @($result.errors).Count -eq 0
     ) 'Fixture check must not report errors.'
+    Assert-True (
+        @($result.skipped).Count -eq 1
+    ) 'A non-GitHub provider must be reported as skipped.'
+    Assert-True (
+        $result.skipped[0].id -eq 'skill-vault-ali--tfs-code'
+    ) 'The Skill Vault candidate must be the skipped record.'
     Write-Output 'SKILL_UPDATE_CHECK_CONTRACT_OK'
 } finally {
     if (Test-Path -LiteralPath $TempRoot) {
