@@ -46,6 +46,19 @@ priority: high
 - 執行任何 push 或建立 pull request 前，必須先以 `git remote -v` 或等價唯讀證據確認
   repository 的實際 remote，再選擇 GitHub 或 TFS workflow；兩者的授權不得互相沿用。
 
+### AI-agent MCP server 執行邊界
+
+使用具檔案讀寫或 shell 執行能力的 MCP server（例如 DevSpace）時：
+
+- 禁止匿名公開 Tunnel（如 `devtunnel --allow-anonymous`）；經 AppLocker/WDAC 等應用程式
+  控制技術性封鎖，不僅列為政策禁止。優先使用已驗證的 Secure Tunnel 或受控 reverse proxy。
+- 執行環境使用非 root、單一 repo bind-mount 的 rootless container；不得以日常高權限帳號
+  或 Administrator/root 直接執行 shell；不掛 Docker socket、SSH agent、host `~/.ssh`／
+  `~/.aws`／`~/.kube`。
+- Egress 預設 deny，經白名單 proxy（而非僅防火牆規則）強制放行必要目的地。
+- 決策理由與取捨見 `../../docs/adr/0015-isolate-ai-agent-mcp-server-execution.md`；依據
+  2026-08-12 DevSpace MCP 資安風險評估與重新導入安全指引（Offense 335495 事件後修訂版）。
+
 ## L2 判斷層
 
 觸發情境：架構決策、根因分析、跨模組影響、兩個以上實質可行方案，或方向連續失敗。

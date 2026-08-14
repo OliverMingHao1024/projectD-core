@@ -40,6 +40,9 @@
   `../../docs/adr/0004-*.md` 至 `0009-*.md`、`0013-expand-knowledge-workspace-to-lbib.md`、
   `0014-expand-knowledge-workspace-to-tbb.md`；
   `plan-external-llm-wiki.md` 僅保留為歷史研究，不是實作權威。
+- AI-agent MCP server 執行安全邊界（例如 DevSpace 等具 shell/write 能力的工具）：
+  `operating-model.md` 的「AI-agent MCP server 執行邊界」（L1 安全層），決策見
+  `../../docs/adr/0015-isolate-ai-agent-mcp-server-execution.md`
 - Skill 引入機制（GitHub 定向搜尋、指定 registry 安裝與受治理收錄）：`../../docs/adr/0001-targeted-skill-intake.md`
   （現行架構）、`prd-skill-import.md`（歷史 PRD）、
   `sa-analysis-skill-import.md`（技術分析）、`skill-candidates.md`（決策紀錄）、

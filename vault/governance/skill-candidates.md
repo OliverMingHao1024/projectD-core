@@ -17,6 +17,30 @@
 
 <!-- 畢業並移入正式 pack 者。每筆務必補「目標 pack」。 -->
 
+### ali/tfs-code
+- id：skill-vault-ali--tfs-code
+- 來源連結：https://skill-vault.apps.okd.f25b.com/api/skills/ali/tfs-code
+- 授權條款：未宣告 SPDX；F25B 內部來源，僅限內部使用，不得對外再散布
+- star 數（評估時）：不適用（Skill Vault v2；下載 11、瀏覽 23）
+- 最近更新：2026-07-13
+- 評估日期：2026-08-03
+- 結論：部分收錄
+- 理由：使用者指定安裝並在完整靜態檢視後確認信任發佈者與內容，且明確要求統整至 projectD。來源 zip 僅含 SKILL.md，archive SHA-256 與 Vault metadata 相符。保留 Hound、TFS REST 與 SSH/HTTP clone 的核心流程；改為跨 Agent 用語，將 REST 限定為唯讀、PAT 改為不進命令列或日誌、`-k` 僅允許精確的內部 Hound 主機，並把詳細 REST 範例移至按需載入 reference。來源未宣告開源授權，因此此次是經使用者授權的 F25B 內部整合例外，不視為可對外散布的開源收錄。
+- 目標 pack：core/skills/tfs-code
+- 發現管道：使用者指定 F25B Skill Vault 座標 + Vault v2 metadata + zip 靜態審查
+
+### ch-chang/tfs
+- id：skill-vault-ch-chang--tfs
+- 來源連結：https://skill-vault.apps.okd.f25b.com/api/skills/ch-chang/tfs
+- 授權條款：未宣告 SPDX；F25B 內部來源，僅限內部使用，不得對外再散布
+- star 數（評估時）：不適用（Skill Vault v2；下載 11、瀏覽 19）
+- 最近更新：2026-07-15
+- 評估日期：2026-08-03
+- 結論：部分收錄
+- 理由：使用者指定安裝並在完整靜態檢視後確認信任發佈者與內容，且明確要求統整至 projectD。來源是 `ali/tfs` 的 fork，zip 僅含 SKILL.md，archive SHA-256 與 Vault metadata 相符。保留 build、release、deployment、pipeline、work item、repo/PR metadata 與 service endpoint 能力；將 PAT 改為不進命令列或日誌，優先要求最小 scope，並把每次共享狀態變更收緊為「出示精確目標、payload 與影響後取得新的確認」。唯讀與寫入範例拆成按需載入 references，且與 `tfs-code` 的原始碼搜尋／讀取／clone 範圍明確分工。來源未宣告開源授權，因此此次是經使用者授權的 F25B 內部整合例外，不視為可對外散布的開源收錄。
+- 目標 pack：core/skills/tfs
+- 發現管道：使用者指定 F25B Skill Vault 座標 + Vault v2 metadata + zip 靜態審查
+
 ### mattpocock/skills（implement / code-review review gate）
 - id：mattpocock-skills--skills-engineering-implement / mattpocock-skills--skills-engineering-code-review
 - 來源連結：https://github.com/mattpocock/skills/tree/ed37663cc5fbef691ddfecd080dff42f7e7e350d/skills/engineering

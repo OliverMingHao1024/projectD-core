@@ -46,7 +46,9 @@
 授權與格式合格的候選，不執行外部程式、不自動 staging，也不自行擴大搜尋。候選的機器
 狀態在 `vault/governance/skill-registry.json`，人工理由在
 `vault/governance/skill-candidates.md`；已採用 Skill 的 upstream 漂移由獨立
-`skill-update-check` 檢查。
+`skill-update-check` 檢查。使用者明確指定非 GitHub registry 時，依該 registry 的安裝
+說明先下載至隔離目錄、完成靜態檢視並確認信任，再以 provider 座標、版本與 digest
+登錄；尚無 update adapter 的 provider 會明確回報 `skipped`。
 
 全域接線由同一份 `GovernanceWiring` desired state 管理。可先用
 `pwsh -File scripts/setup.ps1 -Mode Check` 唯讀檢查；`Apply` 會先完成所有

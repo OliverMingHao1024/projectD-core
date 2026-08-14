@@ -29,7 +29,9 @@ $candidates = @(
 
 $unchanged = [Collections.Generic.List[object]]::new()
 $updates = [Collections.Generic.List[object]]::new()
+$skipped = [Collections.Generic.List[object]]::new()
 $errors = [Collections.Generic.List[object]]::new()
+$checked = 0
 
 foreach ($candidate in $candidates) {
     if (-not $sources.ContainsKey([string]$candidate.source_id)) {
@@ -41,6 +43,22 @@ foreach ($candidate in $candidates) {
     }
     $source = $sources[[string]$candidate.source_id]
     $sourceIdentity = "$($source.repository)/$($candidate.source_path)"
+    $provider = if (
+        [string]::IsNullOrWhiteSpace([string]$source.provider)
+    ) {
+        'github'
+    } else {
+        [string]$source.provider
+    }
+    if ($provider -ne 'github') {
+        $skipped.Add([pscustomobject]@{
+            id = $candidate.id
+            source = $sourceIdentity
+            reason = "Provider '$provider' has no update adapter."
+        })
+        continue
+    }
+    $checked++
     try {
         $arguments = @{
             Source = $sourceIdentity
@@ -83,8 +101,9 @@ foreach ($candidate in $candidates) {
 [pscustomobject]@{
     schema_version = 1
     mutated = $false
-    checked = $candidates.Count
+    checked = $checked
     unchanged = $unchanged.ToArray()
     updates = $updates.ToArray()
+    skipped = $skipped.ToArray()
     errors = $errors.ToArray()
 } | ConvertTo-Json -Depth 8

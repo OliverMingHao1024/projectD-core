@@ -1,0 +1,4 @@
+interface:
+  display_name: "F25B TFS Operations"
+  short_description: "查詢與管理 F25B TFS build、release 與 work item"
+  default_prompt: "Use $tfs to inspect an F25B TFS build or deployment safely."

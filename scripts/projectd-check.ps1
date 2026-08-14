@@ -113,7 +113,7 @@ try {
     $sourceIds = @{}
     foreach ($source in $sources) {
         $sourceIds[[string]$source.id] = $source
-        if ($source.provider -ne 'github') {
+        if ($source.provider -notin @('github', 'skill-vault')) {
             $bad += "$($source.id): unsupported provider"
         }
         if ($source.migration_status -notin @('complete', 'needs-review')) {
