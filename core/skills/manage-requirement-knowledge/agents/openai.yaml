@@ -1,0 +1,4 @@
+interface:
+  display_name: "Manage Requirement Knowledge"
+  short_description: "Capture and evolve governed requirement knowledge"
+  default_prompt: "Use $manage-requirement-knowledge to capture this requirement into ProjectD-knowledge."
