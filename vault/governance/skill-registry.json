@@ -22,6 +22,16 @@
       "decision_records": ["ch-chang/tfs"]
     },
     {
+      "id": "skill-vault-dreamwing",
+      "provider": "skill-vault",
+      "repository": "skill-vault/dreamwing",
+      "license_spdx": "MIT",
+      "latest_observed_commit": null,
+      "latest_observed_version": 1,
+      "migration_status": "complete",
+      "decision_records": ["dreamwing/angular-developer"]
+    },
+    {
       "id": "github-mattpocock-skills",
       "provider": "github",
       "repository": "mattpocock/skills",
@@ -311,6 +321,20 @@
       "target": "core/skills/tfs",
       "canonical_name": "tfs",
       "decision_record": "ch-chang/tfs",
+      "migration_status": "complete"
+    },
+    {
+      "id": "skill-vault-dreamwing--angular-developer",
+      "source_id": "skill-vault-dreamwing",
+      "source_path": "angular-developer",
+      "observed_commit": null,
+      "observed_version": 1,
+      "upstream_digest": "sha256:1589ba578d9d964e22eb4e305272821d10db602f53dee029bfeb0861dc2c4dc5",
+      "archive_digest": "sha256:1a900d201937b3b2a7b8f9e571c7affc37ed8d3835615180b1ef6958b69a5a4a",
+      "lifecycle_status": "adopted",
+      "target": "packs/frontend-angular",
+      "canonical_name": "frontend-angular",
+      "decision_record": "dreamwing/angular-developer",
       "migration_status": "complete"
     },
     {

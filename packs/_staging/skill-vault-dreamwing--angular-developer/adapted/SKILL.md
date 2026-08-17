@@ -83,7 +83,7 @@ different constraint:
   and E2E testing decisions.
 - Read [angular-tooling.md](references/angular-tooling.md) for CLI, migrations, environment
   configuration, and mutation boundaries.
-- Read [lodash.md](../frontend-core/references/lodash.md) when using Lodash collection,
+- Read [lodash.md](../../../frontend-core/references/lodash.md) when using Lodash collection,
   object, equality, cloning, debounce, or throttle operations.
 
 ## Source
