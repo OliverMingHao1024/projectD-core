@@ -50,6 +50,9 @@ priority: high
 
 使用具檔案讀寫或 shell 執行能力的 MCP server（例如 DevSpace）時：
 
+- 開啟前必須先確認在目標機器上有沒有本機 Administrator 權限：下列每一項控制都需要
+  它才能自行建立。沒有本機 admin 權限時，不得以任何理由開啟 shell/write 能力；只能維持
+  唯讀能力，或先取得 IT 一次性代為建置隔離環境的授權後才重新評估。
 - 禁止匿名公開 Tunnel（如 `devtunnel --allow-anonymous`）；經 AppLocker/WDAC 等應用程式
   控制技術性封鎖，不僅列為政策禁止。優先使用已驗證的 Secure Tunnel 或受控 reverse proxy。
 - 執行環境使用非 root、單一 repo bind-mount 的 rootless container；不得以日常高權限帳號
