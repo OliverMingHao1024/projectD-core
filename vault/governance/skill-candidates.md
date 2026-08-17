@@ -41,6 +41,18 @@
 - 目標 pack：core/skills/tfs
 - 發現管道：使用者指定 F25B Skill Vault 座標 + Vault v2 metadata + zip 靜態審查
 
+### dreamwing/angular-developer
+- id：skill-vault-dreamwing--angular-developer
+- 來源連結：https://skill-vault.apps.okd.f25b.com/api/skills/dreamwing/angular-developer
+- 授權條款：SKILL.md frontmatter 宣告 MIT；archive 無獨立 LICENSE 檔
+- star 數（評估時）：不適用（Skill Vault v1；下載 1、瀏覽 8）
+- 最近更新：2026-08-04
+- 評估日期：2026-08-17
+- 結論：部分收錄
+- 理由：使用者指定 Skill Vault 座標，完成 40 個 Markdown 的靜態安全檢視後核准整合。候選提供 Signals、Forms、routing/rendering、Angular Aria、testing 與 CLI 等詳細現代 Angular 參考，但其通用觸發範圍與既有 `frontend-angular` 重疊，且「最新版、CLI、Signal Forms、Tailwind v4、直接 ng build、MCP」等絕對預設可能違反舊專案慣例，因此不建立第二個 active Skill。保留單一 `frontend-angular` 入口，明確分流完全全新專案與既有 workspace；全新專案可採相容的現代預設，既有專案一律以原版本、架構、forms、Signals/RxJS、測試、樣式與 repository commands 為準。原始 39 份 references 整理為六個按需載入主題，所有依賴安裝、migration、deploy 與 MCP 行為仍受 projectD 授權與安全邊界約束。Vault version 1、archive SHA-256 與 metadata 相符；發佈者 dreamwing／陳俊霖與 upstream `Copyright 2026 Google LLC` 宣告的關係未獨立驗證。
+- 目標 pack：packs/frontend-angular
+- 發現管道：使用者指定 F25B Skill Vault 座標 + Vault metadata + zip 全檔靜態審查 + 核准整合規格
+
 ### mattpocock/skills（implement / code-review review gate）
 - id：mattpocock-skills--skills-engineering-implement / mattpocock-skills--skills-engineering-code-review
 - 來源連結：https://github.com/mattpocock/skills/tree/ed37663cc5fbef691ddfecd080dff42f7e7e350d/skills/engineering
