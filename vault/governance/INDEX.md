@@ -8,7 +8,7 @@
 | 層級 | 何時關注 | 核心原則 |
 |---|---|---|
 | L0 憲法 | 永遠 | 授權、最小改動、證據、安全、驗證與制度邊界 |
-| L1 安全 | 秘密、權限、DB、檔案、網路、部署、不可逆操作 | 先確認邊界與影響，高風險依 L0 取得授權 |
+| L1 安全 | 秘密、權限、DB、檔案、網路、外部整合、部署、不可逆操作 | 外部操作逐次分為 Source／Action；先確認邊界與影響，高風險依 L0 取得授權 |
 | L2 判斷 | 架構、根因、影響範圍、重大方案取捨 | 區分事實／假設，以專案證據驗證 |
 | L3 流程 | 需要工具操作或產生產物、多步驟、多檔案、跨模組或行為變更 | 使用 TaskScopedProposalLoop；依規模選擇角色，軟體變更可行時採 Spec、Red → Green → Refactor 與雙軸 Review |
 | L4 技能 | 通用工作流、能力選型、外部工具與技術棧規範 | 先辨識能力與技術棧；專案決策／既有慣例優先，候選不升格為唯一標準 |
@@ -19,6 +19,8 @@
 
 - L0 規則：`../../core/constitution/rules.md`
 - L1–L6 詳細判準：`operating-model.md`
+- 外部整合：依 `operating-model.md` 的「外部整合的 Source／Action 邊界」逐操作分類；
+  Source 不擴張讀取範圍，Source 權限也不自動授權後續 Action。
 - Repository hosting：所有 `projectD-*` repository 一律使用 Git／GitHub，不走 F25B
   TFS；其他專案在 push／PR 前先依 remote 證據路由。詳細邊界見 `operating-model.md`
   的「Repository hosting boundary」。

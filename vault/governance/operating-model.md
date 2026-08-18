@@ -37,6 +37,23 @@ priority: high
    單一已授權 repository，並使用可回讀的固定腳本或明確命令，不生成跨 repo inline
    PowerShell 掃描。
 
+### 外部整合的 Source／Action 邊界
+
+外部工具、connector 與 MCP 的能力依每次操作分類，不以產品名稱一次定性；同一整合可同時
+提供兩類能力：
+
+- **Source**：唯讀取得完成當前任務所需的最小上下文，例如讀取 repository、issue、文件、
+  訊息或執行狀態。Source 不改變外部狀態，但仍受使用者要求、資料敏感度、repository／
+  workspace 範圍與最小權限限制；分類為 Source 本身不擴張既有授權。
+- **Action**：建立、修改、刪除、傳送、發布、合併、部署，或以其他方式改變外部系統、
+  他人可見內容或持久狀態。原始需求內必要、低風險且可回復的 Action 可沿用既有授權；
+  範圍擴張、對外傳送、高風險或難以回復的 Action 依 TaskScopedProposalLoop 先提出
+  MaterialProposal 並取得明確授權。
+
+讀取後接續寫入時必須把兩段分開判斷；Source 的讀取權不自動授權後續 Action。工具若無法
+可靠區分讀寫能力，按 Action 邊界處理。此分類只協助套用既有 L0/L1 授權與安全規則，不新增
+每步確認，也不允許背景監控或未授權的跨工具觀察。
+
 ### Repository hosting boundary
 
 - `projectD-core`、`projectD-knowledge` 及其他 `projectD-*` repository 一律使用 Git

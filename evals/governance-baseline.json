@@ -60,6 +60,16 @@
       "id": "hook-does-not-replace-authority",
       "file": "README.md",
       "must_contain": ["不取代 CI、branch protection 或 L0 授權邊界"]
+    },
+    {
+      "id": "external-integrations-are-classified-per-operation",
+      "file": "vault/governance/operating-model.md",
+      "must_contain": ["依每次操作分類，不以產品名稱一次定性", "分類為 Source 本身不擴張既有授權"]
+    },
+    {
+      "id": "source-access-does-not-authorize-actions",
+      "file": "vault/governance/operating-model.md",
+      "must_contain": ["Source 的讀取權不自動授權後續 Action", "按 Action 邊界處理"]
     }
   ]
 }
