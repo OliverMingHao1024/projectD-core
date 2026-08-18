@@ -21,6 +21,8 @@
 - L1–L6 詳細判準：`operating-model.md`
 - 外部整合：依 `operating-model.md` 的「外部整合的 Source／Action 邊界」逐操作分類；
   Source 不擴張讀取範圍，Source 權限也不自動授權後續 Action。
+- 安全相關設計或程式變更：依 L1 確認信任邊界，再使用
+  `../../core/skills/security-review/SKILL.md` 做有界、唯讀且以證據為基礎的安全審查。
 - Repository hosting：所有 `projectD-*` repository 一律使用 Git／GitHub，不走 F25B
   TFS；其他專案在 push／PR 前先依 remote 證據路由。詳細邊界見 `operating-model.md`
   的「Repository hosting boundary」。

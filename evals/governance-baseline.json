@@ -70,6 +70,16 @@
       "id": "source-access-does-not-authorize-actions",
       "file": "vault/governance/operating-model.md",
       "must_contain": ["Source 的讀取權不自動授權後續 Action", "按 Action 邊界處理"]
+    },
+    {
+      "id": "security-review-is-risk-triggered",
+      "file": "core/skills/security-review/SKILL.md",
+      "must_contain": ["materially affects a trust boundary or security control", "do not use as a generic checklist for unrelated or low-risk changes", "Review only"]
+    },
+    {
+      "id": "security-findings-require-evidence",
+      "file": "core/skills/security-review/SKILL.md",
+      "must_contain": ["Reject findings that have no plausible path", "do not claim the whole system is secure"]
     }
   ]
 }
