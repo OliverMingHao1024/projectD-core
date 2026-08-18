@@ -67,7 +67,7 @@ flowchart TD
     PUB -- "是" --> CM["Commit"]
     CM --> HK["可選 pre-push Hook：repository-local check"]
     HK --> PS["Push 功能分支"]
-    PS --> CI["GitHub Actions：portable governance check"]
+    PS --> CI["GitHub Actions：portable check＋治理 Eval"]
     CI --> PR["Pull Request／branch protection"]
     PR --> M["Review 通過後 Merge"]
     M --> DB["刪除功能分支"]
@@ -169,6 +169,15 @@ Run the read-only quality gate with PowerShell 7:
 pwsh -File scripts/projectd-check.ps1
 pwsh -File scripts/projectd-check.ps1 -Json
 ```
+
+治理核心、Skill routing 或授權規則有變更時，可選擇執行輕量治理 Eval：
+
+```powershell
+pwsh -File scripts/projectd-check.ps1 -GovernanceEvals
+```
+
+這組 deterministic baseline 位於 `evals/governance-baseline.json`，只驗證高影響治理契約；
+一般小任務與本機 pre-push 不會預設執行。CI 會執行其 contract，防止治理行為無意退步。
 
 The command validates every canonical Skill in `core/skills/` and `packs/`, including
 portable frontmatter, folder/name agreement, duplicate names, and the Skill registry's
