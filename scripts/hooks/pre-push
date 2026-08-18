@@ -1,0 +1,5 @@
+#!/bin/sh
+# projectD-core-owned-hook
+
+repo_root=$(git rev-parse --show-toplevel) || exit 1
+exec pwsh -NoProfile -File "$repo_root/scripts/hooks/pre-push.ps1" "$@"

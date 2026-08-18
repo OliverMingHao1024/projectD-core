@@ -3,6 +3,7 @@ param(
     [string]$ProjectRoot = (Split-Path -Parent $PSScriptRoot),
     [string]$FleetPath,
     [switch]$Json,
+    [switch]$SkipFleet,
     [switch]$SkipGlobal,
     [switch]$SkipWiring
 )
@@ -205,7 +206,9 @@ if ($bad.Count) {
         "$($sources.Count) source(s), $($candidates.Count) candidate(s) valid"
     )
 }
-if (-not (Test-Path -LiteralPath $FleetPath -PathType Leaf)) {
+if ($SkipFleet) {
+    Add-Result 'fleet-catalog' $true 'Skipped for repository-local checks'
+} elseif (-not (Test-Path -LiteralPath $FleetPath -PathType Leaf)) {
     Add-Result 'fleet-catalog' $false "Fleet file not found: $FleetPath"
 } else {
     try {

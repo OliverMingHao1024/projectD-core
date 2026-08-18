@@ -50,6 +50,9 @@ try {
     ) 'Unified check must validate the bounded Fleet inspector.'
     $checkContent = Get-Content -Raw -LiteralPath $check
     Assert-True (
+        $checkContent.Contains('[switch]$SkipFleet')
+    ) 'Unified check must support repository-local execution.'
+    Assert-True (
         -not $checkContent.Contains('Get-ChildItem $core -Recurse')
     ) 'Project checks must not recursively enumerate the repository root.'
     foreach ($allowedRoot in @('core', 'packs', 'scripts', 'vault', 'docs')) {
