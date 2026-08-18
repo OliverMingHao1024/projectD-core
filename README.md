@@ -23,6 +23,59 @@
 一個專案要用 projectD-core，就在該專案裡引用 `core/` 加上該專案技術棧對應的
 `packs/`。Fleet 專案以受管入口區塊接線，細節見 `fleet/README.md`。
 
+## 整體 Workflow
+
+```mermaid
+flowchart TD
+    A["Session 啟動"] --> B["讀取 L0 憲法"]
+    B --> C["Vault init：identity → memory → governance INDEX"]
+    C --> D["依任務語意路由 L1–L6、角色與 Skills"]
+    D --> E["使用者任務／已授權範圍內的必要發現"]
+
+    subgraph LOOP["TaskScopedProposalLoop"]
+        E --> U["Understand"]
+        U --> P{"MaterialProposal？"}
+        P -- "否：靜默通過" --> X["Execute"]
+        P -- "是" --> R{"阻塞、越界或高風險？"}
+        R -- "否" --> N["保留至最終回報"]
+        N --> X
+        R -- "是" --> H{"Authorize：使用者決定"}
+        H -- "接受" --> X
+        H -- "拒絕／調整" --> Q["縮小或結束受影響分支"]
+
+        X --> S{"軟體變更？"}
+        S -- "是" --> T["相稱 Spec → Tracer-bullet TDD"]
+        S -- "否" --> O["依產物類型執行"]
+        T --> V["Verify：tests → typecheck/build → 雙軸 Review"]
+        O --> V2["Verify：read-back／來源／可重現驗證"]
+        V --> G{"驗證通過？"}
+        V2 --> G
+        G -- "否：本次造成或無法區分" --> X
+        G -- "是／有證據的既有無關失敗" --> RP["Report：成果、證據、未處理提案"]
+        Q --> RP
+        RP --> L{"Learn：命中 L5？"}
+        L -- "否" --> DONE["任務完成"]
+        L -- "是" --> HC["提出 HistoryCandidate"]
+        HC --> CF{"使用者確認？"}
+        CF -- "保留" --> HR["HistoryRecord／memory 索引"]
+        CF -- "暫留／排除" --> DONE
+        HR --> DONE
+    end
+
+    DONE --> PUB{"已授權發布到 Git？"}
+    PUB -- "否" --> END["保留本機結果"]
+    PUB -- "是" --> CM["Commit"]
+    CM --> HK["可選 pre-push Hook：repository-local check"]
+    HK --> PS["Push 功能分支"]
+    PS --> CI["GitHub Actions：portable governance check"]
+    CI --> PR["Pull Request／branch protection"]
+    PR --> M["Review 通過後 Merge"]
+    M --> DB["刪除功能分支"]
+```
+
+Hook 只提供本機提早回饋；CI、branch protection、L0 授權與人工 Review
+仍是獨立邊界，任一層不會因其他層存在而被取代。
+
 ## 全域安裝／移機
 
 雙擊 `scripts/setup.bat`（或執行 `pwsh -File scripts/setup.ps1`）會把本 repo
