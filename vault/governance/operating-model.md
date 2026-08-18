@@ -89,6 +89,30 @@ priority: high
 - 多步驟或高風險任務先提出可驗證計畫；小任務不為了流程而製造文件。
 - 角色交接只傳目標、範圍、證據、限制、決策與驗收條件，不重複載入整個 core。
 
+### TaskScopedProposalLoop
+
+凡需要工具操作或產生產物的任務，使用下列外層治理迴圈：
+
+`Understand → Propose → Authorize → Execute → Verify → Report → Learn`
+
+純問答與簡單說明不強制顯示或套用此迴圈。
+
+1. **Understand**：只根據使用者要求、明確交付的證據，以及已授權範圍內發現的必要資訊理解任務；不進行背景監控、未授權的跨工具觀察或自行擴張工作範圍。
+2. **Propose**：只有影響正確完成、安全、資料、權限、使用者可觀察行為、架構、維運成本或後續阻塞的發現，才構成 MaterialProposal。純格式、命名與非必要重構不形成提案。
+3. **Authorize**：原始需求內必要、低風險且可回復的步驟沿用既有授權，不逐步等待確認。範圍擴張、增加依賴、跨 repository、對外傳送、高風險操作，或會實質改變成果的決策，必須取得明確授權。
+4. **Execute**：依任務類型執行。軟體變更依規模採用適當深度的 Spec 與 TDD；小型且驗收明確的任務不為流程額外建立文件。
+5. **Verify**：採用與產物和風險相稱的驗證。若失敗由本次變更造成、位於受影響主路徑，或無法與本次變更區分，不得宣稱完整通過。
+6. **Report**：回報成果、驗證證據與未處理的 MaterialProposal。未接受的提案不自動建立 issue、task、memory 或 HistoryRecord。
+7. **Learn**：只有命中 L5 條件時才提出 HistoryCandidate，仍須經使用者確認才能正式保存。
+
+沒有 MaterialProposal 時靜默通過 Propose 與 Authorize，不製造流程噪音。非阻塞提案可留待最終回報；阻塞、越界或高風險提案必須立即提出。
+
+需要授權的分支只暫停受影響部分；其他已授權且不依賴該決策的工作可繼續。若繼續會造成浪費、衝突或誤導，則暫停整體工作。
+
+能以證據確認為既有且不影響本次變更的驗證失敗，可在明確揭露後完成任務；無關既有問題的修復屬範圍擴張，只形成 MaterialProposal。
+
+對軟體變更，TaskScopedProposalLoop 是外層治理迴圈；Spec、Tracer-bullet TDD 與雙軸 Review 分別落在 Execute 與 Verify 階段，不互相取代。雙軸 Review 分別檢查 repository standards 與已確認 spec；具體流程使用 `../../core/skills/code-review/SKILL.md`。
+
 ### TDD 優先流程
 
 當任務會改變可觀察行為或修復 bug，且專案已有可用測試基礎設施時，優先採：

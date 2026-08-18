@@ -64,6 +64,14 @@ _Avoid_: AutoPublish, LLMApproval, Ingest
 查詢當下發現目前 source HEAD 或 working tree 與 FeaturePage 的 verified manifest 不一致的暫時狀態；不自動修改 Wiki，但禁止把該頁當成現行事實。
 _Avoid_: Verified, PersistedStale, AutoUpdate
 
+**TaskScopedProposalLoop**:
+只針對使用者已提出或明確授權範圍內發現的工作，依序進行理解、提案、授權、執行、驗證、回報與歷程候選；不包含背景監控、未授權的跨工具觀察或自行擴張工作範圍。
+_Avoid_: ProactiveMonitoring, AutonomousWorkflow, ContinuousAgentLoop
+
+**MaterialProposal**:
+TaskScopedProposalLoop 中，因影響任務正確完成、安全、資料、權限、使用者可觀察行為、架構、維運成本或後續阻塞而需要提出的工作建議；純格式、命名或非必要重構不構成 MaterialProposal。
+_Avoid_: ImprovementIdea, CleanupSuggestion, OptionalRefactor
+
 **KnowledgeWorkspaceRegistry**:
 每台裝置本機保存且不進 Git 的 allowlist，將穩定 workspace／repository ID 對應至 canonical local root；不保存 Wiki 內容、來源內容或憑證。
 _Avoid_: GlobalPath, SharedIndex, RemoteRegistry
