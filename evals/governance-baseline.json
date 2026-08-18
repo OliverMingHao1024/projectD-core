@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "workflow-is-task-scoped",
+      "file": "vault/governance/operating-model.md",
+      "must_contain": ["TaskScopedProposalLoop", "Understand → Propose → Authorize → Execute → Verify → Report → Learn"]
+    },
+    {
+      "id": "no-material-proposal-is-silent",
+      "file": "vault/governance/operating-model.md",
+      "must_contain": ["沒有 MaterialProposal 時靜默通過 Propose 與 Authorize"]
+    },
+    {
+      "id": "small-tasks-avoid-extra-docs",
+      "file": "vault/governance/operating-model.md",
+      "must_contain": ["小型且驗收明確的任務不為流程額外建立文件"]
+    },
+    {
+      "id": "scope-expansion-needs-authorization",
+      "file": "vault/governance/operating-model.md",
+      "must_contain": ["範圍擴張", "必須取得明確授權"]
+    },
+    {
+      "id": "unaccepted-proposals-are-not-persisted",
+      "file": "vault/governance/operating-model.md",
+      "must_contain": ["未接受的提案不自動建立 issue、task、memory 或 HistoryRecord"]
+    },
+    {
+      "id": "learning-needs-confirmation",
+      "file": "vault/governance/operating-model.md",
+      "must_contain": ["仍須經使用者確認才能正式保存"]
+    },
+    {
+      "id": "l0-remains-stack-neutral",
+      "file": "core/constitution/rules.md",
+      "must_contain": ["不把語言或框架限定寫入 L0"]
+    },
+    {
+      "id": "implementation-review-gate",
+      "file": "core/skills/implement/SKILL.md",
+      "must_contain": ["mandatory code-review gate for behavioral changes", "Invoke the `code-review` Skill"]
+    },
+    {
+      "id": "review-does-not-publish",
+      "file": "core/skills/implement/SKILL.md",
+      "must_contain": ["Do not commit, push, open a pull request"]
+    },
+    {
+      "id": "candidate-code-is-never-executed",
+      "file": "core/skills/skill-scout/SKILL.md",
+      "must_contain": ["Never execute candidate scripts, hooks, installers, or downloaded code"]
+    },
+    {
+      "id": "hook-is-optional",
+      "file": "README.md",
+      "must_contain": ["可選 pre-push Hook", "Hook 只提供本機提早回饋"]
+    },
+    {
+      "id": "hook-does-not-replace-authority",
+      "file": "README.md",
+      "must_contain": ["不取代 CI、branch protection 或 L0 授權邊界"]
+    }
+  ]
+}

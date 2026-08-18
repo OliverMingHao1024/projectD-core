@@ -5,7 +5,8 @@ param(
     [switch]$Json,
     [switch]$SkipFleet,
     [switch]$SkipGlobal,
-    [switch]$SkipWiring
+    [switch]$SkipWiring,
+    [switch]$GovernanceEvals
 )
 
 $ErrorActionPreference = 'Stop'
@@ -403,6 +404,18 @@ if (-not $SkipWiring) {
     }
 } else {
     Add-Result 'wiring' $true 'Skipped for isolated fixture checks'
+}
+
+if ($GovernanceEvals) {
+    if ($null -eq $pwsh) {
+        Add-Result 'governance-evals' $false 'pwsh executable not found'
+    } else {
+        Child 'governance-evals' {
+            & $pwsh.Source -NoProfile -File (
+                Join-Path $core 'scripts\governance-eval.ps1'
+            )
+        }
+    }
 }
 
 $failed = @($results | Where-Object { -not $_.passed })
