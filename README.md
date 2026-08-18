@@ -64,6 +64,25 @@ repo 本身不會被刪除。可先以 `scripts/uninstall.ps1 -Mode Check` 執�
 ownership preflight；不屬於 projectD-core 的檔案、junction 或 environment
 value 不會被移除。
 
+### 可選：pre-push 治理 Hook
+
+Hook 只是本機提早回饋，不取代 CI、branch protection 或 L0 授權邊界。
+它只執行 repository-local、無網路與不改檔的治理檢查；不會背景監控或傳送 prompt。
+
+```powershell
+# 安裝（若已有非 projectD-core 擁有的 pre-push hook 會拒絕覆寫）
+pwsh -File scripts/governance-hooks.ps1 -Mode Install
+
+# 唯讀檢查安裝狀態
+pwsh -File scripts/governance-hooks.ps1 -Mode Check
+
+# 只移除帶有 projectD-core ownership marker 的 hook
+pwsh -File scripts/governance-hooks.ps1 -Mode Uninstall
+```
+
+GitHub Actions 會獨立執行相同的可攜 repository 檢查；即使本機 Hook
+未安裝或被繞過，PR 仍由 CI 提供一致的驗證。
+
 ## 可選：本機專案歷程搜尋
 
 治理接線完成後，可另外執行 `scripts/setup-project-history.ps1`，建立本機
