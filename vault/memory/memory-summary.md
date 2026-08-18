@@ -1,5 +1,5 @@
 ---
-lastUpdated: 2026-07-30
+lastUpdated: 2026-08-19
 ---
 
 # 記憶快照
@@ -17,14 +17,8 @@ lastUpdated: 2026-07-30
 - 初始 pack：csharp、frontend-core、frontend-react、frontend-angular、typescript / node-runtime、python（骨架，內容待實際使用累積）。
 - 建立輕量 L1–L6 運作模型：L0 常駐、其他層按語意載入；四角色依任務規模選用，
   不強制完整流水線，也不引入固定思維框架、自動 recap 或跨專案固定覆蓋率。
-- 開發流程以 TDD 精神為優先：有既有測試基礎設施的行為變更／bug 修復採
-  Red → Green → Refactor；無測試框架時改做最小回歸驗證，不擅自加依賴。
 - Fleet 專案以 `AGENTS.md`／`CLAUDE.md`／`GEMINI.md` 受管區塊連回單一 core，
   並用 `scripts/fleet-governance.ps1` 的 Apply／Check 模式防止入口漂移或靜默失聯。
-- 軟體變更使用 `grill-me`／`grilling` 完成共識並確認執行後，預設銜接精簡工程流程：
-  spec → tracer-bullet TDD → typecheck/build → Standards/Spec 雙軸 review → commit。
-  此流程是下位、可組合的工作流；projectD-core L0、較近專案規則與使用者當次明確指令
-  永遠優先，且非程式議題不強制套用開發流程。
 
 ## 2026-07-26
 
@@ -66,32 +60,13 @@ lastUpdated: 2026-07-30
 
 ## 2026-07-30
 
-- 為 TBB／LBIB 建立對應的「新增交易代碼」端到端工作流程 Skill（TBB：反射派工路由、
-  多步驟精靈模組結構；LBIB：巢狀 switch/case 路由、反編譯風險檔案）。過程中發現
-  TBB／LBIB 的 `database.instructions.md`（或缺乏此類文件）與實際程式碼的 SQL 慣例
-  有全面落差：兩專案的存儲過程標準文件其實都未被實際程式碼遵守，既有 Handler 一律
-  內嵌 parameterized SQL；兩份 Skill 均已改為依實際慣例撰寫，不引用 `db-migration` skill。
-- 將 `rdl-report` 從 oai-core `shared-skills/rdl-report`（copy-based 同步）遷移進
-  projectD-core `packs/rdl-report/`（junction-based，符合現有 8 個 packs 的既定模式）。
-  遷移時未保留 oai-core 專用的部署 metadata 與 `.oai-shared-skill` 標記；
-  projectD-core 透過 junction 讓 Claude／Codex／Copilot 共用同一份 canonical
-  `SKILL.md`，而 `agents/openai.yaml` 僅是可選的 UI metadata，不是另一份 per-agent
-  Skill 內容。retire 舊部署副本時刻意跳過 oai-core `install-agent-config.ps1` 的完整
-  同步（該次執行還會夾帶其他不相關的待處理變更），改為手動驗證 `.oai-shared-skill`
-  標記後逐一移除，僅處理 rdl-report 範圍。
-  過程中發現 LBIB 專案內還有一個獨立、重疊的 `ssrs-rdl` skill
-  （`lbib_Trade_New/.agents/skills/ssrs-rdl`，與 `~/.codex/skills/ssrs-rdl` 內容相同），
-  其 `references/lbib-rdl-patterns.md` 含有比 `rdl-report` 原本「已知 LBIB 線索」更詳細
-  的參數/資料集/版面資訊，已併入 `rdl-report`；使用者確認後已刪除 `ssrs-rdl` 兩份副本
-  與 `oai-core/.agents/skills/ssrs-rdl` 的失效 junction，並把 `lbib_Trade_New` 的
-  `CLAUDE.md`/`AGENTS.md`/`GEMINI.md` 改指向 `rdl-report`。
-- 盤點 oai-core `shared-skills/` 其餘 8 個 skill 是否仍需要：`bug-fix` 因
-  projectD-core 已有更嚴謹的 `diagnosing-bugs`（6 階段診斷方法論）而確認移除；
-  `code-review` 逐字比對後發現與 projectD-core `core/skills/code-review` 完全相同，
-  且 `~/.claude/skills/code-review`、`~/.agents/skills/code-review` 目前已是指向
-  projectD-core 的 junction——oai-core 版本若曾被完整同步，會透過該 junction
-  **覆寫 projectD-core 自己 repo 內的原始檔**（已確認尚未發生，因先前刻意避開完整
-  同步），故一併移除 oai-core 版本以消除此一潛在污染風險，兩個 junction 本身不動。
-  `doc-writer`／`git-commit`／`new-feature`／`refactor`／`test-gen`／`vault-doc`
-  六個在 projectD-core 沒有對應項且無使用不到的證據，全部保留，暫不遷移進
-  projectD-core（是否遷移留待後續有需要時再決定）。
+- TBB／LBIB「新增交易代碼」Skill 依實際程式碼的 parameterized SQL 慣例撰寫；舊資料庫標準文件與程式碼不符，不作為權威來源。
+- `rdl-report` 已成為 projectD-core 的 canonical pack，並吸收 LBIB 參數、資料集與版面線索；重疊的 `ssrs-rdl` 副本與失效 junction 已移除。
+- oai-core 的重疊 `bug-fix` 與 `code-review` 已移除，避免功能重疊與 junction 覆寫風險；其餘無對應且尚無淘汰證據的 Skills 繼續保留。
+
+## 2026-08-18
+
+- 採用 TaskScopedProposalLoop 作為實際執行與產物任務的外層治理流程：
+  `Understand → Propose → Authorize → Execute → Verify → Report → Learn`。
+  此流程只處理使用者提出或既有授權範圍內發現的工作，不包含背景監控、未授權跨工具觀察或自行擴張範圍。
+- 只有具實質影響的發現形成 MaterialProposal；既有範圍內必要、低風險且可回復的操作沿用原授權。未接受提案只回報、不自動持久化；軟體工程的 Spec、Tracer-bullet TDD 與雙軸 Review 分別組合於 Execute／Verify。
