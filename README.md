@@ -71,6 +71,21 @@ flowchart TD
     CI --> PR["Pull Request／branch protection"]
     PR --> M["Review 通過後 Merge"]
     M --> DB["刪除功能分支"]
+
+    classDef context fill:#DBEAFE,stroke:#2563EB,color:#0F172A,stroke-width:1.5px
+    classDef decision fill:#FEF3C7,stroke:#D97706,color:#0F172A,stroke-width:1.5px
+    classDef action fill:#DCFCE7,stroke:#16A34A,color:#0F172A,stroke-width:1.5px
+    classDef memory fill:#F3E8FF,stroke:#9333EA,color:#0F172A,stroke-width:1.5px
+    classDef stop fill:#FEE2E2,stroke:#DC2626,color:#0F172A,stroke-width:1.5px
+    classDef neutral fill:#E2E8F0,stroke:#64748B,color:#0F172A,stroke-width:1.5px
+
+    class A,B,C,D,E,U context
+    class P,R,H,S,G,L,CF,PUB decision
+    class X,T,O,V,V2,RP,DONE,CM,HK,PS,CI,PR,M,DB action
+    class HC,HR memory
+    class Q stop
+    class N,END neutral
+    style LOOP fill:#F8FAFC,stroke:#64748B,stroke-width:1.5px
 ```
 
 Hook 只提供本機提早回饋；CI、branch protection、L0 授權與人工 Review
