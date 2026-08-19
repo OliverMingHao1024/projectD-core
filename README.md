@@ -10,7 +10,7 @@
 |------|------|
 | `CLAUDE.md` | session 啟動協議 |
 | `core/constitution/rules.md` | L0 憲法 |
-| `core/agents/` | PM / SA / SD / PG 四個角色 agent |
+| `core/agents/` | PM / SA / UX / SD / PG / QA 六個角色 agent |
 | `core/commands/` | Claude Code 相容的 slash command（單檔 command）|
 | `core/skills/` | 跨技術棧通用 Skill；每個子目錄以 `SKILL.md` 為入口 |
 | `vault/` | 跨 session 記憶（身份、決策、制度路由、踩坑紀錄）|
@@ -172,7 +172,7 @@ SQLite＋Hybrid Search。此能力是可選的，不會由一般 setup 自動安
 - 不依賴外部 plugin；需要時再個別評估引入，不整包依賴
 - 每個 pack 只服務一個技術棧，不強迫所有專案共用所有技能
 - L0 憲法常駐，L1–L6 只保留短路由並依任務語意按需載入
-- PM／SA／SD／PG 是可選能力，不強迫低風險小任務跑完整流水線
+- PM／SA／UX／SD／PG／QA 是可選能力，不強迫低風險小任務跑完整流水線
 - 行為變更與 bug 修復在條件允許時優先採 Red → Green → Refactor；
   無測試基礎設施的專案使用最小回歸驗證，不為形式擅自加依賴
 
