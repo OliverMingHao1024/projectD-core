@@ -33,12 +33,14 @@
   路由至 `../../packs/frontend-react/references/react-capabilities.md` 與 `../../packs/frontend-angular/references/angular-capabilities.md`
 - 可重複踩坑：`../after-action/`
 - 跨專案歷程查詢：`../../core/skills/query-project-history/SKILL.md`；候選未經人工確認不得視為歷程事實。
-- System Feature Wiki：`../../docs/specs/external-knowledge-wiki.md`；相關架構決策見 `../../docs/adr/` 中的 ADR 0004–0014。
+- System Feature Wiki：`../../docs/specs/external-knowledge-wiki.md`；相關架構決策見 `../../docs/adr/` 中的 ADR 0004–0014；原始推導脈絡見歷史文件 `plan-external-llm-wiki.md`。
 - AI-agent MCP server 執行安全邊界（例如 DevSpace 等具 shell/write 能力的工具）：
   `operating-model.md` 的「AI-agent MCP server 執行邊界」（L1 安全層），決策見
   `../../docs/adr/0015-isolate-ai-agent-mcp-server-execution.md`
 - Skill 引入機制：`../../docs/adr/0001-targeted-skill-intake.md`；執行入口見
-  `../../core/skills/{skill-scout,skill-update-check}/SKILL.md`，機器狀態見 `skill-registry.json`。
+  `../../core/skills/{skill-scout,skill-update-check}/SKILL.md`，機器狀態見 `skill-registry.json`；
+  原始 PM/SA/SD 決策脈絡見歷史文件 `plan-skill-import.md`／`prd-skill-import.md`／
+  `sa-analysis-skill-import.md`。
 
 ## 載入原則
 

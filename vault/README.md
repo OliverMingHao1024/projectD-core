@@ -14,7 +14,7 @@ priority: highest
 
 ```
 1. vault/README.md                  ← 你現在在這裡
-2. vault/identity/profile.md        ← 了解你在服務誰（待填）
+2. vault/identity/profile.md        ← 了解你在服務誰
 3. vault/memory/memory-summary.md   ← 載入最新記憶快照（先看 lastUpdated）
 4. vault/governance/INDEX.md        ← 制度路由
 ```
