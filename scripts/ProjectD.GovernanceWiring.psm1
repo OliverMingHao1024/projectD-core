@@ -413,6 +413,38 @@ function Get-ContentHash {
     return (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant()
 }
 
+function Get-TextDiff {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][AllowEmptyString()][string]$Old,
+        [Parameter(Mandatory)][AllowEmptyString()][string]$New,
+        [string]$Label = 'content'
+    )
+
+    $gitCommand = Get-Command git -ErrorAction SilentlyContinue
+    if (-not $gitCommand) {
+        return $null
+    }
+    $tempDir = Join-Path ([IO.Path]::GetTempPath()) (
+        "projectd-wiring-diff-$PID-$([Guid]::NewGuid().ToString('N'))"
+    )
+    New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+    try {
+        $safeLabel = $Label -replace '[\\/:*?"<>|]', '_'
+        $oldPath = Join-Path $tempDir "a-$safeLabel"
+        $newPath = Join-Path $tempDir "b-$safeLabel"
+        [IO.File]::WriteAllText($oldPath, $Old, [Text.UTF8Encoding]::new($false))
+        [IO.File]::WriteAllText($newPath, $New, [Text.UTF8Encoding]::new($false))
+        $diff = & git diff --no-index --no-color -- $oldPath $newPath 2>$null
+        if (-not $diff) {
+            return $null
+        }
+        return ($diff -join "`n")
+    } finally {
+        Remove-Item -LiteralPath $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
 function Normalize-WiringText {
     param([AllowEmptyString()][string]$Value)
 
@@ -474,7 +506,15 @@ function Get-ManagedBlockInspection {
     ) {
         return @{ State = 'Compliant'; Message = 'Managed block matches.' }
     }
-    return @{ State = 'Drift'; Message = 'Managed block content has drifted.' }
+    $diff = Get-TextDiff `
+        -Old (Normalize-WiringText $matches[0].Value) `
+        -New (Normalize-WiringText $Resource.Content) `
+        -Label ([IO.Path]::GetFileName($Resource.Path))
+    return @{
+        State = 'Drift'
+        Message = 'Managed block content has drifted.'
+        Diff = $diff
+    }
 }
 
 function Get-FileCopyInspection {
@@ -494,16 +534,25 @@ function Get-FileCopyInspection {
     if ($sourceHash -eq $targetHash) {
         return @{ State = 'Compliant'; Message = 'Copied file matches source.' }
     }
+    $diff = Get-TextDiff `
+        -Old ([IO.File]::ReadAllText($Resource.Path)) `
+        -New ([IO.File]::ReadAllText($Resource.Source)) `
+        -Label ([IO.Path]::GetFileName($Resource.Path))
     if (
         $StateEntry -and
         $StateEntry.ContainsKey('content_hash') -and
         $targetHash -eq [string]$StateEntry.content_hash
     ) {
-        return @{ State = 'Drift'; Message = 'Owned copied file is outdated.' }
+        return @{
+            State = 'Drift'
+            Message = 'Owned copied file is outdated.'
+            Diff = $diff
+        }
     }
     return @{
         State = 'Conflict'
         Message = 'Target content is not proven to be owned.'
+        Diff = $diff
     }
 }
 
@@ -631,6 +680,7 @@ function Get-GovernanceWiringPlan {
             State = $inspection.State
             Operation = $operation
             Message = $inspection.Message
+            Diff = if ($inspection.ContainsKey('Diff')) { $inspection.Diff } else { $null }
         }
     }
 }
