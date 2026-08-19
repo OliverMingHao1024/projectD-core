@@ -24,6 +24,11 @@ function Write-WiringPlan {
                 $identity,
                 $item.Message
         )
+        if ($item.Diff) {
+            ($item.Diff -split "`n") | ForEach-Object {
+                Write-Host "    $_" -ForegroundColor DarkGray
+            }
+        }
     }
 }
 
