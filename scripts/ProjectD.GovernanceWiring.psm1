@@ -203,8 +203,8 @@ $blockStart
    canonical 內容只在 projectD-core 的 ${bt}core/skills/$bt 與 ${bt}packs/$bt 維護
 
 角色 agent（已複製於 $bt~/.claude/agents/$bt）：${bt}pm$bt（需求釐清）、${bt}sa$bt（技術分析）、
-${bt}sd$bt（架構設計）、${bt}pg$bt（實作/審查/測試）。角色按任務需要選用，
-低風險小任務不必跑完整流水線。
+${bt}ux$bt（互動設計）、${bt}sd$bt（架構設計）、${bt}pg$bt（實作/審查/測試）、${bt}qa$bt（獨立驗證）。
+角色按任務需要選用，低風險小任務不必跑完整流水線。
 $blockEnd
 "@
     $codexBlock = @"
@@ -218,7 +218,7 @@ $blockStart
 3. 依 $bt$governancePath$bt 的 L1-L6 摘要做語意路由，只載入命中的治理規則
 4. 需要工作流或技術棧規範時，才使用已連結於 $bt$SharedAgentSkills$bt 的對應 skill；
    canonical 內容只在 projectD-core 的 ${bt}core/skills/$bt 與 ${bt}packs/$bt 維護
-5. 只有任務需要角色分工時，才讀 $bt$rolesPath$bt 下對應的 pm、sa、sd、pg 指引
+5. 只有任務需要角色分工時，才讀 $bt$rolesPath$bt 下對應的 pm、sa、ux、sd、pg、qa 指引
 
 專案自身較近的 AGENTS.md 與使用者當次明確指令優先；不要預先載入整個 core。
 $blockEnd

@@ -58,6 +58,42 @@ lastUpdated: 2026-08-19
   deterministic lexical index、lint drift 與 query RuntimeStale 防呆，延後自動 ingest、
   外部技術知識、hybrid search 與正式 training view。
 
+## 2026-08-19
+
+- 比對 BMAD-METHOD（GitHub 52k+ stars，五角色：Analyst/Architect/Dev/PM/UX Designer）後，
+  新增 `ux`（UX designer）角色 agent，補上原本 PM/SA/SD/PG 四角色缺少的獨立使用者互動／
+  易用性設計階段。角色順序調整為 PM → SA → UX → SD → PG：SA 判斷是否需要 UX 與／或 SD，
+  UX 產出互動流程／狀態契約並決定適用的 design 類 Skill，SD 據此設計架構／資料模型，
+  PG 依契約實作並驗證。
+- 同步更新 `core/constitution/rules.md`（角色邊界）、`vault/governance/operating-model.md`
+  （L3 路由表）、`README.md`、`CLAUDE.md`、`fleet/README.md` 與
+  `scripts/ProjectD.GovernanceWiring.psm1` 的受管區塊文字，維持角色清單單一事實來源；
+  `core/agents/` 由既有 junction-free 複製機制自動接到 `~/.claude/agents/ux.md`，
+  不需改動 GovernanceWiring 邏輯本身。
+- 未採用 BMAD 的其他部分：`bmad-loop`（無人值守自動 epic 建置）與 TaskScopedProposalLoop
+  明確排除的 ProactiveMonitoring／AutonomousWorkflow／ContinuousAgentLoop 直接衝突，
+  故不引入；PRD/PRFAQ 等更細顆粒度規劃文件目前無實際踩坑，依 L0 第 8 條暫不新增，
+  待實際需求出現再評估。
+- 使用者確認後新增 `qa`（獨立於實作者的測試涵蓋率／驗收驗證）角色 agent，對應 BMAD 的
+  `tea`（Test Architect）／`bmad-qa-generate-e2e-tests`。角色鏈延伸為
+  PM → SA → UX → SD → PG → QA：PG 完成實作與自身 TDD 循環後，視複雜度／風險/使用者可見
+  程度決定是否交 QA 做獨立驗證；QA 只讀＋執行測試／建置工具，不寫入 test 或 production
+  檔案，發現落回 PG 修正，藉此與既有 `code-review` skill（diff 對 Standards／Spec 兩軸）
+  區隔：code-review 是任何角色都能用的靜態 diff 審查 skill，QA 是動態執行測試、獨立於
+  實作者驗收涵蓋率的角色。
+- 評估 `bmad-forge-idea`／`bmad-brainstorming`／`bmad-advanced-elicitation` 後，判定既有
+  `grilling`／`grill-with-docs` 只涵蓋「收斂式、單一視角釐清」，未涵蓋對抗式多角色質詢
+  （attack/defend）、正式 Kill 結局、結構化批判方法選單、真正發散式腦力激盪。三者皆綁定
+  `_bmad/` runtime（`uv`、Python script、memlog、HTML 頁面），不符合本 repo 自包含
+  `SKILL.md` 的 Skill 格式，需改寫而非照搬。使用者選擇先備用，待實際遇到 grilling 問不出
+  結果或需要先發散選項的情境再動手，暫不建立新 skill。
+- 評估 `bmad-deep-recon` 後，只採用「候選方案比較」這個子能力，寫成 `research` skill 的
+  新增段落「Comparing candidates」：先定客觀比較欄位、逐一向權威來源查證、確認事實與
+  搜尋摘要印象分開、按驗證結果而非搜尋排序推薦。採用理由是本 session 比較 GitHub 上
+  類似專案時已實際用到且發現落差（先泛列連結，查證後才發現兩個候選已停滯）；`selection.md`
+  的完整方法論、Draft／Process／Run 三種服務模式，以及市場/競品等六種類型包，皆無實際
+  踩坑證據，依 L0 第 8 條不採用。
+
 ## 2026-07-30
 
 - TBB／LBIB「新增交易代碼」Skill 依實際程式碼的 parameterized SQL 慣例撰寫；舊資料庫標準文件與程式碼不符，不作為權威來源。

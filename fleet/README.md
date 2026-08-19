@@ -50,7 +50,7 @@ rollback lifecycle；本機 state 存在 `.local/`，不會提交到 Git。
 - L0 與 L1–L6 路由可跨 work／side 使用；兩者都不強制跑完整角色流水線。
 - `category: "side"` 通常使用 L0、必要 pack 與直接實作路由；遇到架構、安全或
   跨模組問題時，仍可按需使用 SA／SD。
-- `category: "work"` 可依任務規模選用完整治理能力與 PM／SA／SD／PG 角色，
+- `category: "work"` 可依任務規模選用完整治理能力與 PM／SA／UX／SD／PG／QA 角色，
   但需求明確的低風險小任務仍可直接處理。
 - 這只是清單裡的標記，目前沒有自動化行為依賴它——之後如果真的需要「只列出
   work 專案」之類的查詢，再依實際需求加工具，不預先假設。
