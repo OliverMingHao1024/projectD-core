@@ -80,6 +80,48 @@
       "id": "security-findings-require-evidence",
       "file": "core/skills/security-review/SKILL.md",
       "must_contain": ["Reject findings that have no plausible path", "do not claim the whole system is secure"]
+    },
+    {
+      "id": "roles-synced-constitution",
+      "file": "core/constitution/rules.md",
+      "must_contain": ["PM／SA／UX／SD／PG／QA agent 只做自己階段的事"]
+    },
+    {
+      "id": "roles-synced-operating-model",
+      "file": "vault/governance/operating-model.md",
+      "must_contain": ["六個角色是可選能力，不是強制流水線："]
+    },
+    {
+      "id": "roles-synced-readme",
+      "file": "README.md",
+      "must_contain": ["PM / SA / UX / SD / PG / QA 六個角色 agent"]
+    },
+    {
+      "id": "roles-synced-project-claude-md",
+      "file": "CLAUDE.md",
+      "must_contain": [
+        "`ux` — 使用者互動流程、介面狀態、易用性取捨",
+        "`qa` — 獨立於實作者的測試涵蓋率與驗收驗證"
+      ]
+    },
+    {
+      "id": "roles-synced-fleet-readme",
+      "file": "fleet/README.md",
+      "must_contain": ["PM／SA／UX／SD／PG／QA 角色"]
+    },
+    {
+      "id": "roles-synced-governance-wiring",
+      "file": "scripts/ProjectD.GovernanceWiring.psm1",
+      "must_contain": [
+        "${bt}ux$bt（互動設計）",
+        "${bt}qa$bt（獨立驗證）",
+        "pm、sa、ux、sd、pg、qa 指引"
+      ]
+    },
+    {
+      "id": "vault-readme-no-stale-placeholder",
+      "file": "vault/README.md",
+      "must_not_contain": ["（待填）"]
     }
   ]
 }
