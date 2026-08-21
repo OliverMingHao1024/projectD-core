@@ -106,6 +106,17 @@ function Test-PathHasReparsePoint {
     return $false
 }
 
+function Get-CanonicalTextSha256 {
+    param([Parameter(Mandatory)][string]$Path)
+    $utf8 = [Text.UTF8Encoding]::new($false, $true)
+    $text = $utf8.GetString([IO.File]::ReadAllBytes($Path))
+    $canonicalText = $text -replace "\r\n?", "`n"
+    $canonicalBytes = [Text.UTF8Encoding]::new($false).GetBytes($canonicalText)
+    return 'sha256:' + [Convert]::ToHexString(
+        [Security.Cryptography.SHA256]::HashData($canonicalBytes)
+    ).ToLowerInvariant()
+}
+
 $errors = @()
 $assets = @()
 try {
@@ -205,9 +216,7 @@ try {
                     $asset.kind -in @('tool', 'mcp', 'plugin') -and
                     (Test-Path -LiteralPath $resolved -PathType Leaf)
                 ) {
-                    $actualIntegrity = 'sha256:' + (
-                        Get-FileHash -Algorithm SHA256 -LiteralPath $resolved
-                    ).Hash.ToLowerInvariant()
+                    $actualIntegrity = Get-CanonicalTextSha256 -Path $resolved
                     if ($actualIntegrity -cne [string]$asset.source.integrity) {
                         $errors += "$id SHA-256 integrity evidence does not match."
                     }

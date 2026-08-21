@@ -37,6 +37,28 @@ function Test-InvalidInventory {
     Assert-True (-not $result.passed) "$Name JSON must report failure."
 }
 
+function Test-ValidInventory {
+    param(
+        [Parameter(Mandatory)]$Value,
+        [Parameter(Mandatory)][string]$Name
+    )
+    $path = Join-Path $tempRoot "$Name.json"
+    $stdout = Join-Path $tempRoot "$Name.stdout.json"
+    $Value | ConvertTo-Json -Depth 12 |
+        Set-Content -LiteralPath $path -Encoding utf8
+    $process = Start-Process -FilePath 'pwsh.exe' -ArgumentList @(
+        '-NoProfile', '-File', $validator,
+        '-ProjectRoot', $tempRoot,
+        '-InventoryPath', $path,
+        '-InventorySchemaPath', $inventorySchema,
+        '-BehaviorCatalogPath', $catalog,
+        '-Json'
+    ) -RedirectStandardOutput $stdout -Wait -PassThru -WindowStyle Hidden
+    $result = Get-Content -Raw -LiteralPath $stdout | ConvertFrom-Json
+    Assert-True ($process.ExitCode -eq 0) "$Name must return a zero exit code."
+    Assert-True $result.passed "$Name JSON must report success."
+}
+
 function New-Asset {
     [pscustomobject]@{
         id = 'fixture-tool'
@@ -119,6 +141,21 @@ try {
     $wrongIntegrity.source.reference = 'fixture.ps1'
     $wrongIntegrity.source.integrity = 'sha256:' + ('0' * 64)
     Test-InvalidInventory (New-Inventory $wrongIntegrity) 'integrity-mismatch'
+
+    $canonicalScript = "# fixture`nWrite-Output 'ok'`n"
+    $crlfScript = $canonicalScript -replace "`n", "`r`n"
+    Set-Content -LiteralPath $fixtureScript -Value $crlfScript `
+        -Encoding utf8 -NoNewline
+    $canonicalBytes = [Text.UTF8Encoding]::new($false).GetBytes($canonicalScript)
+    $canonicalDigest = [Convert]::ToHexString(
+        [Security.Cryptography.SHA256]::HashData($canonicalBytes)
+    ).ToLowerInvariant()
+    $normalizedIntegrity = New-Asset
+    $normalizedIntegrity.source.type = 'repository-local'
+    $normalizedIntegrity.source.reference = 'fixture.ps1'
+    $normalizedIntegrity.source.integrity = "sha256:$canonicalDigest"
+    Test-ValidInventory `
+        (New-Inventory $normalizedIntegrity) 'normalized-text-integrity'
 
     New-Item -ItemType Junction -Path $junctionPath `
         -Target (Join-Path $core 'scripts') | Out-Null

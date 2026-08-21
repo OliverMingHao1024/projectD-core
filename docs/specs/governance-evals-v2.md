@@ -65,6 +65,9 @@ Validator 必須 fail closed：
 - repository-local source 路徑越界或不存在。
 - related eval case 不存在。
 
+Repository-local text executable 的 integrity 使用 UTF-8、LF canonical bytes 計算
+SHA-256；CRLF／LF checkout 差異不得被誤判為內容遭修改，其他字元變更仍必須失敗。
+
 ## 驗收條件
 
 1. Canonical behavior catalog 至少包含 12 個案例並通過 catalog validation。

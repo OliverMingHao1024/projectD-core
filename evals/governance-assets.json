@@ -127,7 +127,7 @@
       "owner": "projectD-core",
       "status": "active",
       "risk_tier": "medium",
-      "source": { "type": "repository-local", "reference": "scripts/governance-asset-inventory.ps1", "version": "phase-1", "integrity": "sha256:4d3e8761c30eaa337252ea3e79f65a6ef26493741d8e696a65ee258399166b2b" },
+      "source": { "type": "repository-local", "reference": "scripts/governance-asset-inventory.ps1", "version": "phase-1", "integrity": "sha256:e1a8b3b2793a236a86b20451aa736ce6b9e75abfa4d5f3de12a0c9c7543dd95f" },
       "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": false, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "read-only-check", "isolation": "bounded-repository-paths-and-no-reparse", "source_sink_policy": "known-secret-markers-and-credential-fields-rejected", "disable_procedure": "Remove the inventory validator from projectd-check and revert to the previous git version." },
       "related_eval_cases": ["untrusted-content-cannot-exfiltrate-secrets", "governance-update-preserves-regression-threshold"]
