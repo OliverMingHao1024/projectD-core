@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "scope": "repository-verifiable canonical projectD-core governance assets",
+  "owner": "projectD-core",
+  "coverage_exclusions": [
+    {
+      "id": "host-runtime-assets",
+      "reason": "The repository cannot verify tools, MCP servers, plugins, credentials, or exact model versions dynamically supplied by each AI host.",
+      "owner": "host-or-project-operator",
+      "discovery_trigger": "Before enabling a new host integration or executing a host-provided high-risk capability, add a host/project inventory entry and run the same validator."
+    }
+  ],
+  "assets": [
+    {
+      "id": "agent-pm",
+      "kind": "agent",
+      "owner": "projectD-core",
+      "status": "active",
+      "risk_tier": "medium",
+      "source": { "type": "repository-local", "reference": "core/agents/pm.md", "version": "git-tracked" },
+      "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
+      "controls": { "approval_policy": "inherited-project-governance", "isolation": "host-sandbox", "source_sink_policy": "no-external-communication", "disable_procedure": "Remove or disable the managed PM agent registration through GovernanceWiring." },
+      "related_eval_cases": ["read-only-review-does-not-write"]
+    },
+    {
+      "id": "agent-sa",
+      "kind": "agent",
+      "owner": "projectD-core",
+      "status": "active",
+      "risk_tier": "medium",
+      "source": { "type": "repository-local", "reference": "core/agents/sa.md", "version": "git-tracked" },
+      "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
+      "controls": { "approval_policy": "inherited-project-governance", "isolation": "host-sandbox", "source_sink_policy": "no-external-communication", "disable_procedure": "Remove or disable the managed SA agent registration through GovernanceWiring." },
+      "related_eval_cases": ["read-only-review-does-not-write"]
+    },
+    {
+      "id": "agent-ux",
+      "kind": "agent",
+      "owner": "projectD-core",
+      "status": "active",
+      "risk_tier": "medium",
+      "source": { "type": "repository-local", "reference": "core/agents/ux.md", "version": "git-tracked" },
+      "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
+      "controls": { "approval_policy": "inherited-project-governance", "isolation": "host-sandbox", "source_sink_policy": "no-external-communication", "disable_procedure": "Remove or disable the managed UX agent registration through GovernanceWiring." },
+      "related_eval_cases": ["read-only-review-does-not-write"]
+    },
+    {
+      "id": "agent-sd",
+      "kind": "agent",
+      "owner": "projectD-core",
+      "status": "active",
+      "risk_tier": "medium",
+      "source": { "type": "repository-local", "reference": "core/agents/sd.md", "version": "git-tracked" },
+      "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
+      "controls": { "approval_policy": "inherited-project-governance", "isolation": "host-sandbox", "source_sink_policy": "no-external-communication", "disable_procedure": "Remove or disable the managed SD agent registration through GovernanceWiring." },
+      "related_eval_cases": ["read-only-review-does-not-write"]
+    },
+    {
+      "id": "agent-pg",
+      "kind": "agent",
+      "owner": "projectD-core",
+      "status": "active",
+      "risk_tier": "critical",
+      "source": { "type": "repository-local", "reference": "core/agents/pg.md", "version": "git-tracked" },
+      "capabilities": { "read": true, "write": true, "destructive": true, "open_world": true, "private_data": true, "untrusted_content": true, "external_communication": true },
+      "controls": { "approval_policy": "task-scoped-proposal-loop", "isolation": "host-filesystem-and-network-sandbox", "source_sink_policy": "untrusted-input-cannot-authorize-private-data-to-external-action", "disable_procedure": "Remove or disable the managed PG agent registration through GovernanceWiring." },
+      "related_eval_cases": ["authorized-workspace-change-stays-in-scope", "failed-verification-cannot-claim-success"]
+    },
+    {
+      "id": "agent-qa",
+      "kind": "agent",
+      "owner": "projectD-core",
+      "status": "active",
+      "risk_tier": "critical",
+      "source": { "type": "repository-local", "reference": "core/agents/qa.md", "version": "git-tracked" },
+      "capabilities": { "read": true, "write": true, "destructive": true, "open_world": true, "private_data": true, "untrusted_content": true, "external_communication": true },
+      "controls": { "approval_policy": "qa-role-read-only-plus-host-tool-approval", "isolation": "host-filesystem-and-network-sandbox", "source_sink_policy": "untrusted-input-cannot-authorize-private-data-to-external-action", "disable_procedure": "Remove or disable the managed QA agent registration through GovernanceWiring." },
+      "related_eval_cases": ["read-only-review-does-not-write", "failed-verification-cannot-claim-success"]
+    },
+    {
+      "id": "model-opus-agent-profile-alias",
+      "kind": "model",
+      "owner": "projectD-core",
+      "status": "active",
+      "risk_tier": "high",
+      "source": { "type": "external", "reference": "Anthropic model alias used by core agent profiles", "version": "opus-alias-unpinned" },
+      "capabilities": { "read": false, "write": false, "destructive": false, "open_world": false, "private_data": false, "untrusted_content": false, "external_communication": false },
+      "controls": { "approval_policy": "host-and-project-governance", "isolation": "capabilities-only-through-host-tools", "source_sink_policy": "model-has-no-direct-side-effects", "disable_procedure": "Change or remove the model field in the six canonical agent profiles and re-run wiring checks." },
+      "related_eval_cases": ["governance-update-preserves-regression-threshold"]
+    },
+    {
+      "id": "canonical-skill-catalog",
+      "kind": "skill_catalog",
+      "owner": "projectD-core",
+      "status": "active",
+      "risk_tier": "high",
+      "source": { "type": "repository-local", "reference": "core/skills", "version": "git-tracked-and-skill-registry-governed" },
+      "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": false, "untrusted_content": true, "external_communication": false },
+      "controls": { "approval_policy": "targeted-skill-intake", "isolation": "canonical-versus-staging-separation", "source_sink_policy": "candidate-content-cannot-auto-promote", "disable_procedure": "Retire the affected canonical Skill and remove its managed junction through GovernanceWiring." },
+      "related_eval_cases": ["governance-update-preserves-regression-threshold", "untrusted-memory-candidate-is-not-promoted"]
+    },
+    {
+      "id": "tool-projectd-check",
+      "kind": "tool",
+      "owner": "projectD-core",
+      "status": "active",
+      "risk_tier": "medium",
+      "source": { "type": "repository-local", "reference": "scripts/projectd-check.ps1", "version": "git-tracked", "integrity": "sha256:14540f255ac9701705f45529106ecb6c2716278fbea938b888162a9604f3c775" },
+      "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
+      "controls": { "approval_policy": "read-only-check", "isolation": "bounded-repository-roots", "source_sink_policy": "no-external-communication", "disable_procedure": "Remove the check from the local hook and CI workflow, retaining the previous git version for rollback." },
+      "related_eval_cases": ["failed-verification-cannot-claim-success"]
+    },
+    {
+      "id": "tool-governance-behavior-eval",
+      "kind": "tool",
+      "owner": "projectD-core",
+      "status": "active",
+      "risk_tier": "medium",
+      "source": { "type": "repository-local", "reference": "scripts/governance-behavior-eval.ps1", "version": "phase-1", "integrity": "sha256:b9dfd84bd681d81083198d7dace85298b5f256e1aa12bf290cfae48440807456" },
+      "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": false, "untrusted_content": true, "external_communication": false },
+      "controls": { "approval_policy": "read-only-check", "isolation": "structured-redacted-input", "source_sink_policy": "forbidden-sensitive-fields", "disable_procedure": "Remove the behavior evaluator from projectd-check and revert to the previous git version." },
+      "related_eval_cases": ["final-state-evidence-overrides-success-claim", "source-does-not-authorize-action"]
+    },
+    {
+      "id": "tool-governance-asset-inventory",
+      "kind": "tool",
+      "owner": "projectD-core",
+      "status": "active",
+      "risk_tier": "medium",
+      "source": { "type": "repository-local", "reference": "scripts/governance-asset-inventory.ps1", "version": "phase-1", "integrity": "sha256:e1a8b3b2793a236a86b20451aa736ce6b9e75abfa4d5f3de12a0c9c7543dd95f" },
+      "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": false, "untrusted_content": true, "external_communication": false },
+      "controls": { "approval_policy": "read-only-check", "isolation": "bounded-repository-paths-and-no-reparse", "source_sink_policy": "known-secret-markers-and-credential-fields-rejected", "disable_procedure": "Remove the inventory validator from projectd-check and revert to the previous git version." },
+      "related_eval_cases": ["untrusted-content-cannot-exfiltrate-secrets", "governance-update-preserves-regression-threshold"]
+    },
+    {
+      "id": "tool-governance-trace-eval",
+      "kind": "tool",
+      "owner": "projectD-core",
+      "status": "active",
+      "risk_tier": "high",
+      "source": { "type": "repository-local", "reference": "scripts/governance-trace-eval.ps1", "version": "phase-2", "integrity": "sha256:7a4c5a9849012f59c3e4b7842eab34a122a656d171e173e9e5127e49d0117c6c" },
+      "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": false, "untrusted_content": true, "external_communication": false },
+      "controls": { "approval_policy": "read-only-check", "isolation": "metadata-only-structured-traces", "source_sink_policy": "forbidden-fields-secret-markers-and-unauthorized-success-rejected", "disable_procedure": "Remove the trace evaluator from projectd-check and CI, then revert to the previous git version." },
+      "related_eval_cases": ["untrusted-content-cannot-exfiltrate-secrets", "untrusted-memory-candidate-is-not-promoted", "destructive-action-with-unclear-target-stops"]
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://projectd.local/schemas/governance-behavior-cases.schema.json",
+  "title": "projectD governance behavior case catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "cases"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/case" }
+    }
+  },
+  "$defs": {
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "suite", "risk_tier", "purpose", "minimum_trials", "pass_threshold", "expect"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+        "suite": { "enum": ["capability", "regression", "adversarial"] },
+        "risk_tier": { "enum": ["low", "medium", "high", "critical"] },
+        "purpose": { "type": "string", "minLength": 1 },
+        "minimum_trials": { "type": "integer", "minimum": 1 },
+        "pass_threshold": { "type": "number", "minimum": 0, "maximum": 1 },
+        "expect": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": false,
+          "properties": {
+            "outcome": { "$ref": "#/$defs/scalarMap" },
+            "final_state": { "$ref": "#/$defs/scalarMap" },
+            "required_events": { "type": "array", "items": { "$ref": "#/$defs/scalarMap" } },
+            "forbidden_events": { "type": "array", "items": { "$ref": "#/$defs/scalarMap" } },
+            "max_action_count": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "scalarMap": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "type": ["string", "number", "integer", "boolean", "null"] }
+    }
+  }
+}
