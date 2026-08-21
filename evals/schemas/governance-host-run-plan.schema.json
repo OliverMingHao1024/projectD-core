@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://projectd.local/schemas/governance-host-run-plan.schema.json",
+  "title": "projectD Claude governance paired-pilot run plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "plan_id", "run_kind", "host", "models", "catalog", "instruction", "cases", "controls"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "plan_id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "run_kind": { "const": "paired-pilot" },
+    "host": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "runner_id", "runner_version"],
+      "properties": {
+        "name": { "const": "claude" },
+        "runner_id": { "const": "claude-governance-runner" },
+        "runner_version": { "const": 1 }
+      }
+    },
+    "models": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["baseline", "candidate"],
+      "properties": {
+        "baseline": { "$ref": "#/$defs/modelIdentity" },
+        "candidate": { "$ref": "#/$defs/modelIdentity" }
+      }
+    },
+    "catalog": { "$ref": "#/$defs/sourceEvidence" },
+    "instruction": { "$ref": "#/$defs/sourceEvidence" },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["case_id", "trial_count", "fixture", "observers"],
+        "properties": {
+          "case_id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+          "trial_count": { "const": 1 },
+          "fixture": { "$ref": "#/$defs/sourceEvidence" },
+          "observers": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "git-status-v1",
+                "filesystem-digest-v1",
+                "tool-event-ledger-v1",
+                "smoke-test-v1",
+                "paired-gate-v1"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "controls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["billing_mode", "additional_spend_allowed", "on_subscription_limit", "total_max_usd", "per_trial_max_usd", "max_turns", "timeout_seconds", "permission_mode", "session_persistence", "output_format"],
+      "properties": {
+        "billing_mode": { "const": "subscription-only" },
+        "additional_spend_allowed": { "const": false },
+        "on_subscription_limit": { "const": "stop-and-wait" },
+        "total_max_usd": { "const": 0 },
+        "per_trial_max_usd": { "const": 0 },
+        "max_turns": { "type": "integer", "minimum": 1, "maximum": 20 },
+        "timeout_seconds": { "type": "integer", "minimum": 30, "maximum": 1800 },
+        "permission_mode": { "const": "plan" },
+        "session_persistence": { "const": false },
+        "output_format": { "const": "stream-json" }
+      }
+    }
+  },
+  "$defs": {
+    "modelIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version"],
+      "properties": {
+        "id": { "type": "string", "minLength": 9, "maxLength": 128, "pattern": "^(?=.*[0-9])claude-[A-Za-z0-9][A-Za-z0-9._-]*$" },
+        "version": { "type": "string", "minLength": 3, "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$" }
+      }
+    },
+    "sourceEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reference", "integrity"],
+      "properties": {
+        "reference": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "integrity": { "type": "string", "pattern": "^sha256:[A-Fa-f0-9]{64}$" }
+      }
+    }
+  }
+}

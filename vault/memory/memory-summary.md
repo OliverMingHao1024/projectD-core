@@ -1,5 +1,5 @@
 ---
-lastUpdated: 2026-08-21
+lastUpdated: 2026-08-22
 ---
 
 # 記憶快照
@@ -105,6 +105,40 @@ lastUpdated: 2026-08-21
 - 完整決策、替代方案、驗證與限制保存在
   `docs/history/2026-08-21-governance-evals-v2-phase-1.md`；目前已通過六個 PowerShell
   contracts、`projectd-check` 11/11、3 個 Python unittest 及修正後的 security／code review。
+- 使用者接續核准 Governance Evals v2 Phase 2：新增 8 個 metadata-only synthetic traces，
+  覆蓋 prompt injection、memory poisoning、tool misuse、exfiltration，以及 credential revoke、
+  tool disable、egress deny、rollback；append-only chain、action budget、秘密 marker、未授權成功
+  action 與 observable final state 均由 deterministic validator 驗證。
+- Phase 2 保持 fail closed：`host-captured` 必須等授權 adapter、provenance 與 integrity contract；
+  尚無 accepted／verified 真實 incident，因此只保留明示的 `no-verified-incidents` exclusion，
+  不以 synthetic drill 冒充事故證據。
+- Phase 2 決策與限制保存在
+  `docs/history/2026-08-21-governance-evals-v2-phase-2.md`；文件對齊時重新執行
+  `projectd-check -SkipGlobal -GovernanceEvals` 為 12/12。當時 Phase 3／4 尚未開始，下一缺口是
+  真實 host trial、跨模型／跨 host 相容性、checkpoint recovery 與效果量測。
+
+## 2026-08-22
+
+- 使用者核准 Governance Evals v2 Phase 3 採 Codex-first：完成 host trial envelope 與 task
+  checkpoint schemas、Codex metadata-only 手動匯入 adapter、deterministic validator、contract
+  tests、asset inventory、`projectd-check` 與 CI wiring；adapter 不啟動模型，輸出只進 Git ignored
+  的 `.local/governance/`。
+- 安全與 code review 共修正三項 material：未做 current workspace check 時不得回報可續跑；
+  失敗 trial 必須保留且 high／critical regression 不得被平均；只有 canonical recovery case
+  實際通過才可能 `safe_to_resume`。修正後 focused security／code re-review 均通過。
+- Codex-first 已追加 baseline／candidate paired upgrade gate：兩側 manifest 先通過同一 validator，
+  並固定 evidence kind、host／harness／adapter、catalog digest、case set 與逐 case trial count；
+  候選版 high／critical 失敗、passed count 下降或 behavior input contract 無效即阻擋，缺少的
+  token／cost delta 維持 `unavailable`。目前仍未執行真實
+  Codex pilot／paired evidence，當時也未完成 Claude／Copilot adapters 與三 host compatibility matrix；
+  手動提供的 model version 明示為 `user-supplied`，不可冒充 host 自動證明。
+- Phase 3 再加入 Claude adapter contract：host envelope 已 provider-neutral 化為 Codex／Claude，
+  shared grader 會綁定 host 與 adapter identity；本機 Claude Code CLI `2.1.229` 已確認可用，
+  adapter 仍只做 metadata-only 手動匯入，不自行啟動模型。後續已加入 paired-pilot run-plan
+  contract，固定完整 model ID、instruction／fixture digest、observer coverage、plan-only
+  permission、session 不持久化與 subscription-only 零額外支出；訂閱額度耗盡即停止等待，
+  不得切換 API 或 usage credits。Validator 只做投影且不啟動模型。實際
+  tool-event／filesystem／smoke-test observers 與 live runner 仍待實作，不能把模型自述當作完成證據。
 
 ## 2026-07-30
 

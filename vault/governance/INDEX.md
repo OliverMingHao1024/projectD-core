@@ -41,10 +41,20 @@
   `../../core/skills/{skill-scout,skill-update-check}/SKILL.md`，機器狀態見 `skill-registry.json`；
   原始 PM/SA/SD 決策脈絡見歷史文件 `plan-skill-import.md`／`prd-skill-import.md`／
   `sa-analysis-skill-import.md`。
-- Governance Evals v2：`../../docs/specs/governance-evals-v2.md`；研究依據見
-  `../../docs/research/ai-governance-gap-analysis-2026-08-21.md`，canonical behavior cases、
-  asset inventory 與 schemas 位於 `../../evals/`。Catalog validation 不代表真實模型已通過，
-  必須取得結構化 trial trace 後才能評估 agent behavior。
+- Governance Evals v2：Phase 1／2 已完成；Phase 3 的 Codex／Claude adapter contracts、
+  Claude paired-pilot run-plan integrity 與 paired upgrade gate 已完成，live runner／observers、
+  真實 pilots／paired evidence、Copilot 與 cross-host matrix 尚待後續；
+  Phase 4 尚未開始。主規格見
+  `../../docs/specs/governance-evals-v2.md`，研究依據見
+  `../../docs/research/ai-governance-gap-analysis-2026-08-21.md`，採用證據見
+  `../../docs/history/2026-08-21-governance-evals-v2-phase-1.md` 與
+  `../../docs/history/2026-08-21-governance-evals-v2-phase-2.md`，Phase 3 規格與歷程見
+  `../../docs/specs/governance-evals-v2-phase-3.md` 與
+  `../../docs/history/2026-08-22-governance-evals-v2-phase-3-codex-first.md`、
+  `../../docs/history/2026-08-22-governance-evals-v2-phase-3-claude-adapter.md`。Canonical behavior cases、
+  security traces、asset inventory 與 schemas 位於 `../../evals/`。Catalog／synthetic trace
+  validation 不代表真實模型已通過，必須取得具 provenance 的結構化 host trial trace 後才能
+  評估實際 agent behavior。
 
 ## 載入原則
 

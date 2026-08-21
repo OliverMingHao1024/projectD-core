@@ -28,6 +28,15 @@ jobs:
       - name: Run governance security trace contract
         shell: pwsh
         run: ./scripts/tests/governance-trace-eval.contract.ps1
+      - name: Run governance host trial contract
+        shell: pwsh
+        run: ./scripts/tests/governance-host-trial.contract.ps1
+      - name: Run governance host upgrade gate contract
+        shell: pwsh
+        run: ./scripts/tests/governance-host-upgrade-gate.contract.ps1
+      - name: Run Claude governance run-plan contract
+        shell: pwsh
+        run: ./scripts/tests/governance-host-run-plan.contract.ps1
       - name: Run portable repository checks
         shell: pwsh
         run: >-

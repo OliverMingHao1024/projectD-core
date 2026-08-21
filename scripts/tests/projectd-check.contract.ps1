@@ -91,7 +91,10 @@ try {
         'governance-structural-evals',
         'governance-behavior-catalog',
         'governance-asset-inventory',
-        'governance-security-traces'
+        'governance-security-traces',
+        'governance-host-trial-contract',
+        'governance-host-upgrade-gate-contract',
+        'governance-host-run-plan-contract'
     )) {
         Assert-True (
             @($governanceJson.checks | Where-Object name -CEQ $name).Count -eq 1

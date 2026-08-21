@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://projectd.local/schemas/governance-task-checkpoints.schema.json",
+  "title": "projectD resumable task checkpoint",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "checkpoint"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "checkpoint": { "$ref": "#/$defs/checkpoint" }
+  },
+  "$defs": {
+    "checkpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checkpoint_id", "task_ref", "case_ids", "created_at", "repository", "acceptance", "recovery"],
+      "properties": {
+        "checkpoint_id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+        "task_ref": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+        "case_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" }
+        },
+        "created_at": { "type": "string", "format": "date-time" },
+        "repository": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["reference", "commit", "workspace_state", "state_integrity"],
+          "properties": {
+            "reference": { "const": "repository-root" },
+            "commit": { "type": "string", "pattern": "^[A-Fa-f0-9]{40}$" },
+            "workspace_state": { "enum": ["clean", "modified"] },
+            "state_integrity": { "type": "string", "pattern": "^sha256:[A-Fa-f0-9]{64}$" }
+          }
+        },
+        "acceptance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["completed", "remaining"],
+          "properties": {
+            "completed": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" }
+            },
+            "remaining": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" }
+            }
+          }
+        },
+        "recovery": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["checkpoint_read", "workspace_verified", "smoke_test", "safe_to_resume"],
+          "properties": {
+            "checkpoint_read": { "type": "boolean" },
+            "workspace_verified": { "type": "boolean" },
+            "smoke_test": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "status", "evidence_code"],
+              "properties": {
+                "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+                "status": { "enum": ["passed", "failed", "not-run"] },
+                "evidence_code": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" }
+              }
+            },
+            "safe_to_resume": { "type": "boolean" }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,9 +1,25 @@
 # Governance Evals v2
 
-- 狀態：approved / Phase 1 complete / Phase 2 complete
+- 狀態：approved / Phase 1 complete / Phase 2 complete / Phase 3 Codex-Claude contracts, Claude run-plan integrity and upgrade gate complete
 - 核准日期：2026-08-21
 - Phase 2 核准：2026-08-21（使用者指示「繼續」）
 - 研究依據：`../research/ai-governance-gap-analysis-2026-08-21.md`
+- 採用歷程：`../history/2026-08-21-governance-evals-v2-phase-1.md`、
+  `../history/2026-08-21-governance-evals-v2-phase-2.md`
+- Phase 3 規格：`governance-evals-v2-phase-3.md`
+
+## Roadmap 狀態
+
+| 階段 | 狀態 | 邊界 |
+|---|---|---|
+| Phase 1 | complete | Provider-neutral behavior catalog、asset inventory、deterministic grader 與 CI wiring。 |
+| Phase 2 | complete | Metadata-only synthetic security traces、control drills 與 verified incident intake contract。 |
+| Phase 3 | in progress | Codex／Claude host trial adapters、checkpoint contract、Claude paired-pilot run-plan integrity 與 paired upgrade gate 已完成；live runner／observers、真實 pilots／paired evidence、Copilot 與 cross-host matrix 待後續切片。 |
+| Phase 4 | not started | Skill routing、context budget、治理資產 stale／conflict 偵測與 evidence-driven gardening。 |
+
+Phase 1／2 的完成證據只涵蓋 repository-local contracts 與 synthetic fixtures；任何真實模型、
+host runtime、credential、MCP process、sandbox、approval 或 egress 狀態，必須取得 Phase 3
+結構化 trial evidence 後才能宣稱已驗證。
 
 ## 目標
 

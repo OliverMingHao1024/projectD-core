@@ -5,8 +5,15 @@
 - 方法：本機 repository 證據盤點，加上 2024–2026 官方規範、官方工程實務、原作者文章及實證研究比對
 - 結論性質：本文件是研究與建議，不代表所有建議均已核准實作
 
-> 實作追蹤：Phase 1 已於 2026-08-21 完成，規格與驗收證據見
-> `../specs/governance-evals-v2.md`。本研究的「現有 governance eval」段落保留為實作前快照。
+> 實作追蹤：Phase 1 與 Phase 2 已於 2026-08-21 完成；Phase 3 的 Codex／Claude adapter、
+> Claude paired-pilot run-plan integrity 與 paired upgrade gate 已於 2026-08-22 完成，但 live
+> runner／observers、真實 pilots／paired evidence、Copilot 與 cross-host compatibility matrix
+> 尚未完成。
+> 規格與驗收證據見
+> `../specs/governance-evals-v2.md`，採用歷程見
+> `../history/2026-08-21-governance-evals-v2-phase-1.md` 與
+> `../history/2026-08-21-governance-evals-v2-phase-2.md`。本研究的盤點數字、缺口矩陣與
+> 「現有 governance eval」段落保留為實作前快照，實作後狀態以本文件的進度表與規格為準。
 
 ## 摘要
 
@@ -15,11 +22,11 @@
 記憶等成熟骨架。它的核心方向——少量常駐原則、按需載入、技術生態中立、證據優先、
 高風險操作授權，以及制度從真實踩坑演進——與外部成熟實務高度一致。
 
-目前最大的缺口不是再增加角色、Skill 或文字規則，而是把治理從「規則已存在」升級為
+研究時最大的缺口不是再增加角色、Skill 或文字規則，而是把治理從「規則已存在」升級為
 「可證明代理遵守、可追溯實際行動、可在模型與規則升級時量測退步、可在事故時撤銷與
 回復」的控制系統。
 
-建議優先順序：
+研究當時建議優先順序：
 
 1. P0：建立真正執行代理任務的 governance behavior eval harness。
 2. P0：建立涵蓋 agent、model、tool、MCP、credential 與資料邊界的統一 inventory。
@@ -28,6 +35,21 @@
 5. P1：建立跨模型／跨 host 相容性與升級 gate。
 6. P1：建立長任務 checkpoint、效果指標與 approval burden 指標。
 7. P2：量測 Skill routing、context budget、文件新鮮度與治理債務。
+
+## 實作進度
+
+| 階段 | 狀態 | 已有證據／剩餘邊界 |
+|---|---|---|
+| Phase 1：可執行治理基線 | 已完成 | 12 個 behavior cases、11 項 repository-verifiable assets、schemas、deterministic graders、contracts 與 CI wiring 已落地。 |
+| Phase 2：安全攻擊集與 Trace | 已完成（核准邊界內） | 8 個 metadata-only synthetic traces 覆蓋四類攻擊與四項控制演練；append-only chain、action budget、秘密 marker、未授權成功 action 與 observable final state 均可離線驗證。因沒有 verified incident，已建立 intake contract 並明示 coverage exclusion，未偽造 incident-derived regression。 |
+| Phase 3：跨模型與長任務 | Codex／Claude contracts、Claude run-plan integrity 與 paired gate 已完成／其餘進行中 | Host trial／checkpoint／run-plan schemas、Codex／Claude 手動匯入 adapters、deterministic validators、paired upgrade gate 與 CI contracts 已完成；尚未實作 live runner／observers 或執行真實 pilots／paired trials，也尚未完成 Copilot、cross-host matrix 與完整效果指標。 |
+| Phase 4：治理效能與垃圾回收 | 尚未開始 | 尚未量測 Skill routing、context budget、unused／conflicting／stale governance assets，亦未建立 evidence-driven gardening。 |
+
+2026-08-22 文件對齊時重新執行 repository-local
+`scripts/projectd-check.ps1 -SkipFleet -SkipGlobal -SkipWiring -GovernanceEvals`，結果為
+16 passed、0 failed。
+這證明 repository-local contracts 與 synthetic fixtures 目前通過，但不代表任何真實模型或
+host runtime 已通過；Phase 3 仍是從「離線可驗證」走向「實際代理證據」的主要缺口。
 
 ## 研究問題與判準
 
@@ -291,7 +313,7 @@ model、Skill、治理規則、tool schema 或 MCP 版本更新時：
 
 ## 建議 Roadmap
 
-### Phase 1：可執行治理基線
+### Phase 1：可執行治理基線（已完成）
 
 - 保留現有文字契約 eval，重新命名或分類為 structural suite。
 - 新增 behavior eval schema、validator 與 deterministic fixture runner。
@@ -299,21 +321,22 @@ model、Skill、治理規則、tool schema 或 MCP 版本更新時：
 - 新增 asset inventory schema、範例清冊與 validator。
 - 在 `projectd-check.ps1 -GovernanceEvals` 中執行 structural + behavior + inventory checks。
 
-### Phase 2：安全攻擊集與 Trace
+### Phase 2：安全攻擊集與 Trace（已完成）
 
 - 新增 prompt injection、memory poisoning、tool misuse 與 exfiltration fixtures。
 - 建立 task trace schema，只記必要 metadata 並遮罩秘密。
-- 把真實 incident／after-action 轉成 regression case。
+- 把真實 incident／after-action 轉成 regression case；目前沒有 verified incident，已完成
+  fail-closed intake contract 並保留明示 exclusion，待事件存在後才建立 incident-derived case。
 - 執行 credential revoke、tool disable、egress deny 與 rollback 演練。
 
-### Phase 3：跨模型與長任務
+### Phase 3：跨模型與長任務（已核准／實作中）
 
 - 建立 Claude／Codex／Copilot compatibility matrix。
-- 固定模型升級前後的 paired eval。
-- 建立 task checkpoint 與 interrupted-session recovery cases。
+- 已建立固定 catalog／harness 的 baseline／candidate paired promotion gate；尚待真實 paired trials。
+- 已建立 task checkpoint 與 interrupted-session recovery contract；尚待真實 recovery trial。
 - 量測 cost、latency、token 與 approval burden。
 
-### Phase 4：治理效能與垃圾回收
+### Phase 4：治理效能與垃圾回收（尚未開始）
 
 - 建立 Skill routing 與 context-budget eval。
 - 找出 unused、conflicting、stale rules／Skills／ADRs。
