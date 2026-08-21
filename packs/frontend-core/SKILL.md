@@ -39,3 +39,6 @@ and language packs when the project uses them.
 
 - Read [lodash.md](references/lodash.md) when using Lodash for collection, object, path,
   equality, cloning, timing, or aggregation operations.
+- Read [web-interface-review.md](references/web-interface-review.md) for an explicit UI audit or
+  when a change materially affects forms, navigation, focus, content resilience, localization,
+  hydration, media, or interactive state. Do not load the full checklist for every small UI edit.

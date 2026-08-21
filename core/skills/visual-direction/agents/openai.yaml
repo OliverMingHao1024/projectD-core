@@ -1,0 +1,4 @@
+interface:
+  display_name: "Visual Direction"
+  short_description: "Define evidence-based visual direction before UI implementation"
+  default_prompt: "Use $visual-direction to establish a visual direction for this interface from its audience, purpose, brand, and project constraints."
