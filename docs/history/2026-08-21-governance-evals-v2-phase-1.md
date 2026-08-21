@@ -5,7 +5,7 @@ type: architecture
 status: accepted
 evidence_level: verified
 technologies: [PowerShell, Python, JSON Schema, GitHub Actions]
-commits: []
+commits: [932f50e, d46978b]
 supersedes: []
 verified_by:
   - "user-confirmed retain decision"

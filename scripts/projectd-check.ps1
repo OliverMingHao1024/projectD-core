@@ -418,6 +418,9 @@ if ($GovernanceEvals) {
         Add-Result 'governance-behavior-catalog' $false 'pwsh executable not found'
         Add-Result 'governance-asset-inventory' $false 'pwsh executable not found'
         Add-Result 'governance-security-traces' $false 'pwsh executable not found'
+        Add-Result 'governance-host-trial-contract' $false 'pwsh executable not found'
+        Add-Result 'governance-host-upgrade-gate-contract' $false 'pwsh executable not found'
+        Add-Result 'governance-host-run-plan-contract' $false 'pwsh executable not found'
     } else {
         Child 'governance-structural-evals' {
             & $pwsh.Source -NoProfile -File (
@@ -437,6 +440,25 @@ if ($GovernanceEvals) {
         Child 'governance-security-traces' {
             & $pwsh.Source -NoProfile -File (
                 Join-Path $core 'scripts\governance-trace-eval.ps1'
+            )
+        }
+        Child 'governance-host-trial-contract' {
+            & $pwsh.Source -NoProfile -File (
+                Join-Path $core 'scripts\tests\governance-host-trial.contract.ps1'
+            )
+        }
+        Child 'governance-host-upgrade-gate-contract' {
+            & $pwsh.Source -NoProfile -File (
+                Join-Path $core (
+                    'scripts\tests\governance-host-upgrade-gate.contract.ps1'
+                )
+            )
+        }
+        Child 'governance-host-run-plan-contract' {
+            & $pwsh.Source -NoProfile -File (
+                Join-Path $core (
+                    'scripts\tests\governance-host-run-plan.contract.ps1'
+                )
             )
         }
     }

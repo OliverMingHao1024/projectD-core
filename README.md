@@ -191,7 +191,7 @@ pwsh -File scripts/projectd-check.ps1 -Json
 pwsh -File scripts/projectd-check.ps1 -GovernanceEvals
 ```
 
-`-GovernanceEvals` 會分別檢查四層：
+`-GovernanceEvals` 會分別檢查七層：
 
 - structural eval：重要治理文字與入口同步契約；
 - behavior catalog：provider-neutral 的真實 trial／tool event／final-state 評估契約；
@@ -199,7 +199,13 @@ pwsh -File scripts/projectd-check.ps1 -GovernanceEvals
   的來源、能力、權限及 disable 邊界；
 - security trace replay：metadata-only synthetic fixtures，覆蓋 prompt injection、memory
   poisoning、tool misuse、exfiltration，以及 credential revoke、tool disable、egress deny、
-  rollback 演練。
+  rollback 演練；
+- host trial contract：驗證 Codex-first 的 host provenance、模型／CLI 版本、來源 integrity、
+  checkpoint recovery 與 unavailable metrics 語意，不會在 CI 啟動真實模型；
+- paired upgrade gate：用相同 catalog／harness 的 baseline 與 candidate manifest 做離線比較，
+  high／critical 失敗或整體通過數下降都會阻擋 promotion。
+- Claude paired-pilot run plan：固定完整模型 ID、instruction／fixture digest、案例 observer、
+  session／permission 邊界與 subscription-only 零額外支出規則；只驗證計畫，不會啟動模型。
 
 Behavior catalog 通過只代表案例定義有效，不代表任何真實模型已通過。取得 host adapter
 產生的結構化、已遮罩 trial trace 後，才使用下列命令做離線判分：
@@ -214,6 +220,85 @@ pwsh -File scripts/governance-trace-eval.ps1
 Security trace replay 不會呼叫模型、讀取真實 credential 或變更網路；真實 host control
 目前只有具 repo-local accepted after-action 的 `incident-derived` trace 能形成實際事件證據。
 `host-captured` 要等授權 adapter 與 provenance contract 建立後才會開放，Phase 2 會拒絕該標籤。
+
+Phase 3 的 Codex／Claude adapters 採手動授權匯入，不會自行啟動模型。輸入必須是可由 behavior
+grader 判讀的 metadata-only trials；通過與失敗結果都會保留，避免只收錄成功樣本。
+輸出只會寫到 Git ignored 的 `.local/governance/`：
+
+```powershell
+pwsh -File scripts/codex-governance-adapter.ps1 `
+  -TrialsPath .local/governance/codex-trials.json `
+  -RunId codex-governance-run `
+  -ModelId <model-id> `
+  -ModelVersion <model-version> `
+  -StartedAt <ISO-8601> `
+  -CompletedAt <ISO-8601> `
+  -ApprovalCount 0 `
+  -CompletedCriterion checkpoint-loaded `
+  -RemainingCriterion resume-action `
+  -SmokeTestId governance-smoke `
+  -SmokeTestStatus passed `
+  -CheckpointRead `
+  -WorkspaceVerified `
+  -AuthorizedManualImport
+```
+
+`-AuthorizedManualImport` 表示使用者已明確授權本次手動匯入，並對 trial 的 Codex 執行來源
+負責；adapter 會自行讀取本機 `codex --version`、Git commit 與已追蹤工作樹狀態，但不會讀取
+Codex session、prompt、credential 或 chain-of-thought，也不會把手動匯入標示為自動 capture。
+
+Claude 使用相同契約與 grader；trial 的 `agent` 必須是 `claude`，harness 預設為
+`claude-manual-import-v1`：
+
+```powershell
+pwsh -File scripts/claude-governance-adapter.ps1 `
+  -TrialsPath .local/governance/claude-trials.json `
+  -RunId claude-governance-run `
+  -ModelId <full-model-id> `
+  -ModelVersion <model-version> `
+  -StartedAt <ISO-8601> `
+  -CompletedAt <ISO-8601> `
+  -ApprovalCount 0 `
+  -CompletedCriterion trials-captured `
+  -RemainingCriterion promotion-decision `
+  -SmokeTestId governance-smoke `
+  -SmokeTestStatus not-run `
+  -AuthorizedManualImport
+```
+
+Claude adapter 會讀取本機 `claude --version`，但同樣不讀取 session、prompt、reasoning 或
+credential，也不會自行呼叫 Claude。真實 runner 必須先具備固定 instruction digest 與獨立
+observable-state grader，不能把模型自述直接當作成功證據。
+
+開始 pilot 前，先建立 repo-local、通常位於 `.local/governance/` 的 paired-pilot JSON，並執行：
+
+```powershell
+pwsh -File scripts/claude-governance-run-plan.ps1 `
+  -PlanPath .local/governance/claude-paired-pilot.json
+```
+
+計畫 schema 是 `evals/schemas/governance-host-run-plan.schema.json`。它要求 baseline／candidate
+使用不同且以 `claude-` 開頭的完整 model ID，拒絕 `opus`／`sonnet`／`haiku` 等浮動 alias；
+catalog、共用 instruction 與每個 case fixture 都必須帶 SHA-256。Pilot 每個 case 固定一次，
+總呼叫數為案例數乘兩個模型。現行契約只允許 `billing_mode=subscription-only`，
+`additional_spend_allowed=false`，且 `per_trial_max_usd` 與 `total_max_usd` 都必須為 `0`；
+訂閱額度耗盡時只能 `stop-and-wait`，不得切換 API、usage credits 或其他按量計費來源。
+Observer 會依 catalog 的 final state／event 期待做覆蓋檢查。目前這個入口只輸出執行投影，
+`live_execution` 永遠是 `false`，不會因 plan 通過就產生費用。
+
+取得兩次已驗證的 host trial 後，可執行離線升級閘門：
+
+```powershell
+pwsh -File scripts/governance-host-upgrade-gate.ps1 `
+  -BaselineManifestPath .local/governance/baseline.json `
+  -CandidateManifestPath .local/governance/candidate.json
+```
+
+閘門不會啟動模型或變更 workspace。兩份 manifest 必須使用相同 evidence kind、host／
+harness／adapter、catalog digest、case set 與每個 case 的 trial count，run id 不同且
+model identity 有變更。
+候選版不得有 high／critical 失敗，passed count 也不得低於 baseline；token／cost 任一側
+無資料時，其差值維持 `unavailable`。
 
 Schema 位於 `evals/schemas/`；canonical cases 與 repository 可驗證資產分別位於
 `evals/governance-behavior-cases.json` 與 `evals/governance-assets.json`。Host 動態提供但
