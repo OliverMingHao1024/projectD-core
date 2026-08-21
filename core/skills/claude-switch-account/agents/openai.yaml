@@ -1,0 +1,4 @@
+interface:
+  display_name: "Claude Account Switch"
+  short_description: "Safely switch verified Claude subscription accounts"
+  default_prompt: "Use $claude-switch-account to show or safely switch the active Claude subscription account."
