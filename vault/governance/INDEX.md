@@ -41,6 +41,10 @@
   `../../core/skills/{skill-scout,skill-update-check}/SKILL.md`，機器狀態見 `skill-registry.json`；
   原始 PM/SA/SD 決策脈絡見歷史文件 `plan-skill-import.md`／`prd-skill-import.md`／
   `sa-analysis-skill-import.md`。
+- Governance Evals v2：`../../docs/specs/governance-evals-v2.md`；研究依據見
+  `../../docs/research/ai-governance-gap-analysis-2026-08-21.md`，canonical behavior cases、
+  asset inventory 與 schemas 位於 `../../evals/`。Catalog validation 不代表真實模型已通過，
+  必須取得結構化 trial trace 後才能評估 agent behavior。
 
 ## 載入原則
 

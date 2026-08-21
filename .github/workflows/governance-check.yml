@@ -19,6 +19,15 @@ jobs:
       - name: Run governance eval contract
         shell: pwsh
         run: ./scripts/tests/governance-eval.contract.ps1
+      - name: Run governance behavior eval contract
+        shell: pwsh
+        run: ./scripts/tests/governance-behavior-eval.contract.ps1
+      - name: Run governance asset inventory contract
+        shell: pwsh
+        run: ./scripts/tests/governance-asset-inventory.contract.ps1
+      - name: Run governance security trace contract
+        shell: pwsh
+        run: ./scripts/tests/governance-trace-eval.contract.ps1
       - name: Run portable repository checks
         shell: pwsh
         run: >-

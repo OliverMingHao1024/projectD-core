@@ -408,11 +408,29 @@ if (-not $SkipWiring) {
 
 if ($GovernanceEvals) {
     if ($null -eq $pwsh) {
-        Add-Result 'governance-evals' $false 'pwsh executable not found'
+        Add-Result 'governance-structural-evals' $false 'pwsh executable not found'
+        Add-Result 'governance-behavior-catalog' $false 'pwsh executable not found'
+        Add-Result 'governance-asset-inventory' $false 'pwsh executable not found'
+        Add-Result 'governance-security-traces' $false 'pwsh executable not found'
     } else {
-        Child 'governance-evals' {
+        Child 'governance-structural-evals' {
             & $pwsh.Source -NoProfile -File (
                 Join-Path $core 'scripts\governance-eval.ps1'
+            )
+        }
+        Child 'governance-behavior-catalog' {
+            & $pwsh.Source -NoProfile -File (
+                Join-Path $core 'scripts\governance-behavior-eval.ps1'
+            ) -CatalogOnly
+        }
+        Child 'governance-asset-inventory' {
+            & $pwsh.Source -NoProfile -File (
+                Join-Path $core 'scripts\governance-asset-inventory.ps1'
+            )
+        }
+        Child 'governance-security-traces' {
+            & $pwsh.Source -NoProfile -File (
+                Join-Path $core 'scripts\governance-trace-eval.ps1'
             )
         }
     }

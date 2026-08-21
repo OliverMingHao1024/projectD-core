@@ -76,6 +76,28 @@ try {
         $checkContent.Contains('[IO.FileAttributes]::ReparsePoint')
     ) 'Text scan must not follow junctions or symbolic links.'
 
+    $governanceJson = (
+        & $check `
+            -ProjectRoot $core `
+            -FleetPath $tempFleet `
+            -SkipGlobal `
+            -SkipWiring `
+            -GovernanceEvals `
+            -Json |
+            ConvertFrom-Json
+    )
+    Assert-True $governanceJson.passed 'All governance eval layers must pass.'
+    foreach ($name in @(
+        'governance-structural-evals',
+        'governance-behavior-catalog',
+        'governance-asset-inventory',
+        'governance-security-traces'
+    )) {
+        Assert-True (
+            @($governanceJson.checks | Where-Object name -CEQ $name).Count -eq 1
+        ) "Unified check must report $name separately."
+    }
+
     Set-Content `
         -LiteralPath $tempFleet `
         -Value '[{"path":"D:\\missing-project","category":"side","packs":["python"]}]' `

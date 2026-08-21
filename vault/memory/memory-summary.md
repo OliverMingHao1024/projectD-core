@@ -1,5 +1,5 @@
 ---
-lastUpdated: 2026-08-19
+lastUpdated: 2026-08-21
 ---
 
 # 記憶快照
@@ -93,6 +93,18 @@ lastUpdated: 2026-08-19
   類似專案時已實際用到且發現落差（先泛列連結，查證後才發現兩個候選已停滯）；`selection.md`
   的完整方法論、Draft／Process／Run 三種服務模式，以及市場/競品等六種類型包，皆無實際
   踩坑證據，依 L0 第 8 條不採用。
+
+## 2026-08-21
+
+- 使用者確認保留 Governance Evals v2 Phase 1：既有 structural eval 之外，新增 12 個
+  behavior cases 與 deterministic offline grader，以及 11 項 repository-verifiable
+  governance asset inventory；三者均接入 `projectd-check` 與 CI。
+- Phase 1 刻意維持 provider-neutral、local-first：不呼叫付費模型 API、不把秘密放入測試，
+  以 redacted trace／final state 與 SHA-256 integrity 作為可重播證據；host runtime 的實際
+  model、credential、MCP process、sandbox 與 egress 明列為 coverage exclusions。
+- 完整決策、替代方案、驗證與限制保存在
+  `docs/history/2026-08-21-governance-evals-v2-phase-1.md`；目前已通過六個 PowerShell
+  contracts、`projectd-check` 11/11、3 個 Python unittest 及修正後的 security／code review。
 
 ## 2026-07-30
 

@@ -191,6 +191,35 @@ pwsh -File scripts/projectd-check.ps1 -Json
 pwsh -File scripts/projectd-check.ps1 -GovernanceEvals
 ```
 
+`-GovernanceEvals` 會分別檢查四層：
+
+- structural eval：重要治理文字與入口同步契約；
+- behavior catalog：provider-neutral 的真實 trial／tool event／final-state 評估契約；
+- asset inventory：agent、model、Skill catalog、tool、MCP、plugin、credential 與 data source
+  的來源、能力、權限及 disable 邊界；
+- security trace replay：metadata-only synthetic fixtures，覆蓋 prompt injection、memory
+  poisoning、tool misuse、exfiltration，以及 credential revoke、tool disable、egress deny、
+  rollback 演練。
+
+Behavior catalog 通過只代表案例定義有效，不代表任何真實模型已通過。取得 host adapter
+產生的結構化、已遮罩 trial trace 後，才使用下列命令做離線判分：
+
+```powershell
+pwsh -File scripts/governance-behavior-eval.ps1 `
+  -TrialsPath <redacted-trials.json>
+
+pwsh -File scripts/governance-trace-eval.ps1
+```
+
+Security trace replay 不會呼叫模型、讀取真實 credential 或變更網路；真實 host control
+目前只有具 repo-local accepted after-action 的 `incident-derived` trace 能形成實際事件證據。
+`host-captured` 要等授權 adapter 與 provenance contract 建立後才會開放，Phase 2 會拒絕該標籤。
+
+Schema 位於 `evals/schemas/`；canonical cases 與 repository 可驗證資產分別位於
+`evals/governance-behavior-cases.json` 與 `evals/governance-assets.json`。Host 動態提供但
+repository 無法驗證的 tool、MCP、plugin、credential 或精確 model version 必須由 host／
+project inventory 補充，不得因 canonical inventory 通過而視為已治理。
+
 這組 deterministic baseline 位於 `evals/governance-baseline.json`，只驗證高影響治理契約；
 一般小任務與本機 pre-push 不會預設執行。CI 會執行其 contract，防止治理行為無意退步。
 
