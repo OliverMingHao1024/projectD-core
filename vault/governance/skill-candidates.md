@@ -62,6 +62,7 @@
 - 評估日期：2026-07-28
 - 結論：部分收錄
 - 理由：使用者核准 Implementation Review Gate 規格與兩張依賴 tickets。code-review 保留 Standards／Spec 雙軸，新增 working-tree 模式，移除 setup-matt-pocock-skills 與強制平行 sub-agent，並維持全程唯讀；implement 改為只執行已核准範圍、依專案選擇測試策略而不強制 TDD，但對程式碼與行為設定強制完成有界 code-review gate。兩者皆不自動 commit、push 或修改 tracker。
+- 更新審查（2026-08-25）：唯讀比對至 commit `6654f6b60cd9d5be8b54c6fafe44346dabeb3b76`。`implement` 路徑 digest 未變；`code-review` 的實質流程仍與既有 cross-agent adaptation 相同，上游差異主要是標點、tracker setup 提示與 Skill tool／sub-agent 語法，因此不改 canonical 行為，只推進 reviewed upstream digest。
 - 目標 pack：core/skills/{code-review,implement}
 - 發現管道：使用者指定 + skill-scout 固定 commit 審查 + 核准規格與 tickets
 
@@ -74,6 +75,7 @@
 - 評估日期：2026-07-28
 - 結論：部分收錄
 - 理由：使用者確認引入兩者。保留將既有討論收斂為規格，以及將核准範圍拆成 tracer-bullet 垂直切片與 blocking edges 的核心方法；移除作者專用 setup Skill、Claude metadata 與固定 tracker 假設，改用專案既有 glossary、ADR 與 tracker 慣例。規格、檔案、Issue、Label、blocking link 等本地或外部寫入皆須先出示草稿並取得明確確認。
+- 更新審查（2026-08-25）：唯讀比對至 commit `6654f6b60cd9d5be8b54c6fafe44346dabeb3b76`；兩個 Skill 只有標點與作者專用 tracker setup 提示調整，未改變 projectD 採用的規格合成、tracer-bullet 或寫入授權邊界，因此 canonical 內容不變並推進 reviewed upstream digest。
 - 目標 pack：core/skills/{to-spec,to-tickets}
 - 發現管道：使用者指定 + skill-scout 固定 commit 審查
 
@@ -86,6 +88,7 @@
 - 評估日期：2026-07-28
 - 結論：收錄
 - 理由：使用者指名收錄。此 Skill 是既有 grilling 與 domain-modeling 的小型組合工作流；相依能力已存在。引入時移除 Claude 專屬 `/skill` 語法與 `disable-model-invocation` metadata，補上跨 Agent 觸發、相依 Skill 缺少時的降級行為，以及逐筆確認後才寫入 CONTEXT.md／ADR 的界線。
+- 更新審查（2026-08-25）：唯讀比對至 commit `6654f6b60cd9d5be8b54c6fafe44346dabeb3b76`；上游只把 `/skill` 改成 OpenAI Skill tool 呼叫，仍屬平台專用語法，不取代現有工具中立組合與降級行為，只推進 reviewed upstream digest。
 - 目標 pack：core/skills/grill-with-docs
 - 發現管道：使用者指定 + gh repo/API 實檔審查
 
@@ -98,6 +101,7 @@
 - 評估日期：2026-07-26
 - 結論：部分收錄
 - 理由：使用者指名要收 improve-codebase-architecture 與 writing-great-skills。improve-codebase-architecture 依賴 codebase-design（詞彙）與 domain-modeling（CONTEXT.md/ADR 收斂），兩者皆未收錄；使用者確認四者一起收錄才能保持功能完整（同一 id 下已有 grill-me/grilling 先前收錄，未留痕於本檔，屬歷史缺口）。PG 乾跑找出並已修正：(1) codebase-design/DEEPENING.md 內建「刪除舊測試」指令，改為需明確使用者核准才刪；(2) domain-modeling 原版就地寫入 CONTEXT.md/ADR，改為提案後才寫（與 emilkowalski 收錄時同一類寫入授權問題）；(3) improve-codebase-architecture 的 `subagent_type=Explore`、`/skill` 斜線語法、Windows `start`/`%TEMP%` 均為 Claude Code 專屬寫法，已改寫為工具中立表述並修正 Git Bash/PowerShell 相容性；(4) 為 codebase-design 加入「使用者指示 > 專案既有慣例 > 本 skill 詞彙」優先序前言，避免強加 DDD/命名體系覆蓋既有專案慣例；(5) 四者皆補上 LICENSE 與 `## Source` 溯源段（比照既有 grill-me/grilling 格式）。此結論不涵蓋同來源的 tdd/code-review（見上方「已拒絕・暫緩」同一 id 的舊評估，範圍不同、未重新檢視）。
+- 更新審查（2026-08-25）：唯讀比對至 commit `6654f6b60cd9d5be8b54c6fafe44346dabeb3b76`。`codebase-design`、`domain-modeling` 與 `improve-codebase-architecture` 只有標點或平台呼叫語法變更；`grilling` 的上游改成一次詢問整個 decision frontier，與 projectD 刻意保留的一次一題 HITL 流程衝突，故不採用。原 `writing-great-skills` 已被上游刪除，同期新增範圍更廣的 `writing-for-agents`；兩者是否遷移需另行判斷，因此此項維持舊 pin，等待獨立 migration review。其餘已審查路徑推進 upstream digest。
 - 目標 pack：core/skills/{codebase-design,domain-modeling,improve-codebase-architecture,writing-great-skills}
 - 發現管道：使用者指定（本機已安裝 plugin marketplace `~/.claude/plugins/marketplaces/mattpocock`）+ PG dry-run
 
@@ -110,6 +114,7 @@
 - 評估日期：2026-07-26
 - 結論：部分收錄
 - 理由：使用者從 README 概覽中選定這六個（排除 git-guardrails-claude-code，留待之後單獨評估）。wayfinder 依賴 research 與 prototype（Research/Prototype 票種）；使用者確認三者一起收，但明確不收 setup-matt-pocock-skills（per-repo 一次性 issue tracker 設定流程）。PG 乾跑找出並已修正：(1) resolving-merge-conflicts 原版「stage everything and commit」「never --abort」直接違反 L0 不可逆操作需授權，改為只 stage 衝突相關檔案、commit 前出示 diff 並取得同意、abort 改為使用者的選擇而非 agent 自行排除的選項；(2) research 的 background-agent 派工與 findings 寫檔皆改為條件式/需確認；(3) prototype 的 SKILL.md/UI.md 把「commit 到 throwaway branch」「刪除落選 variant」「改 package.json/Makefile」全部改為提案後才動手，且不再假設一定有 issue tracker；(4) diagnosing-bugs 修正 CONTEXT.md/ADR 存在假設與 `/improve-codebase-architecture`、`scripts/hitl-loop.template.sh` 的死引用；(5) wayfinder 改動最大：移除對未收錄 setup-matt-pocock-skills 的依賴，改為就地定義 local-markdown tracker fallback（claim/blocking/frontier 皆給出 markdown 慣例的對應寫法）；所有 `/skill` 斜線引用改寫成工具中立的 Skill 名稱＋降級語；「update or delete tickets」改為「一律 close 並記錄原因，不刪除」；不確定 assignee 時改為詢問而非猜測；每一次 tracker 寫入（建 issue、指派、留言、關閉、開分支）都要求先出示批次內容再取得使用者確認。六者皆補上 LICENSE 與 `## Source` 溯源段。
+- 更新審查（2026-08-25）：使用者確認同步安全且跨技術棧適用的部分至 commit `6654f6b60cd9d5be8b54c6fafe44346dabeb3b76`。`diagnosing-bugs` 吸收 commands／output／HAR／trace 的秘密遮罩；`prototype` 增加給非開發者或非同步審查者使用的單檔 HTML logic demo，但保留依專案 runtime 的 TUI，依受眾選擇而非把 JavaScript 設成唯一答案；`to-questionnaire` 跟隨上游由 `skills/in-progress/` 搬至 `skills/productivity/`，維持寫檔前確認。其餘路徑只有標點或平台／tracker 專用語法變更，不改 canonical 行為並推進 reviewed upstream digest。
 - 目標 pack：core/skills/{to-questionnaire,resolving-merge-conflicts,diagnosing-bugs,research,prototype,wayfinder}
 - 發現管道：使用者指定（本機已安裝 plugin marketplace）+ PG dry-run
 
