@@ -16,9 +16,10 @@
 - 擷取內容：`SKILL.md`、repository root `LICENSE`、plugin manifest `plugin.json`；無 scripts、hooks、executables 或 runtime dependencies
 - upstream digest：sha256:bea6da70a58096730b9aeb0bae293ddf4726103a98efc9ce13c481619942a810
 - adapted digest：sha256:285c8c54e1f4e05972f48496d486bf4200b163abdf476cac05bd029a83721f71
-- adapted target（若後續畢業）：`core/skills/show-me`
+- canonical target：`core/skills/show-me`
+- 採用確認：2026-08-26，使用者明確確認安裝合併
 - 對應 registry：`vault/governance/skill-registry.json`
 - 對應決策紀錄：`vault/governance/skill-candidates.md#humanlayerskills--pluginsshow-meskillsshow-me`
 - 安全檢視：上游只含說明性 Markdown；唯一動作性指令是建立並開啟本機 HTML，未發現秘密讀取、任意刪檔、資料外傳、安裝或遠端執行
 - 改寫摘要：縮窄自動觸發；限制暫存輸出不得靜默寫入 repository；加入 Windows／macOS／Linux 開啟方式、離線與無障礙 fallback；要求概念圖明示尚未套用
-- 備註：本目錄僅為隔離候選，不接入任何 Agent skill 目錄。`skill-scout.ps1` 的 GitHub API 呼叫未取得候選，故改以 pinned raw source、commit history、repository metadata 與內容 SHA-256 交叉驗證；未執行任何上游程式碼。
+- 備註：本 staging 目錄保留作來源稽核且不直接接線；正式版本由 `core/skills/show-me` 接入 Agent skill 目錄。`skill-scout.ps1` 的 GitHub API 呼叫未取得候選，故改以 pinned raw source、commit history、repository metadata 與內容 SHA-256 交叉驗證；未執行任何上游程式碼。

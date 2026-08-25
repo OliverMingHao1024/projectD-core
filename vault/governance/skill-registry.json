@@ -676,7 +676,7 @@
       "source_path": "plugins/show-me/skills/show-me",
       "observed_commit": "6ab9013a10c28f5046f7f999549cd5328a0b30d7",
       "upstream_digest": "sha256:bea6da70a58096730b9aeb0bae293ddf4726103a98efc9ce13c481619942a810",
-      "lifecycle_status": "staged",
+      "lifecycle_status": "adopted",
       "target": "core/skills/show-me",
       "canonical_name": "show-me",
       "decision_record": "humanlayer/skills — plugins/show-me/skills/show-me",
