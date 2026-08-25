@@ -54,7 +54,9 @@ A closing catch-all: anything we didn't ask that we should know?
 ## Source
 
 Adapted for cross-agent discovery from
-<https://github.com/mattpocock/skills/tree/ed37663cc5fbef691ddfecd080dff42f7e7e350d/skills/in-progress/to-questionnaire>.
+<https://github.com/mattpocock/skills/tree/6654f6b60cd9d5be8b54c6fafe44346dabeb3b76/skills/productivity/to-questionnaire>.
 Licensed under MIT; see [LICENSE](LICENSE). The adapted version gates the questionnaire
 file write behind explicit user confirmation of filename and location instead of
-writing to the repo unprompted.
+writing to the repo unprompted. The upstream path moved from `skills/in-progress/`
+to `skills/productivity/` at the reviewed commit without changing this authorization
+boundary.
