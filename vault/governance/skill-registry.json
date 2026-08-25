@@ -292,6 +292,15 @@
       "latest_observed_commit": null,
       "migration_status": "needs-review",
       "decision_records": ["fucha1122/minimalist-bw-logo-skill"]
+    },
+    {
+      "id": "github-humanlayer-skills",
+      "provider": "github",
+      "repository": "humanlayer/skills",
+      "license_spdx": "MIT",
+      "latest_observed_commit": "6ab9013a10c28f5046f7f999549cd5328a0b30d7",
+      "migration_status": "complete",
+      "decision_records": ["humanlayer/skills — plugins/show-me/skills/show-me"]
     }
   ],
   "candidates": [
@@ -660,6 +669,18 @@
       "canonical_name": null,
       "decision_record": "SamurAIGPT/Generative-Media-Skills — logo-branding",
       "migration_status": "needs-review"
+    },
+    {
+      "id": "humanlayer-skills--plugins-show-me-skills-show-me",
+      "source_id": "github-humanlayer-skills",
+      "source_path": "plugins/show-me/skills/show-me",
+      "observed_commit": "6ab9013a10c28f5046f7f999549cd5328a0b30d7",
+      "upstream_digest": "sha256:bea6da70a58096730b9aeb0bae293ddf4726103a98efc9ce13c481619942a810",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/show-me",
+      "canonical_name": "show-me",
+      "decision_record": "humanlayer/skills — plugins/show-me/skills/show-me",
+      "migration_status": "complete"
     }
   ]
 }
