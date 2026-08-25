@@ -94,8 +94,12 @@ try {
     Assert-True ($checkContent.Contains('[switch]$SkipFleet')) (
         'Unified check must expose a portable SkipFleet mode.'
     )
-    Assert-True ($checkContent.Contains("Add-Result 'fleet-catalog'")) (
+    $fleetCatalogEvidence = @($pass.evidence | Where-Object name -EQ 'fleet-catalog')
+    Assert-True ($fleetCatalogEvidence.Count -eq 1) (
         'SkipFleet must remain visible in structured check results.'
+    )
+    Assert-True ($fleetCatalogEvidence[0].passed) (
+        'A skipped fleet-catalog check must still report as passing.'
     )
 
     $gitDirectory = Join-Path $tempRoot '.git'

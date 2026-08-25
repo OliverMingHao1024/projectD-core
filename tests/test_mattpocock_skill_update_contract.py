@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import json
+import re
 import unittest
 from pathlib import Path
 
 
 CORE = Path(__file__).parents[1]
-UPSTREAM_COMMIT = "6654f6b60cd9d5be8b54c6fafe44346dabeb3b76"
-WRITING_GREAT_SKILLS_COMMIT = "ed37663cc5fbef691ddfecd080dff42f7e7e350d"
+DIGEST_PATTERN = re.compile(r"^sha256:[0-9a-f]{64}$")
 
 
 def read_skill(name: str, resource: str = "SKILL.md") -> str:
@@ -53,8 +53,6 @@ class MattPocockSkillUpdateContractTests(unittest.TestCase):
             if item["source_id"] == source["id"] and item["canonical_name"]
         }
 
-        self.assertEqual(source["latest_observed_commit"], UPSTREAM_COMMIT)
-
         questionnaire = candidates["to-questionnaire"]
         self.assertEqual(
             questionnaire["id"],
@@ -64,19 +62,43 @@ class MattPocockSkillUpdateContractTests(unittest.TestCase):
             questionnaire["source_path"],
             "skills/productivity/to-questionnaire",
         )
-        self.assertEqual(questionnaire["observed_commit"], UPSTREAM_COMMIT)
-        self.assertEqual(
-            questionnaire["upstream_digest"],
-            "sha256:b22edeef084d7b0b3fae02fbe50116ea1e2c2dfa87169f3a4170bb2d0270e079",
-        )
 
+        # Freshness is skill-update-check's job (it recomputes the digest live
+        # against upstream via skill-scout). This test only checks the
+        # self-consistency the registry must hold between updates: every
+        # adopted candidate should be observed at the source's latest known
+        # commit, except deliberately-pinned candidates the registry itself
+        # names as an exception. Hardcoding the actual commit/digest hex here
+        # would just restate today's JSON by hand and rot on the next normal
+        # import.
+        known_pinned = {"writing-great-skills"}
+        adopted = {
+            name: candidate
+            for name, candidate in candidates.items()
+            if candidate["lifecycle_status"] == "adopted"
+        }
+        lagging = {
+            name
+            for name, candidate in adopted.items()
+            if candidate["observed_commit"] != source["latest_observed_commit"]
+        }
         self.assertEqual(
-            candidates["writing-great-skills"]["observed_commit"],
-            WRITING_GREAT_SKILLS_COMMIT,
+            lagging,
+            known_pinned,
+            "Only the candidates named in known_pinned may lag behind the "
+            "source's latest observed commit; any other mismatch means a "
+            "candidate silently drifted from what skill-update-check last "
+            "confirmed, or a pin was lifted without updating this test.",
         )
-        for name, candidate in candidates.items():
-            if name != "writing-great-skills":
-                self.assertEqual(candidate["observed_commit"], UPSTREAM_COMMIT)
+        for name, candidate in adopted.items():
+            self.assertIsNotNone(
+                candidate["observed_commit"], f"{name}: missing observed_commit"
+            )
+            self.assertRegex(
+                candidate["upstream_digest"],
+                DIGEST_PATTERN,
+                f"{name}: upstream_digest is not a well-formed sha256 digest",
+            )
 
 
 if __name__ == "__main__":
