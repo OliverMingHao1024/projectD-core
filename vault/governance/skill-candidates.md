@@ -458,6 +458,18 @@
 - 目標 pack：（待定，可能 design pack）
 - 發現管道：gh code search
 
+### humanlayer/skills — plugins/show-me/skills/show-me
+- id：humanlayer-skills--plugins-show-me-skills-show-me
+- 來源連結：https://github.com/humanlayer/skills/tree/6ab9013a10c28f5046f7f999549cd5328a0b30d7/plugins/show-me/skills/show-me
+- 授權條款：MIT（repository root `LICENSE` 與 plugin manifest 已交叉確認）
+- star 數（評估時）：484
+- 最近推送：2026-08-13
+- 評估日期：2026-08-26
+- 結論：已依使用者確認建立 immutable upstream 與 projectD adapted staging；尚未收錄或安裝
+- 理由：以最小視圖解釋流程、結構與狀態的核心方向可補足通用視覺解說能力；原版觸發過寬且把 `Bash(open ...)` 綁死為 macOS/Bash。改寫後僅在使用者要求或視覺確實提升理解時觸發，並加入跨平台、repository-safe、離線、無障礙及 proposed-vs-applied 契約。
+- adapted target（若後續畢業）：`core/skills/show-me`
+- 發現管道：使用者提供精確 GitHub URL；`skill-scout` 以 pinned raw source、commit、MIT license、plugin metadata 與 SHA-256 交叉驗證
+
 ## 已拒絕・暫緩
 
 <!-- 拒絕或暫緩者。理由必填；是否重新審查由使用者決定，不由 scout 自動展開。 -->

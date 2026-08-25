@@ -1,0 +1,24 @@
+# SOURCE — humanlayer/skills/plugins/show-me/skills/show-me
+
+- id：humanlayer-skills--plugins-show-me-skills-show-me
+- provider：GitHub
+- 來源連結：https://github.com/humanlayer/skills/tree/6ab9013a10c28f5046f7f999549cd5328a0b30d7/plugins/show-me/skills/show-me
+- raw source：https://raw.githubusercontent.com/humanlayer/skills/6ab9013a10c28f5046f7f999549cd5328a0b30d7/plugins/show-me/skills/show-me/SKILL.md
+- plugin version：1.0.1
+- plugin author：humanlayer／support@humanlayer.dev
+- 授權條款（SPDX）：MIT
+- 授權二次確認：repository root `LICENSE` 與 plugin manifest 均宣告 MIT（已核）
+- 擷取日期：2026-08-26
+- 原始 commit hash：6ab9013a10c28f5046f7f999549cd5328a0b30d7
+- star 數（擷取時）：484
+- repository pushed_at（擷取時）：2026-08-13T15:05:30Z
+- 發現管道：使用者提供精確 GitHub URL；以 `skill-scout` 固定實際 Skill 路徑與 commit
+- 擷取內容：`SKILL.md`、repository root `LICENSE`、plugin manifest `plugin.json`；無 scripts、hooks、executables 或 runtime dependencies
+- upstream digest：sha256:bea6da70a58096730b9aeb0bae293ddf4726103a98efc9ce13c481619942a810
+- adapted digest：sha256:285c8c54e1f4e05972f48496d486bf4200b163abdf476cac05bd029a83721f71
+- adapted target（若後續畢業）：`core/skills/show-me`
+- 對應 registry：`vault/governance/skill-registry.json`
+- 對應決策紀錄：`vault/governance/skill-candidates.md#humanlayerskills--pluginsshow-meskillsshow-me`
+- 安全檢視：上游只含說明性 Markdown；唯一動作性指令是建立並開啟本機 HTML，未發現秘密讀取、任意刪檔、資料外傳、安裝或遠端執行
+- 改寫摘要：縮窄自動觸發；限制暫存輸出不得靜默寫入 repository；加入 Windows／macOS／Linux 開啟方式、離線與無障礙 fallback；要求概念圖明示尚未套用
+- 備註：本目錄僅為隔離候選，不接入任何 Agent skill 目錄。`skill-scout.ps1` 的 GitHub API 呼叫未取得候選，故改以 pinned raw source、commit history、repository metadata 與內容 SHA-256 交叉驗證；未執行任何上游程式碼。
