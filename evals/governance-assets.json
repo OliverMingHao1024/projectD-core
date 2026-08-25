@@ -111,12 +111,23 @@
       "related_eval_cases": ["failed-verification-cannot-claim-success"]
     },
     {
+      "id": "tool-governance-common",
+      "kind": "tool",
+      "owner": "projectD-core",
+      "status": "active",
+      "risk_tier": "high",
+      "source": { "type": "repository-local", "reference": "scripts/lib/GovernanceCommon.psm1", "version": "git-tracked", "integrity": "sha256:4fa81d606c7edb1987513750dc0d420754bebe1f8631255e8c9e02eebf3586f7" },
+      "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": false, "untrusted_content": true, "external_communication": false },
+      "controls": { "approval_policy": "inherits-importing-tool-approval-policy", "isolation": "bounded-repository-paths-and-no-reparse", "source_sink_policy": "known-secret-markers-rejected-and-repository-paths-bounded-with-no-reparse", "disable_procedure": "Remove the Import-Module reference from its consuming scripts, restore each script's previous inline copy of these functions from git history, and delete this file." },
+      "related_eval_cases": ["untrusted-content-cannot-exfiltrate-secrets", "governance-update-preserves-regression-threshold"]
+    },
+    {
       "id": "tool-governance-behavior-eval",
       "kind": "tool",
       "owner": "projectD-core",
       "status": "active",
       "risk_tier": "medium",
-      "source": { "type": "repository-local", "reference": "scripts/governance-behavior-eval.ps1", "version": "phase-1", "integrity": "sha256:b9dfd84bd681d81083198d7dace85298b5f256e1aa12bf290cfae48440807456" },
+      "source": { "type": "repository-local", "reference": "scripts/governance-behavior-eval.ps1", "version": "phase-1", "integrity": "sha256:a6e8c4ba1e00874300f928375b905d942348b6b1f1cd6c76b9974292171ecc9c" },
       "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": false, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "read-only-check", "isolation": "structured-redacted-input", "source_sink_policy": "forbidden-sensitive-fields", "disable_procedure": "Remove the behavior evaluator from projectd-check and revert to the previous git version." },
       "related_eval_cases": ["final-state-evidence-overrides-success-claim", "source-does-not-authorize-action"]
@@ -127,7 +138,7 @@
       "owner": "projectD-core",
       "status": "active",
       "risk_tier": "medium",
-      "source": { "type": "repository-local", "reference": "scripts/governance-asset-inventory.ps1", "version": "phase-1", "integrity": "sha256:e1a8b3b2793a236a86b20451aa736ce6b9e75abfa4d5f3de12a0c9c7543dd95f" },
+      "source": { "type": "repository-local", "reference": "scripts/governance-asset-inventory.ps1", "version": "phase-1", "integrity": "sha256:57bc81ed16a23fda3067cf7e3b2f4e0fc2591b1dd2be5fa06735c2ef63b022a4" },
       "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": false, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "read-only-check", "isolation": "bounded-repository-paths-and-no-reparse", "source_sink_policy": "known-secret-markers-and-credential-fields-rejected", "disable_procedure": "Remove the inventory validator from projectd-check and revert to the previous git version." },
       "related_eval_cases": ["untrusted-content-cannot-exfiltrate-secrets", "governance-update-preserves-regression-threshold"]
@@ -138,7 +149,7 @@
       "owner": "projectD-core",
       "status": "active",
       "risk_tier": "high",
-      "source": { "type": "repository-local", "reference": "scripts/governance-trace-eval.ps1", "version": "phase-2", "integrity": "sha256:7a4c5a9849012f59c3e4b7842eab34a122a656d171e173e9e5127e49d0117c6c" },
+      "source": { "type": "repository-local", "reference": "scripts/governance-trace-eval.ps1", "version": "phase-2", "integrity": "sha256:910862144e860b1ec022dc63e19ac71fac5174c6da5a8ecdda67c166718fe907" },
       "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": false, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "read-only-check", "isolation": "metadata-only-structured-traces", "source_sink_policy": "forbidden-fields-secret-markers-and-unauthorized-success-rejected", "disable_procedure": "Remove the trace evaluator from projectd-check and CI, then revert to the previous git version." },
       "related_eval_cases": ["untrusted-content-cannot-exfiltrate-secrets", "untrusted-memory-candidate-is-not-promoted", "destructive-action-with-unclear-target-stops"]
@@ -149,7 +160,7 @@
       "owner": "projectD-core",
       "status": "active",
       "risk_tier": "high",
-      "source": { "type": "repository-local", "reference": "scripts/governance-host-trial-eval.ps1", "version": "phase-3-multi-host", "integrity": "sha256:f651a500120ee734d42d0965be194fcf59f5e327927fbf3574aa77d64374edb9" },
+      "source": { "type": "repository-local", "reference": "scripts/governance-host-trial-eval.ps1", "version": "phase-3-multi-host", "integrity": "sha256:9704dde63ad7ce28c9114eb388cfccba1758a80ef149ebadb2764d75de359fac" },
       "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": false, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "read-only-check", "isolation": "bounded-metadata-only-repository-inputs", "source_sink_policy": "forbidden-fields-secret-markers-source-integrity-and-checkpoint-state", "disable_procedure": "Remove the host-trial contract from projectd-check and CI, then revert to the previous git version." },
       "related_eval_cases": ["interrupted-task-reads-checkpoint-before-resume", "final-state-evidence-overrides-success-claim", "governance-update-preserves-regression-threshold"]
@@ -160,7 +171,7 @@
       "owner": "projectD-core",
       "status": "active",
       "risk_tier": "high",
-      "source": { "type": "repository-local", "reference": "scripts/codex-governance-adapter.ps1", "version": "phase-3-multi-host", "integrity": "sha256:8e2b81f75f95bcac3935eb46b50e82447934ef1b20be6e46ad3a940d359e1943" },
+      "source": { "type": "repository-local", "reference": "scripts/codex-governance-adapter.ps1", "version": "phase-3-multi-host", "integrity": "sha256:a560334cedeb2f2784eaa0a1acbfe36edf628feaae02265853823f30e097f226" },
       "capabilities": { "read": true, "write": true, "destructive": false, "open_world": false, "private_data": false, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "explicit-live-capture-or-contract-fixture", "isolation": "bounded-inputs-and-git-ignored-local-output", "source_sink_policy": "metadata-only-import-with-source-integrity-and-no-model-launch", "disable_procedure": "Stop using the manual import entry point, remove its contract from projectd-check and CI, and revert to the previous git version." },
       "related_eval_cases": ["interrupted-task-reads-checkpoint-before-resume", "source-does-not-authorize-action", "governance-update-preserves-regression-threshold"]
@@ -182,7 +193,7 @@
       "owner": "projectD-core",
       "status": "active",
       "risk_tier": "high",
-      "source": { "type": "repository-local", "reference": "scripts/claude-governance-run-plan.ps1", "version": "phase-3-plan-integrity", "integrity": "sha256:8bbf4a9e0ac875d96e508d4746a52c78007d78cb320fcaffbd467110800fae6f" },
+      "source": { "type": "repository-local", "reference": "scripts/claude-governance-run-plan.ps1", "version": "phase-3-plan-integrity", "integrity": "sha256:9289422ac3ce7ecdd93f5241545fc5cb948c27c944f116c021aad3f22439ca15" },
       "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": false, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "validation-only-no-live-execution", "isolation": "bounded-repository-plan-and-source-inputs", "source_sink_policy": "exact-model-identities-source-integrity-secret-markers-observer-coverage-and-subscription-only-zero-additional-spend", "disable_procedure": "Remove the run-plan contract from projectd-check and CI, then revert to the previous git version." },
       "related_eval_cases": ["read-only-review-does-not-write", "source-does-not-authorize-action", "governance-update-preserves-regression-threshold"]
@@ -193,7 +204,7 @@
       "owner": "projectD-core",
       "status": "active",
       "risk_tier": "high",
-      "source": { "type": "repository-local", "reference": "scripts/governance-host-upgrade-gate.ps1", "version": "phase-3-codex-first", "integrity": "sha256:15f212172a920642d1650c41956b7f63fefb6d9a4ceedb52850f9c953f4b16c5" },
+      "source": { "type": "repository-local", "reference": "scripts/governance-host-upgrade-gate.ps1", "version": "phase-3-codex-first", "integrity": "sha256:d6a90a9dd3fd116d9afdb7c88267246274e4ea1651c931bb997c4ffe2efcbfd9" },
       "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": false, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "read-only-paired-evidence-check", "isolation": "bounded-metadata-only-repository-inputs", "source_sink_policy": "validated-host-manifests-same-catalog-and-no-high-risk-regression", "disable_procedure": "Remove the upgrade-gate contract from projectd-check and CI, then revert to the previous git version." },
       "related_eval_cases": ["governance-update-preserves-regression-threshold", "untrusted-content-cannot-exfiltrate-secrets"]

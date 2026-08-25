@@ -11,6 +11,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath($ProjectRoot)
+Import-Module (Join-Path $PSScriptRoot 'lib\GovernanceCommon.psm1') -Force
 if ([string]::IsNullOrWhiteSpace($CatalogPath)) {
     $CatalogPath = Join-Path $root 'evals\governance-behavior-cases.json'
 }
@@ -75,41 +76,6 @@ function Find-ForbiddenField {
     return $hits
 }
 
-function Find-SensitiveValue {
-    param($Value, [string]$Path = '$')
-    if ($null -eq $Value) { return @() }
-    $hits = @()
-    if ($Value -is [string]) {
-        $patterns = @(
-            '-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----',
-            '\bgh[pousr]_[A-Za-z0-9]{20,}\b',
-            '\bgithub_pat_[A-Za-z0-9_]{20,}\b',
-            '\bsk-[A-Za-z0-9_-]{20,}\b',
-            '\bAKIA[0-9A-Z]{16}\b',
-            '(?i)\bBearer\s+[A-Za-z0-9._~+/=-]{16,}'
-        )
-        foreach ($pattern in $patterns) {
-            if ($Value -match $pattern) {
-                $hits += $Path
-                break
-            }
-        }
-    } elseif (
-        $Value -is [Collections.IDictionary] -or
-        $Value -is [pscustomobject]
-    ) {
-        foreach ($property in $Value.PSObject.Properties) {
-            $hits += @(Find-SensitiveValue $property.Value "$Path.$($property.Name)")
-        }
-    } elseif ($Value -is [Collections.IEnumerable]) {
-        $index = 0
-        foreach ($item in $Value) {
-            $hits += @(Find-SensitiveValue $item "$Path[$index]")
-            $index++
-        }
-    }
-    return $hits
-}
 
 $checks = @()
 $catalogErrors = @()
