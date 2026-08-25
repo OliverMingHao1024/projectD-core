@@ -12,6 +12,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath($ProjectRoot)
+Import-Module (Join-Path $PSScriptRoot 'lib\GovernanceCommon.psm1') -Force
 if ([string]::IsNullOrWhiteSpace($HostSchemaPath)) {
     $HostSchemaPath = Join-Path $root (
         'evals\schemas\governance-host-trials.schema.json'
@@ -34,58 +35,6 @@ if ([string]::IsNullOrWhiteSpace($TrialsSchemaPath)) {
 }
 $validator = Join-Path $PSScriptRoot 'governance-host-trial-eval.ps1'
 $errors = [Collections.Generic.List[string]]::new()
-
-function Test-PathHasReparsePoint {
-    param(
-        [Parameter(Mandatory)][string]$Root,
-        [Parameter(Mandatory)][string]$ResolvedPath
-    )
-    $rootItem = Get-Item -LiteralPath $Root -Force
-    if ($rootItem.Attributes -band [IO.FileAttributes]::ReparsePoint) {
-        return $true
-    }
-    $relative = $ResolvedPath.Substring($Root.Length).TrimStart('\', '/')
-    $current = $Root
-    foreach ($part in @($relative -split '[\\/]' | Where-Object { $_ })) {
-        $current = Join-Path $current $part
-        if (Test-Path -LiteralPath $current) {
-            $item = Get-Item -LiteralPath $current -Force
-            if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
-                return $true
-            }
-        }
-    }
-    return $false
-}
-
-function Resolve-ManifestPath {
-    param(
-        [Parameter(Mandatory)][string]$Path,
-        [Parameter(Mandatory)][string]$Label,
-        [long]$MaximumBytes = 1MB
-    )
-    $resolved = [IO.Path]::GetFullPath($Path)
-    $rootPrefix = $root.TrimEnd(
-        [IO.Path]::DirectorySeparatorChar,
-        [IO.Path]::AltDirectorySeparatorChar
-    ) + [IO.Path]::DirectorySeparatorChar
-    if (-not $resolved.StartsWith(
-        $rootPrefix, [StringComparison]::OrdinalIgnoreCase
-    )) {
-        throw "$Label must stay inside the repository."
-    }
-    if (-not (Test-Path -LiteralPath $resolved -PathType Leaf)) {
-        throw "$Label does not exist."
-    }
-    $item = Get-Item -LiteralPath $resolved -Force
-    if ($item.Length -gt $MaximumBytes) {
-        throw "$Label exceeds the $MaximumBytes byte input limit."
-    }
-    if (Test-PathHasReparsePoint -Root $root -ResolvedPath $resolved) {
-        throw "$Label must not cross a reparse point."
-    }
-    return $resolved
-}
 
 function Invoke-CapturedProcess {
     param(
@@ -133,7 +82,8 @@ function Read-ValidatedManifest {
         [Parameter(Mandatory)][string]$Label
     )
     try {
-        $resolved = Resolve-ManifestPath -Path $Path -Label $Label
+        $resolved = Resolve-RepositoryPath `
+            -Root $root -Path $Path -Label $Label -MaximumBytes 1MB
         $beforeBytes = [IO.File]::ReadAllBytes($resolved)
         $beforeIntegrity = Get-BytesSha256 -Bytes $beforeBytes
     } catch {
@@ -225,7 +175,7 @@ function Read-TrialProfile {
         $path = Join-Path $root (
             $reference -replace '/', [IO.Path]::DirectorySeparatorChar
         )
-        $resolved = Resolve-ManifestPath -Path $path `
+        $resolved = Resolve-RepositoryPath -Root $root -Path $path `
             -Label "$Label source_trials" -MaximumBytes 10MB
         $bytes = [IO.File]::ReadAllBytes($resolved)
         $integrity = 'sha256:' + (Get-BytesSha256 -Bytes $bytes)

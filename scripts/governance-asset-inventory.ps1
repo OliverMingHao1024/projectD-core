@@ -9,6 +9,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath($ProjectRoot)
+Import-Module (Join-Path $PSScriptRoot 'lib\GovernanceCommon.psm1') -Force
 if ([string]::IsNullOrWhiteSpace($InventoryPath)) {
     $InventoryPath = Join-Path $root 'evals\governance-assets.json'
 }
@@ -51,71 +52,6 @@ function Find-ForbiddenCredentialField {
     return $hits
 }
 
-function Find-SensitiveValue {
-    param($Value, [string]$Path = '$')
-    if ($null -eq $Value) { return @() }
-    $hits = @()
-    if ($Value -is [string]) {
-        $patterns = @(
-            '-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----',
-            '\bgh[pousr]_[A-Za-z0-9]{20,}\b',
-            '\bgithub_pat_[A-Za-z0-9_]{20,}\b',
-            '\bsk-[A-Za-z0-9_-]{20,}\b',
-            '\bAKIA[0-9A-Z]{16}\b',
-            '(?i)\bBearer\s+[A-Za-z0-9._~+/=-]{16,}'
-        )
-        foreach ($pattern in $patterns) {
-            if ($Value -match $pattern) {
-                $hits += $Path
-                break
-            }
-        }
-    } elseif (
-        $Value -is [Collections.IDictionary] -or
-        $Value -is [pscustomobject]
-    ) {
-        foreach ($property in $Value.PSObject.Properties) {
-            $hits += @(Find-SensitiveValue $property.Value "$Path.$($property.Name)")
-        }
-    } elseif ($Value -is [Collections.IEnumerable]) {
-        $index = 0
-        foreach ($item in $Value) {
-            $hits += @(Find-SensitiveValue $item "$Path[$index]")
-            $index++
-        }
-    }
-    return $hits
-}
-
-function Test-PathHasReparsePoint {
-    param(
-        [Parameter(Mandatory)][string]$Root,
-        [Parameter(Mandatory)][string]$ResolvedPath
-    )
-    $relative = $ResolvedPath.Substring($Root.Length).TrimStart('\', '/')
-    $current = $Root
-    foreach ($part in @($relative -split '[\\/]' | Where-Object { $_ })) {
-        $current = Join-Path $current $part
-        if (Test-Path -LiteralPath $current) {
-            $item = Get-Item -LiteralPath $current -Force
-            if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
-                return $true
-            }
-        }
-    }
-    return $false
-}
-
-function Get-CanonicalTextSha256 {
-    param([Parameter(Mandatory)][string]$Path)
-    $utf8 = [Text.UTF8Encoding]::new($false, $true)
-    $text = $utf8.GetString([IO.File]::ReadAllBytes($Path))
-    $canonicalText = $text -replace "\r\n?", "`n"
-    $canonicalBytes = [Text.UTF8Encoding]::new($false).GetBytes($canonicalText)
-    return 'sha256:' + [Convert]::ToHexString(
-        [Security.Cryptography.SHA256]::HashData($canonicalBytes)
-    ).ToLowerInvariant()
-}
 
 $errors = @()
 $assets = @()

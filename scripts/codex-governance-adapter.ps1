@@ -37,6 +37,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath($ProjectRoot)
+Import-Module (Join-Path $PSScriptRoot 'lib\GovernanceCommon.psm1') -Force
 if ([string]::IsNullOrWhiteSpace($CatalogPath)) {
     $CatalogPath = Join-Path $root 'evals\governance-behavior-cases.json'
 }
@@ -65,77 +66,6 @@ if ([string]::IsNullOrWhiteSpace($OutputPath)) {
 }
 $behaviorRunner = Join-Path $PSScriptRoot 'governance-behavior-eval.ps1'
 $hostValidator = Join-Path $PSScriptRoot 'governance-host-trial-eval.ps1'
-
-function Test-PathHasReparsePoint {
-    param(
-        [Parameter(Mandatory)][string]$Root,
-        [Parameter(Mandatory)][string]$ResolvedPath
-    )
-    $rootItem = Get-Item -LiteralPath $Root -Force
-    if ($rootItem.Attributes -band [IO.FileAttributes]::ReparsePoint) {
-        return $true
-    }
-    $relative = $ResolvedPath.Substring($Root.Length).TrimStart('\', '/')
-    $current = $Root
-    foreach ($part in @($relative -split '[\\/]' | Where-Object { $_ })) {
-        $current = Join-Path $current $part
-        if (Test-Path -LiteralPath $current) {
-            $item = Get-Item -LiteralPath $current -Force
-            if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
-                return $true
-            }
-        }
-    }
-    return $false
-}
-
-function Resolve-RepositoryFile {
-    param(
-        [Parameter(Mandatory)][string]$Path,
-        [Parameter(Mandatory)][string]$Label,
-        [long]$MaximumBytes = 10MB
-    )
-    $resolved = [IO.Path]::GetFullPath($Path)
-    $rootPrefix = $root.TrimEnd(
-        [IO.Path]::DirectorySeparatorChar,
-        [IO.Path]::AltDirectorySeparatorChar
-    ) + [IO.Path]::DirectorySeparatorChar
-    if (-not $resolved.StartsWith($rootPrefix, [StringComparison]::OrdinalIgnoreCase)) {
-        throw "$Label must stay inside the repository."
-    }
-    if (-not (Test-Path -LiteralPath $resolved -PathType Leaf)) {
-        throw "$Label does not exist."
-    }
-    if (Test-PathHasReparsePoint -Root $root -ResolvedPath $resolved) {
-        throw "$Label must not cross a reparse point."
-    }
-    if ((Get-Item -LiteralPath $resolved -Force).Length -gt $MaximumBytes) {
-        throw "$Label exceeds the $MaximumBytes byte input limit."
-    }
-    return $resolved
-}
-
-function Get-RepositoryReference {
-    param([Parameter(Mandatory)][string]$Path)
-    return [IO.Path]::GetRelativePath($root, $Path).Replace('\', '/')
-}
-
-function Get-FileSha256 {
-    param([Parameter(Mandatory)][string]$Path)
-    return 'sha256:' + [Convert]::ToHexString(
-        [Security.Cryptography.SHA256]::HashData([IO.File]::ReadAllBytes($Path))
-    ).ToLowerInvariant()
-}
-
-function Get-TextSha256 {
-    param([Parameter(Mandatory)][AllowEmptyString()][string]$Text)
-    $bytes = [Text.UTF8Encoding]::new($false).GetBytes(
-        ($Text -replace "\r\n?", "`n")
-    )
-    return 'sha256:' + [Convert]::ToHexString(
-        [Security.Cryptography.SHA256]::HashData($bytes)
-    ).ToLowerInvariant()
-}
 
 function Invoke-CapturedProcess {
     param(
@@ -227,8 +157,10 @@ $completed = [DateTimeOffset]::Parse(
 )
 if ($completed -lt $started) { throw 'CompletedAt must not precede StartedAt.' }
 
-$trialsFullPath = Resolve-RepositoryFile -Path $TrialsPath -Label 'TrialsPath'
-$catalogFullPath = Resolve-RepositoryFile -Path $CatalogPath -Label 'CatalogPath'
+$trialsFullPath = Resolve-RepositoryPath `
+    -Root $root -Path $TrialsPath -Label 'TrialsPath' -MaximumBytes 10MB
+$catalogFullPath = Resolve-RepositoryPath `
+    -Root $root -Path $CatalogPath -Label 'CatalogPath' -MaximumBytes 10MB
 $outputFullPath = [IO.Path]::GetFullPath($OutputPath)
 $allowedOutputRoot = [IO.Path]::GetFullPath((Join-Path $root '.local\governance'))
 $allowedOutputPrefix = $allowedOutputRoot.TrimEnd(
@@ -369,11 +301,11 @@ $document = [ordered]@{
         import_transport = 'structured-json'
         model_execution_attested = $AuthorizedManualImport.IsPresent
         source_trials = [ordered]@{
-            reference = Get-RepositoryReference -Path $trialsFullPath
+            reference = Get-RepositoryReference -Root $root -Path $trialsFullPath
             integrity = Get-FileSha256 -Path $trialsFullPath
         }
         source_catalog = [ordered]@{
-            reference = Get-RepositoryReference -Path $catalogFullPath
+            reference = Get-RepositoryReference -Root $root -Path $catalogFullPath
             integrity = Get-FileSha256 -Path $catalogFullPath
         }
     }
@@ -454,7 +386,7 @@ $validationResult = $validation.Stdout | ConvertFrom-Json
 $result = [pscustomobject]@{
     passed = [bool]$validationResult.passed
     run_id = $RunId
-    output = Get-RepositoryReference -Path $outputFullPath
+    output = Get-RepositoryReference -Root $root -Path $outputFullPath
     evidence_kind = $document.evidence_kind
     case_count = [int]$behaviorResult.evaluated
     trial_passed = [bool]$behaviorResult.passed

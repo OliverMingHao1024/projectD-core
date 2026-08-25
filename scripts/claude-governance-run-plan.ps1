@@ -9,6 +9,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath($ProjectRoot)
+Import-Module (Join-Path $PSScriptRoot 'lib\GovernanceCommon.psm1') -Force
 if ([string]::IsNullOrWhiteSpace($SchemaPath)) {
     $SchemaPath = Join-Path $root (
         'evals\schemas\governance-host-run-plan.schema.json'
@@ -20,112 +21,13 @@ if ([string]::IsNullOrWhiteSpace($CatalogSchemaPath)) {
     )
 }
 
-function Test-PathHasReparsePoint {
-    param(
-        [Parameter(Mandatory)][string]$Root,
-        [Parameter(Mandatory)][string]$ResolvedPath
-    )
-    $rootItem = Get-Item -LiteralPath $Root -Force
-    if ($rootItem.Attributes -band [IO.FileAttributes]::ReparsePoint) {
-        return $true
-    }
-    $relative = $ResolvedPath.Substring($Root.Length).TrimStart('\', '/')
-    $current = $Root
-    foreach ($part in @($relative -split '[\\/]' | Where-Object { $_ })) {
-        $current = Join-Path $current $part
-        if (Test-Path -LiteralPath $current) {
-            $item = Get-Item -LiteralPath $current -Force
-            if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
-                return $true
-            }
-        }
-    }
-    return $false
-}
-
-function Resolve-RepositoryFile {
-    param(
-        [Parameter(Mandatory)][string]$Reference,
-        [Parameter(Mandatory)][string]$Label,
-        [long]$MaximumBytes = 1MB
-    )
-    if (
-        [string]::IsNullOrWhiteSpace($Reference) -or
-        [IO.Path]::IsPathRooted($Reference) -or
-        $Reference -split '[\\/]' -contains '..'
-    ) {
-        throw "$Label must be a repository-relative path without traversal."
-    }
-    $resolved = [IO.Path]::GetFullPath((
-        Join-Path $root ($Reference -replace '/', [IO.Path]::DirectorySeparatorChar)
-    ))
-    $rootPrefix = $root.TrimEnd(
-        [IO.Path]::DirectorySeparatorChar,
-        [IO.Path]::AltDirectorySeparatorChar
-    ) + [IO.Path]::DirectorySeparatorChar
-    if (-not $resolved.StartsWith(
-        $rootPrefix, [StringComparison]::OrdinalIgnoreCase
-    )) {
-        throw "$Label resolves outside the repository."
-    }
-    if (-not (Test-Path -LiteralPath $resolved -PathType Leaf)) {
-        throw "$Label does not exist."
-    }
-    if (Test-PathHasReparsePoint -Root $root -ResolvedPath $resolved) {
-        throw "$Label must not cross a reparse point."
-    }
-    if ((Get-Item -LiteralPath $resolved -Force).Length -gt $MaximumBytes) {
-        throw "$Label exceeds the $MaximumBytes byte input limit."
-    }
-    return $resolved
-}
-
-function Resolve-PlanFile {
-    param([Parameter(Mandatory)][string]$Path)
-    $resolved = [IO.Path]::GetFullPath($Path)
-    $rootPrefix = $root.TrimEnd(
-        [IO.Path]::DirectorySeparatorChar,
-        [IO.Path]::AltDirectorySeparatorChar
-    ) + [IO.Path]::DirectorySeparatorChar
-    if (-not $resolved.StartsWith(
-        $rootPrefix, [StringComparison]::OrdinalIgnoreCase
-    )) {
-        throw 'PlanPath must stay inside the repository.'
-    }
-    if (-not (Test-Path -LiteralPath $resolved -PathType Leaf)) {
-        throw 'PlanPath does not exist.'
-    }
-    if (Test-PathHasReparsePoint -Root $root -ResolvedPath $resolved) {
-        throw 'PlanPath must not cross a reparse point.'
-    }
-    if ((Get-Item -LiteralPath $resolved -Force).Length -gt 1MB) {
-        throw 'PlanPath exceeds the 1 MiB input limit.'
-    }
-    return $resolved
-}
-
-function Test-ContainsSensitiveValue {
-    param([Parameter(Mandatory)][AllowEmptyString()][string]$Text)
-    foreach ($pattern in @(
-        '-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----',
-        '\bgh[pousr]_[A-Za-z0-9]{20,}\b',
-        '\bgithub_pat_[A-Za-z0-9_]{20,}\b',
-        '\bsk-[A-Za-z0-9_-]{20,}\b',
-        '\bAKIA[0-9A-Z]{16}\b',
-        '(?i)\bBearer\s+[A-Za-z0-9._~+/=-]{16,}'
-    )) {
-        if ($Text -match $pattern) { return $true }
-    }
-    return $false
-}
-
 function Read-SourceEvidence {
     param(
         [Parameter(Mandatory)]$Evidence,
         [Parameter(Mandatory)][string]$Label
     )
-    $path = Resolve-RepositoryFile -Reference ([string]$Evidence.reference) `
-        -Label $Label
+    $path = Resolve-RepositoryReference -Root $root `
+        -Reference ([string]$Evidence.reference) -Label $Label -MaximumBytes 1MB
     $bytes = [IO.File]::ReadAllBytes($path)
     $integrity = 'sha256:' + [Convert]::ToHexString(
         [Security.Cryptography.SHA256]::HashData($bytes)
@@ -190,7 +92,8 @@ $maximumInvocations = 0
 $projectedBudget = 0.0
 
 try {
-    $planFullPath = Resolve-PlanFile -Path $PlanPath
+    $planFullPath = Resolve-RepositoryPath `
+        -Root $root -Path $PlanPath -Label 'PlanPath' -MaximumBytes 1MB
     $planJson = Get-Content -Raw -LiteralPath $planFullPath
     if (-not (Test-Json -Json $planJson -SchemaFile $SchemaPath -ErrorAction Stop)) {
         throw 'Run plan does not conform to its JSON Schema.'

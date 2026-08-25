@@ -12,6 +12,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath($ProjectRoot)
+Import-Module (Join-Path $PSScriptRoot 'lib\GovernanceCommon.psm1') -Force
 if ([string]::IsNullOrWhiteSpace($ManifestPath)) {
     $ManifestPath = Join-Path $root '.local\governance\host-trial.json'
 }
@@ -59,124 +60,6 @@ function Find-ForbiddenField {
         }
     }
     return $hits
-}
-
-function Find-SensitiveValue {
-    param($Value, [string]$Path = '$')
-    if ($null -eq $Value) { return @() }
-    $hits = @()
-    if ($Value -is [string]) {
-        foreach ($pattern in @(
-            '-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----',
-            '\bgh[pousr]_[A-Za-z0-9]{20,}\b',
-            '\bgithub_pat_[A-Za-z0-9_]{20,}\b',
-            '\bsk-[A-Za-z0-9_-]{20,}\b',
-            '\bAKIA[0-9A-Z]{16}\b',
-            '(?i)\bBearer\s+[A-Za-z0-9._~+/=-]{16,}'
-        )) {
-            if ($Value -match $pattern) {
-                $hits += $Path
-                break
-            }
-        }
-    } elseif (
-        $Value -is [Collections.IDictionary] -or
-        $Value -is [pscustomobject]
-    ) {
-        foreach ($property in $Value.PSObject.Properties) {
-            $hits += @(Find-SensitiveValue $property.Value "$Path.$($property.Name)")
-        }
-    } elseif ($Value -is [Collections.IEnumerable] -and $Value -isnot [string]) {
-        $index = 0
-        foreach ($item in $Value) {
-            $hits += @(Find-SensitiveValue $item "$Path[$index]")
-            $index++
-        }
-    }
-    return $hits
-}
-
-function Test-PathHasReparsePoint {
-    param(
-        [Parameter(Mandatory)][string]$Root,
-        [Parameter(Mandatory)][string]$ResolvedPath
-    )
-    $rootItem = Get-Item -LiteralPath $Root -Force
-    if ($rootItem.Attributes -band [IO.FileAttributes]::ReparsePoint) {
-        return $true
-    }
-    $relative = $ResolvedPath.Substring($Root.Length).TrimStart('\', '/')
-    $current = $Root
-    foreach ($part in @($relative -split '[\\/]' | Where-Object { $_ })) {
-        $current = Join-Path $current $part
-        if (Test-Path -LiteralPath $current) {
-            $item = Get-Item -LiteralPath $current -Force
-            if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
-                return $true
-            }
-        }
-    }
-    return $false
-}
-
-function Resolve-RepositoryFile {
-    param(
-        [Parameter(Mandatory)][string]$Reference,
-        [Parameter(Mandatory)][string]$Label,
-        [Parameter(Mandatory)]
-        [AllowEmptyCollection()]
-        [Collections.Generic.List[string]]$Errors,
-        [long]$MaximumBytes = 10MB
-    )
-    if (
-        [string]::IsNullOrWhiteSpace($Reference) -or
-        [IO.Path]::IsPathRooted($Reference) -or
-        $Reference -split '[\\/]' -contains '..'
-    ) {
-        $Errors.Add("$Label must be a repository-relative path without traversal.")
-        return $null
-    }
-    $resolved = [IO.Path]::GetFullPath((
-        Join-Path $root ($Reference -replace '/', [IO.Path]::DirectorySeparatorChar)
-    ))
-    $rootPrefix = $root.TrimEnd(
-        [IO.Path]::DirectorySeparatorChar,
-        [IO.Path]::AltDirectorySeparatorChar
-    ) + [IO.Path]::DirectorySeparatorChar
-    if (-not $resolved.StartsWith($rootPrefix, [StringComparison]::OrdinalIgnoreCase)) {
-        $Errors.Add("$Label resolves outside the repository.")
-        return $null
-    }
-    if (-not (Test-Path -LiteralPath $resolved -PathType Leaf)) {
-        $Errors.Add("$Label does not exist.")
-        return $null
-    }
-    if (Test-PathHasReparsePoint -Root $root -ResolvedPath $resolved) {
-        $Errors.Add("$Label crosses a reparse point.")
-        return $null
-    }
-    if ((Get-Item -LiteralPath $resolved -Force).Length -gt $MaximumBytes) {
-        $Errors.Add("$Label exceeds the $MaximumBytes byte input limit.")
-        return $null
-    }
-    return $resolved
-}
-
-function Get-FileSha256 {
-    param([Parameter(Mandatory)][string]$Path)
-    return 'sha256:' + [Convert]::ToHexString(
-        [Security.Cryptography.SHA256]::HashData([IO.File]::ReadAllBytes($Path))
-    ).ToLowerInvariant()
-}
-
-function Get-TextSha256 {
-    param([Parameter(Mandatory)][AllowEmptyString()][string]$Text)
-    $bytes = [Text.UTF8Encoding]::new($false).GetBytes(
-        ($Text -replace "\r\n?", "`n")
-    )
-    return 'sha256:' + [Convert]::ToHexString(
-        [Security.Cryptography.SHA256]::HashData($bytes)
-    ).ToLowerInvariant()
 }
 
 function Invoke-CapturedProcess {
@@ -335,12 +218,12 @@ if ($null -ne $document) {
         )
     }
 
-    $trialsPath = Resolve-RepositoryFile `
+    $trialsPath = Resolve-RepositoryReference -Root $root `
         -Reference ([string]$document.provenance.source_trials.reference) `
-        -Label 'source_trials' -Errors $errors
-    $catalogPath = Resolve-RepositoryFile `
+        -Label 'source_trials' -MaximumBytes 10MB -Errors $errors
+    $catalogPath = Resolve-RepositoryReference -Root $root `
         -Reference ([string]$document.provenance.source_catalog.reference) `
-        -Label 'source_catalog' -Errors $errors
+        -Label 'source_catalog' -MaximumBytes 10MB -Errors $errors
 
     if ($null -ne $trialsPath -and (
         (Get-FileSha256 -Path $trialsPath) -cne
