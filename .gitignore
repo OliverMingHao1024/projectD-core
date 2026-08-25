@@ -3,3 +3,4 @@ fleet/fleet.json
 __pycache__/
 *.py[cod]
 .claude/output-styles/
+.claude/settings.local.json
