@@ -218,6 +218,71 @@ try {
             (Get-FileHash -LiteralPath $codexLogs[0].FullName).Hash
     ) 'A rejected tool-name substitution must not mutate durable evidence.'
 
+    $pathsBeforeAdditiveCase = @(
+        Get-HostLogs -HostName codex | ForEach-Object FullName
+    )
+    $additiveInput = [pscustomobject][ordered]@{ questions = 'pick one' }
+    $additivePre = New-HookPayload -Event 'PreToolUse' `
+        -SessionId 'codex-session-contract' `
+        -ToolUseId 'codex-tool-call-additive' `
+        -ToolName 'AskUserQuestion' `
+        -ToolInput $additiveInput
+    $additivePreResult = Invoke-HostHook -HostName codex -Payload $additivePre
+    Assert-True ($additivePreResult.ExitCode -eq 0) (
+        "The additive-key fixture must create a durable pre-effect intent: " +
+            $additivePreResult.Stderr
+    )
+    $additiveLog = @(
+        Get-HostLogs -HostName codex | Where-Object {
+            $_.FullName -cnotin $pathsBeforeAdditiveCase
+        }
+    )
+    Assert-True ($additiveLog.Count -eq 1) (
+        'The additive-key fixture must identify exactly one new operation log.'
+    )
+    $additiveGrownInput = Copy-JsonValue -Value $additiveInput
+    $additiveGrownInput | Add-Member -NotePropertyName 'answers' `
+        -NotePropertyValue ([pscustomobject]@{ 'pick one' = 'A' })
+    $additivePost = New-HookPayload -Event 'PostToolUse' `
+        -SessionId 'codex-session-contract' `
+        -ToolUseId 'codex-tool-call-additive' `
+        -ToolName 'AskUserQuestion' `
+        -ToolInput $additiveGrownInput `
+        -ToolResponse ([pscustomobject]@{ success = $true })
+    $additivePostResult = Invoke-HostHook -HostName codex -Payload $additivePost
+    Assert-True ($additivePostResult.ExitCode -eq 0) (
+        "A result that only adds new tool_input keys (e.g. an elicitation " +
+            "tool's resolved answers) must not fail closed: " +
+            $additivePostResult.Stderr
+    )
+    $additiveDocument = Get-Content -Raw -LiteralPath $additiveLog[0].FullName |
+        ConvertFrom-Json
+    Assert-True (
+        @($additiveDocument.records).Count -eq 3 -and
+        $additiveDocument.records[2].result -ceq 'succeeded' -and
+        $additiveDocument.runner_state.status -ceq 'open'
+    ) 'An additive-only result must close the intent normally.'
+
+    $additiveTamperPre = New-HookPayload -Event 'PreToolUse' `
+        -SessionId 'codex-session-contract' `
+        -ToolUseId 'codex-tool-call-additive-tamper' `
+        -ToolName 'AskUserQuestion' `
+        -ToolInput $additiveInput
+    $additiveTamperPreResult = Invoke-HostHook -HostName codex `
+        -Payload $additiveTamperPre
+    Assert-True ($additiveTamperPreResult.ExitCode -eq 0) (
+        'The additive-tamper fixture must create a durable pre-effect intent.'
+    )
+    $additiveTamperedPost = Copy-JsonValue -Value $additivePost
+    $additiveTamperedPost.tool_use_id = 'codex-tool-call-additive-tamper'
+    $additiveTamperedPost.tool_input.questions = 'a different question'
+    $additiveTamperResult = Invoke-HostHook -HostName codex `
+        -Payload $additiveTamperedPost
+    Assert-True ($additiveTamperResult.ExitCode -eq 2) (
+        'Changing a key that was already present at intent time must still ' +
+            'fail closed even when other keys are additive.'
+    )
+
     $pathsBeforeTamperCase = @(
         Get-HostLogs -HostName codex | ForEach-Object FullName
     )

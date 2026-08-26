@@ -119,6 +119,72 @@ function Get-JsonElementSha256 {
     }
 }
 
+function Get-ArgumentIntegrity {
+    <#
+    Object-shaped tool_input hashes per top-level key instead of as one
+    whole-value digest. This lets PostToolUse validation require every key
+    that was present at PreToolUse to still hash identically (tamper
+    detection) while tolerating keys a host adds only after the intent was
+    recorded -- e.g. AskUserQuestion's "answers", filled in once the user
+    responds, which PreToolUse could never have seen. Non-object tool_input
+    (or an empty object) falls back to a single whole-value digest, since
+    there is no per-key structure to protect selectively.
+    #>
+    param(
+        [Parameter(Mandatory)][Text.Json.JsonElement]$Element,
+        [Parameter(Mandatory)][string]$Salt
+    )
+
+    if ($Element.ValueKind -ne [Text.Json.JsonValueKind]::Object) {
+        return Get-JsonElementSha256 -Element $Element -Salt $Salt
+    }
+    $properties = @($Element.EnumerateObject())
+    if ($properties.Count -eq 0) {
+        return Get-JsonElementSha256 -Element $Element -Salt $Salt
+    }
+    $map = [ordered]@{}
+    foreach ($property in $properties) {
+        $map[$property.Name] = Get-JsonElementSha256 `
+            -Element $property.Value -Salt "$Salt`0$($property.Name)"
+    }
+    return [pscustomobject]$map
+}
+
+function Test-ArgumentIntegrityMatch {
+    param(
+        [Parameter(Mandatory)]$Stored,
+        [Parameter(Mandatory)]$Current,
+        [switch]$AllowAdditionalKeys
+    )
+
+    $storedIsMap = $Stored -is [Management.Automation.PSCustomObject]
+    $currentIsMap = $Current -is [Management.Automation.PSCustomObject]
+    if ($storedIsMap -ne $currentIsMap) { return $false }
+    if (-not $storedIsMap) {
+        return [string]$Stored -ceq [string]$Current
+    }
+    $storedProperties = @($Stored.PSObject.Properties)
+    $currentProperties = @{}
+    foreach ($property in $Current.PSObject.Properties) {
+        $currentProperties[$property.Name] = [string]$property.Value
+    }
+    if (
+        -not $AllowAdditionalKeys -and
+        $storedProperties.Count -ne $currentProperties.Count
+    ) {
+        return $false
+    }
+    foreach ($property in $storedProperties) {
+        if (-not $currentProperties.ContainsKey($property.Name)) {
+            return $false
+        }
+        if ($currentProperties[$property.Name] -cne [string]$property.Value) {
+            return $false
+        }
+    }
+    return $true
+}
+
 function Get-PrivateSlug {
     param(
         [Parameter(Mandatory)][string]$Prefix,
@@ -266,8 +332,9 @@ function Test-IntentDocumentIdentity {
         [Parameter(Mandatory)][string]$HostRunId,
         [Parameter(Mandatory)][string]$OperationId,
         [Parameter(Mandatory)][string]$EffectId,
-        [Parameter(Mandatory)][string]$ArgumentIntegrity,
-        [Parameter(Mandatory)]$Classification
+        [Parameter(Mandatory)]$ArgumentIntegrity,
+        [Parameter(Mandatory)]$Classification,
+        [switch]$AllowAdditionalArgumentKeys
     )
 
     $records = @($Document.records)
@@ -304,7 +371,9 @@ function Test-IntentDocumentIdentity {
         [bool]$records[1].destructive -eq
             [bool]$Classification.destructive -and
         [string]$records[1].replay -ceq 'never' -and
-        [string]$records[1].argument_integrity -ceq $ArgumentIntegrity
+        (Test-ArgumentIntegrityMatch -Stored $records[1].argument_integrity `
+            -Current $ArgumentIntegrity `
+            -AllowAdditionalKeys:$AllowAdditionalArgumentKeys)
     )
 }
 
@@ -370,7 +439,7 @@ try {
         $sessionIdentity = "$HostName`0$sessionId"
         $callIdentity = "$sessionIdentity`0$toolUseId"
         $toolInput = $payload.GetProperty('tool_input')
-        $argumentIntegrity = Get-JsonElementSha256 -Element $toolInput `
+        $argumentIntegrity = Get-ArgumentIntegrity -Element $toolInput `
             -Salt "$callIdentity`0$toolName"
     } finally {
         $payloadDocument.Dispose()
@@ -506,7 +575,8 @@ try {
             -LogId $logId -TaskRef $taskRef -HostRunId $hostRunId `
             -OperationId $operationId -EffectId $effectId `
             -ArgumentIntegrity $argumentIntegrity `
-            -Classification $classification)) {
+            -Classification $classification `
+            -AllowAdditionalArgumentKeys)) {
             throw 'Post event identity does not match its durable intent.'
         }
         $resultValue = if ($eventName -ceq 'PostToolUse') {
@@ -587,6 +657,37 @@ try {
     }
     exit 0
 } catch {
+    try {
+        $diagnosticDirectory = if ($logDirectory) {
+            $logDirectory
+        } else {
+            Join-Path ([IO.Path]::GetFullPath($ProjectRoot)) (
+                ".local\governance\operation-hooks\$HostName"
+            )
+        }
+        New-Item -ItemType Directory -Path $diagnosticDirectory -Force |
+            Out-Null
+        $diagnosticName = if ($logId) { "$logId.error.log" } else {
+            'unidentified.error.log'
+        }
+        $diagnosticPath = Join-Path $diagnosticDirectory $diagnosticName
+        if (
+            (Test-Path -LiteralPath $diagnosticPath -PathType Leaf) -and
+            (Get-Item -LiteralPath $diagnosticPath -Force).Length -gt 200KB
+        ) {
+            Remove-Item -LiteralPath $diagnosticPath -Force
+        }
+        $diagnosticLine = (
+            "$([DateTimeOffset]::UtcNow.ToString('o')) " +
+            "$($_.Exception.GetType().FullName): $($_.Exception.Message)`n"
+        )
+        [IO.File]::AppendAllText(
+            $diagnosticPath, $diagnosticLine, $utf8
+        )
+    } catch {
+        # Diagnostic logging is best-effort only; never let it mask the
+        # original rejection below.
+    }
     [Console]::Error.WriteLine(
         'projectD governance hook rejected the host event.'
     )
