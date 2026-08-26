@@ -1,6 +1,6 @@
 ---
 name: skill-scout
-description: Find or inspect a specific GitHub-hosted Agent Skill through a bounded, evidence-based, read-only workflow. Use when the user asks to locate a Skill for a named capability, supplies a GitHub Skill URL or repository path for review, or wants up to three verified candidates without broad ecosystem scanning.
+description: Bounded read-only search or inspection for a named GitHub Agent Skill or up to three verified candidates.
 ---
 
 # Skill Scout

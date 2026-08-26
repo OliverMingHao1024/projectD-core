@@ -301,6 +301,15 @@
       "latest_observed_commit": "6ab9013a10c28f5046f7f999549cd5328a0b30d7",
       "migration_status": "complete",
       "decision_records": ["humanlayer/skills — plugins/show-me/skills/show-me"]
+    },
+    {
+      "id": "github-freestylefly-awesome-gpt-image-2",
+      "provider": "github",
+      "repository": "freestylefly/awesome-gpt-image-2",
+      "license_spdx": "MIT",
+      "latest_observed_commit": "9a7b2e9c39f816d6c699c2a133e11b6d8bfdc464",
+      "migration_status": "needs-review",
+      "decision_records": ["freestylefly/awesome-gpt-image-2 — agents/skills/gpt-image-2-style-library"]
     }
   ],
   "candidates": [
@@ -473,8 +482,8 @@
       "observed_commit": "6654f6b60cd9d5be8b54c6fafe44346dabeb3b76",
       "upstream_digest": "sha256:196a036705cac69220273072f517a4702c8278860f665ca12a0d7da7e3dfb184",
       "lifecycle_status": "adopted",
-      "target": "core/skills/grill-me",
-      "canonical_name": "grill-me",
+      "target": "core/skills/grilling",
+      "canonical_name": "grilling",
       "decision_record": "mattpocock/skills（codebase-design / domain-modeling / improve-codebase-architecture / writing-great-skills）",
       "migration_status": "complete"
     },
@@ -681,6 +690,18 @@
       "canonical_name": "show-me",
       "decision_record": "humanlayer/skills — plugins/show-me/skills/show-me",
       "migration_status": "complete"
+    },
+    {
+      "id": "freestylefly-awesome-gpt-image-2--agents-skills-gpt-image-2-style-library",
+      "source_id": "github-freestylefly-awesome-gpt-image-2",
+      "source_path": "agents/skills/gpt-image-2-style-library",
+      "observed_commit": "9a7b2e9c39f816d6c699c2a133e11b6d8bfdc464",
+      "upstream_digest": "sha256:98519a3bfd28c5ab5630771a536f18fbe3627123cd7dd7a8801fa5da166a60f9",
+      "lifecycle_status": "held",
+      "target": null,
+      "canonical_name": null,
+      "decision_record": "freestylefly/awesome-gpt-image-2 — agents/skills/gpt-image-2-style-library",
+      "migration_status": "needs-review"
     }
   ]
 }

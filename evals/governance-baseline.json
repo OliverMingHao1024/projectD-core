@@ -39,7 +39,7 @@
     {
       "id": "implementation-review-gate",
       "file": "core/skills/implement/SKILL.md",
-      "must_contain": ["mandatory code-review gate for behavioral changes", "Invoke the `code-review` Skill"]
+      "must_contain": ["Invoke the `code-review` Skill", "Material findings block", "Never claim the review gate passed when material findings remain"]
     },
     {
       "id": "review-does-not-publish",
@@ -53,13 +53,13 @@
     },
     {
       "id": "hook-is-optional",
-      "file": "README.md",
-      "must_contain": ["可選 pre-push Hook", "Hook 只提供本機提早回饋"]
+      "file": "docs/operations/governance-workflow-and-checks.md",
+      "must_contain": ["Repository-local pre-push hook", "Hook 只提供本機提早回饋"]
     },
     {
       "id": "hook-does-not-replace-authority",
-      "file": "README.md",
-      "must_contain": ["不取代 CI、branch protection 或 L0 授權邊界"]
+      "file": "docs/operations/governance-workflow-and-checks.md",
+      "must_contain": ["不取代 CI、branch protection、L0 授權或人工 review"]
     },
     {
       "id": "external-integrations-are-classified-per-operation",
@@ -74,7 +74,7 @@
     {
       "id": "security-review-is-risk-triggered",
       "file": "core/skills/security-review/SKILL.md",
-      "must_contain": ["materially affects a trust boundary or security control", "do not use as a generic checklist for unrelated or low-risk changes", "Review only"]
+      "must_contain": ["Read-only security review for trust boundaries", "it appears on a generic checklist", "Review only"]
     },
     {
       "id": "security-findings-require-evidence",
@@ -94,7 +94,7 @@
     {
       "id": "roles-synced-readme",
       "file": "README.md",
-      "must_contain": ["PM / SA / UX / SD / PG / QA 六個角色 agent"]
+      "must_contain": ["PM／SA／UX／SD／PG／QA 依任務風險選用"]
     },
     {
       "id": "roles-synced-project-claude-md",

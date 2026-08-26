@@ -1,6 +1,6 @@
 ---
 name: animation-vocabulary
-description: Identify and distinguish interface animation and motion terms from a user's visual or feel-based description. Use when someone asks what an effect is called, needs precise vocabulary for a designer or implementation prompt, or wants to distinguish similar concepts such as morph, crossfade, shared-element transition, spring, momentum, reveal, mask, or stagger.
+description: Name interface motion effects when users ask what an animation is called.
 ---
 
 # Animation Vocabulary

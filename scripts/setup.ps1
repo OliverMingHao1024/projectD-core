@@ -48,7 +48,7 @@ $plan = @(
 Write-WiringPlan $plan
 
 if ($Mode -eq 'Check') {
-    $issues = @($plan | Where-Object State -NE 'Compliant')
+    $issues = @($plan | Where-Object { $_.State -ne $_.ExpectedState })
     if ($issues.Count -gt 0) {
         $details = @(
             $issues | ForEach-Object {

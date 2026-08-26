@@ -1,6 +1,6 @@
 ---
 name: implement
-description: Implement one approved specification, ticket, or equivalently settled scope with repository-appropriate guidance, tests, and a mandatory code-review gate for behavioral changes. Use when the user asks to implement approved work rather than explore, clarify, prototype, or merely plan it.
+description: Implement approved work with repository guidance, tests, and a mandatory review gate for behavioral changes.
 ---
 
 # Implement

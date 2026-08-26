@@ -1,6 +1,6 @@
 ---
 name: query-project-history
-description: Search verified project decisions, debugging history, failed attempts, and superseded solutions across local repositories. Use when the user asks whether a similar problem happened before, why a technical choice was made, what approaches failed, how a prior issue was fixed, or wants evidence-backed cross-project history retrieval.
+description: Search verified local project decisions, debugging history, failed attempts, and superseded solutions.
 ---
 
 # Query Project History

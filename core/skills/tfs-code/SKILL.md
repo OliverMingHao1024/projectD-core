@@ -1,6 +1,6 @@
 ---
 name: tfs-code
-description: Search, read, and clone source code from the F25B internal TFS / Azure DevOps Server. Use when the user asks to find code on TFS, identify which repositories use a symbol, inspect a TFS repository or file, review repository metadata or pull requests, or clone an F25B repository. Use Hound for cross-repository regex search, read-only TFS REST APIs for repository content, and SSH or HTTP for clone. Do not use for builds, releases, pipelines, or work items.
+description: Search, read, inspect, or clone F25B TFS code; not for builds, pipelines, or work items.
 ---
 
 # F25B TFS source access

@@ -1,6 +1,6 @@
 ---
 name: research
-description: Investigate a question against high-trust primary sources and capture the findings as a Markdown file in the repo, or compare several candidates against objective criteria. Use when the user wants a topic researched, docs or API facts gathered, several options compared before picking one, or reading legwork delegated to a background agent.
+description: Research with high-trust primary sources and save findings, or compare candidates against objective criteria.
 ---
 
 If the current agent supports spinning up a background/sub-agent, delegate the research to one so you keep working while it reads; otherwise perform the research directly yourself and say so rather than claiming it ran in the background.

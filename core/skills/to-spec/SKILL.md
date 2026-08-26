@@ -1,6 +1,6 @@
 ---
 name: to-spec
-description: Synthesize an already-discussed feature, plan, or decision into a reviewable product and engineering specification without restarting discovery. Use when the user asks to turn settled conversation context into a spec or PRD, optionally for later publication to the project's issue tracker.
+description: Turn settled feature, plan, or decision context into a reviewable product and engineering spec or PRD.
 ---
 
 # To Spec

@@ -2,7 +2,7 @@
 
 ## 使用方式
 
-projectD 目前維護 44 個 Canonical Skill：35 個跨技術棧 Skill 與 9 個技術棧
+projectD 目前維護 43 個 Canonical Skill：34 個跨技術棧 Skill 與 9 個技術棧
 Pack。通常只要用自然語言描述工作，Agent 就會依 Skill 的 description 自動
 路由；需要明確指定時可說：
 
@@ -19,8 +19,7 @@ Pack。通常只要用自然語言描述工作，Agent 就會依 Skill 的 descr
 
 | Skill | 用途 | 適合使用時機 |
 | --- | --- | --- |
-| [`grill-me`](../../core/skills/grill-me/SKILL.md) | 啟動逐題追問流程。 | 明確要求「grill me」或希望行動前逐題釐清。 |
-| [`grilling`](../../core/skills/grilling/SKILL.md) | 壓力測試計畫、決策或想法。 | 希望透過持續追問找出盲點。 |
+| [`grilling`](../../core/skills/grilling/SKILL.md) | 壓力測試計畫、決策或想法。 | 要求「grill me」或希望透過逐題追問找出盲點。 |
 | [`grill-with-docs`](../../core/skills/grill-with-docs/SKILL.md) | 追問並同步提煉術語與架構決策文件。 | 想壓力測試設計，且保留確認後的知識。 |
 | [`research`](../../core/skills/research/SKILL.md) | 使用高可信來源調查並產出 Markdown 研究文件。 | 需要查資料、比較方案或留下可追溯研究。 |
 | [`prototype`](../../core/skills/prototype/SKILL.md) | 建立一次性原型回答設計問題。 | 想先驗證狀態模型、邏輯或 UI 感受。 |

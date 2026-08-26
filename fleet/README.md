@@ -2,8 +2,9 @@
 
 `fleet/fleet.json` 是本機專案清單（不進版本控制）。每個清單內的專案都透過
 `AGENTS.md`、`CLAUDE.md`、`GEMINI.md` 的受管標記區塊連回 projectD-core，
-既有入口內容不會被覆寫。Fleet 也會在各專案根目錄 `.gitignore` 維護 root-only
-規則，避免這三個 AI agent 入口檔進入版本控制；既有 ignore 內容會保留。
+既有入口內容不會被覆寫。Fleet 也只把該專案指定的 packs 接到
+`.agents/skills/` 與 `.claude/skills/`，並在根目錄 `.gitignore` 維護精確路徑；
+既有 Skills 與 ignore 內容會保留。
 
 ## 接線與檢查
 
@@ -11,7 +12,7 @@
 # 安全預檢：只讀 fleet.json 與三個明確入口路徑，不讀專案原始碼或 .gitignore
 pwsh -File scripts/fleet-inspect.ps1
 
-# 新增或更新所有 Fleet 專案的入口與 .gitignore 受管區塊
+# 新增或更新 Fleet 入口、scoped pack junction 與 .gitignore 區塊
 pwsh -File scripts/fleet-governance.ps1 -Mode Apply
 
 # 唯讀驗證：缺檔、區塊漂移、無效 category／pack 均回傳失敗
@@ -21,9 +22,10 @@ pwsh -File scripts/fleet-governance.ps1 -Mode Check
 真實的專案清單含個人路徑，不進版本控制，見 `fleet.json.example` 的格式，
 自行複製一份 `fleet.json`（已在 `.gitignore` 排除）。
 
-入口受管區塊只保存啟動路由，不複製憲法與治理正文；`.gitignore` 受管區塊只包含
-`/AGENTS.md`、`/CLAUDE.md`、`/GEMINI.md`。規則更新後所有專案下次 session 都會讀到
-同一份 core。若 core 無法解析，入口會要求 AI 明確回報並停止修改，不得靜默略過。
+入口受管區塊只保存啟動路由，不複製憲法與治理正文；`.gitignore` 受管區塊包含
+三個入口與每個 managed pack junction 的精確路徑，不會忽略整個 project-owned Skill
+目錄。規則更新後所有專案下次 session 都會讀到同一份 core。若 core 無法解析，
+入口會要求 AI 明確回報並停止修改，不得靜默略過。
 
 Git ignore 規則不會自動取消追蹤已納入版本控制的檔案；既有 tracked 入口檔需由各 repo
 另行明確處理。

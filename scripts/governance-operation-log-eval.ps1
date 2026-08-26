@@ -10,7 +10,8 @@ param(
     [string]$TrialsSchemaPath,
     [string]$CurrentSafeEffectKinds = '',
     [switch]$VerifyCurrentWorkspace,
-    [switch]$Json
+    [switch]$Json,
+    [switch]$NoExit
 )
 
 $ErrorActionPreference = 'Stop'
@@ -59,38 +60,6 @@ $allowedCurrentSafeEffectKinds = @(
 function Test-HasProperty {
     param($Value, [Parameter(Mandatory)][string]$Name)
     return $null -ne $Value -and $Value.PSObject.Properties.Name -contains $Name
-}
-
-function Invoke-CapturedProcess {
-    param(
-        [Parameter(Mandatory)][string]$FilePath,
-        [Parameter(Mandatory)][string[]]$Arguments
-    )
-    $startInfo = [Diagnostics.ProcessStartInfo]::new()
-    $startInfo.FileName = $FilePath
-    $startInfo.UseShellExecute = $false
-    $startInfo.CreateNoWindow = $true
-    $startInfo.RedirectStandardOutput = $true
-    $startInfo.RedirectStandardError = $true
-    foreach ($argument in $Arguments) {
-        [void]$startInfo.ArgumentList.Add($argument)
-    }
-    $process = [Diagnostics.Process]::Start($startInfo)
-    $stdoutTask = $process.StandardOutput.ReadToEndAsync()
-    $stderrTask = $process.StandardError.ReadToEndAsync()
-    $timedOut = -not $process.WaitForExit(30000)
-    if ($timedOut) {
-        $process.Kill($true)
-        $process.WaitForExit()
-    }
-    [pscustomobject]@{
-        ExitCode = if ($timedOut) { -1 } else { $process.ExitCode }
-        Stdout = $stdoutTask.GetAwaiter().GetResult()
-        Stderr = if ($timedOut) {
-            "Process timed out after 30000 ms. " +
-                $stderrTask.GetAwaiter().GetResult()
-        } else { $stderrTask.GetAwaiter().GetResult() }
-    }
 }
 
 $errors = [Collections.Generic.List[string]]::new()
@@ -426,34 +395,25 @@ if (-not [string]::IsNullOrWhiteSpace($HostManifestPath)) {
         $hostManifestFullPath = Resolve-RepositoryPath `
             -Root $root -Path $HostManifestPath -Label 'HostManifestPath' `
             -MaximumBytes 10MB
-        $pwsh = Get-Command pwsh -ErrorAction Stop
-        $arguments = @(
-            '-NoProfile', '-File', $hostValidator,
-            '-ProjectRoot', $root,
-            '-ManifestPath', $hostManifestFullPath,
-            '-SchemaPath', $HostSchemaPath,
-            '-CheckpointSchemaPath', $CheckpointSchemaPath,
-            '-CatalogSchemaPath', $CatalogSchemaPath,
-            '-TrialsSchemaPath', $TrialsSchemaPath,
-            '-Json'
-        )
-        if ($VerifyCurrentWorkspace) { $arguments += '-VerifyCurrentWorkspace' }
-        $validation = Invoke-CapturedProcess -FilePath $pwsh.Source `
-            -Arguments $arguments
+        $validationParameters = @{
+            ProjectRoot = $root
+            ManifestPath = $hostManifestFullPath
+            SchemaPath = $HostSchemaPath
+            CheckpointSchemaPath = $CheckpointSchemaPath
+            CatalogSchemaPath = $CatalogSchemaPath
+            TrialsSchemaPath = $TrialsSchemaPath
+            VerifyCurrentWorkspace = $VerifyCurrentWorkspace
+            Json = $true
+            NoExit = $true
+        }
+        $validationOutput = @(& $hostValidator @validationParameters)
         $checkpointGateEvaluated = $true
         $hostResult = $null
         try {
-            $hostResult = $validation.Stdout | ConvertFrom-Json
+            $hostResult = ($validationOutput -join "`n") | ConvertFrom-Json
         } catch {
-            $details = @($validation.Stdout.Trim(), $validation.Stderr.Trim()) |
-                Where-Object { $_ }
-            throw "Host checkpoint validator returned invalid JSON: $($details -join ' | ')"
-        }
-        if (
-            $validation.ExitCode -notin @(0, 1) -or
-            ($validation.ExitCode -eq 0) -ne [bool]$hostResult.passed
-        ) {
-            throw 'Host checkpoint validator exit status is inconsistent.'
+            $details = ($validationOutput -join ' | ').Trim()
+            throw "Host checkpoint validator returned invalid JSON: $details"
         }
         if (-not [bool]$hostResult.passed) {
             foreach ($message in @($hostResult.errors)) {
@@ -555,4 +515,4 @@ if ($Json) {
     }
     "Summary: $(if ($passed) { 'passed' } else { 'failed' })."
 }
-if (-not $passed) { exit 1 }
+if (-not $passed -and -not $NoExit) { exit 1 }

@@ -470,6 +470,18 @@
 - 目標 pack：（待定，可能 design pack）
 - 發現管道：gh code search
 
+### freestylefly/awesome-gpt-image-2 — agents/skills/gpt-image-2-style-library
+- id：freestylefly-awesome-gpt-image-2--agents-skills-gpt-image-2-style-library
+- 來源連結：https://github.com/freestylefly/awesome-gpt-image-2/tree/9a7b2e9c39f816d6c699c2a133e11b6d8bfdc464/agents/skills/gpt-image-2-style-library
+- 授權條款：MIT
+- star 數（評估時）：20681
+- 最近更新：2026-08-26
+- 評估日期：2026-08-26
+- 結論：（已 staging，畢業與否待使用者主觀確認）
+- 理由：GPT-Image2 提示詞工程 skill，內建 538 案例、20+ 模板索引（`references/style-library.md`），與現有 packs／core/skills 均無重疊；自包含（僅 SKILL.md + 一份 reference 檔），無 npm／執行檔依賴。已依 skill-scout 流程 staging 至 `packs/_staging/freestylefly-awesome-gpt-image-2--agents-skills-gpt-image-2-style-library/`，adapted 版本移除上游 npm/Codex 安裝步驟並加註適用範圍（僅限 GPT-Image2 相容模型）。
+- 目標 pack：（待定，畢業後預計 `core/skills/gpt-image-2-style-library`，理由：跨技術棧的提示詞工程能力，非特定語言 pack）
+- 發現管道：使用者提供 repository URL
+
 ## 已拒絕・暫緩
 
 <!-- 拒絕或暫緩者。理由必填；是否重新審查由使用者決定，不由 scout 自動展開。 -->

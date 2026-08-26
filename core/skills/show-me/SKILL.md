@@ -1,6 +1,6 @@
 ---
 name: show-me
-description: Explain a concept, code path, state change, comparison, or system relationship visually when the user asks to see it or when a compact visual would materially improve understanding. Do not use for ordinary answers already clear in brief prose.
+description: Visually explain concepts, code paths, state changes, comparisons, or system relationships.
 ---
 
 # Show Me

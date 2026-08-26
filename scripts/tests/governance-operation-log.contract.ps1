@@ -94,6 +94,36 @@ function Invoke-ScriptProcess {
     }
 }
 
+function Invoke-JsonScriptInProcess {
+    param(
+        [Parameter(Mandatory)][string]$ScriptPath,
+        [Parameter(Mandatory)][hashtable]$Parameters
+    )
+    try {
+        $Parameters.NoExit = $true
+        $output = @(& $ScriptPath @Parameters)
+        $stdout = $output -join "`n"
+        $result = if ($stdout) {
+            try { $stdout | ConvertFrom-Json } catch { $null }
+        } else { $null }
+        [pscustomobject]@{
+            ExitCode = if ($null -ne $result -and [bool]$result.passed) {
+                0
+            } else { 1 }
+            Output = $stdout
+            ErrorOutput = ''
+            Result = $result
+        }
+    } catch {
+        [pscustomobject]@{
+            ExitCode = 2
+            Output = ''
+            ErrorOutput = $_.Exception.Message
+            Result = $null
+        }
+    }
+}
+
 function Copy-JsonValue {
     param([Parameter(Mandatory)]$Value)
     return $Value | ConvertTo-Json -Depth 40 | ConvertFrom-Json
@@ -338,23 +368,22 @@ function Invoke-Evaluator {
         [string[]]$SafeKinds = $currentSafeKinds,
         [switch]$VerifyCurrentWorkspace
     )
-    $arguments = @(
-        '-ProjectRoot', $tempRoot,
-        '-OperationLogPath', $OperationLogPath,
-        '-SchemaPath', $operationSchema,
-        '-HostManifestPath', $HostManifestPath,
-        '-HostSchemaPath', $hostSchema,
-        '-CheckpointSchemaPath', $checkpointSchema,
-        '-CatalogSchemaPath', $catalogSchema,
-        '-TrialsSchemaPath', $trialsSchema,
-        '-Json'
-    )
-    if ($SafeKinds.Count) {
-        $arguments += '-CurrentSafeEffectKinds'
-        $arguments += ($SafeKinds -join ',')
+    $parameters = @{
+        ProjectRoot = $tempRoot
+        OperationLogPath = $OperationLogPath
+        SchemaPath = $operationSchema
+        HostManifestPath = $HostManifestPath
+        HostSchemaPath = $hostSchema
+        CheckpointSchemaPath = $checkpointSchema
+        CatalogSchemaPath = $catalogSchema
+        TrialsSchemaPath = $trialsSchema
+        CurrentSafeEffectKinds = ($SafeKinds -join ',')
+        VerifyCurrentWorkspace = $VerifyCurrentWorkspace
+        Json = $true
     }
-    if ($VerifyCurrentWorkspace) { $arguments += '-VerifyCurrentWorkspace' }
-    return Invoke-ScriptProcess -ScriptPath $evaluator -Arguments $arguments
+    return Invoke-JsonScriptInProcess `
+        -ScriptPath $evaluator `
+        -Parameters $parameters
 }
 
 function Save-Mutation {

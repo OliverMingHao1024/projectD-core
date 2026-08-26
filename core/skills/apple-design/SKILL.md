@@ -1,6 +1,6 @@
 ---
 name: apple-design
-description: Apply Apple-inspired interface design and fluid-motion principles to web UI. Use when designing or reviewing gesture-driven interactions, drawers and sheets, drag/swipe behavior, interruptible springs, spatial transitions, translucent materials, responsive typography, interaction feedback, or reduced-motion behavior. Apply only when the product's platform, brand, accessibility, browser support, and existing design system make the approach appropriate.
+description: Apply Apple-inspired web interaction and motion, including gestures, sheets, springs, and reduced motion.
 ---
 
 # Apple Design

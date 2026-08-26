@@ -1,6 +1,6 @@
 ---
 name: find-animation-opportunities
-description: Perform a read-only search for interface moments that would genuinely benefit from motion, while explicitly rejecting unjustified animation. Use when a user asks what could be animated, wants an interface to feel more responsive or alive, or needs evidence-based motion opportunities without implementation.
+description: Read-only search for interface moments that justify motion; use when asked what should be animated.
 ---
 
 # Find Animation Opportunities

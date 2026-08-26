@@ -1,6 +1,6 @@
 ---
 name: tfs
-description: Query and manage build, release, deployment, pipeline, work item, repository or pull-request metadata, and service endpoints on the F25B internal TFS / Azure DevOps Server. Use when the user asks about build or deployment status, release history, pipeline definitions or triggers, work items, service endpoints, or explicitly requests a state-changing TFS action. Require fresh confirmation before every queue, release, deploy, work-item mutation, pipeline change, or service-endpoint change. Use tfs-code instead for finding, reading, or cloning source code.
+description: Query or manage F25B TFS operations; require fresh confirmation for every mutation.
 ---
 
 # F25B TFS operations

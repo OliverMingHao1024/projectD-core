@@ -54,6 +54,36 @@ function Invoke-ScriptProcess {
     }
 }
 
+function Invoke-JsonScriptInProcess {
+    param(
+        [Parameter(Mandatory)][string]$ScriptPath,
+        [Parameter(Mandatory)][hashtable]$Parameters
+    )
+    try {
+        $Parameters.NoExit = $true
+        $output = @(& $ScriptPath @Parameters)
+        $stdout = $output -join "`n"
+        $result = if ($stdout) {
+            try { $stdout | ConvertFrom-Json } catch { $null }
+        } else { $null }
+        [pscustomobject]@{
+            ExitCode = if ($null -ne $result -and [bool]$result.passed) {
+                0
+            } else { 1 }
+            Output = $stdout
+            ErrorOutput = ''
+            Result = $result
+        }
+    } catch {
+        [pscustomobject]@{
+            ExitCode = 2
+            Output = ''
+            ErrorOutput = $_.Exception.Message
+            Result = $null
+        }
+    }
+}
+
 function Save-Mutation {
     param($Document, [Parameter(Mandatory)][string]$Name)
     $directory = Join-Path $tempRoot 'mutations'
@@ -70,17 +100,17 @@ function Invoke-Validator {
         [Parameter(Mandatory)][string]$Name,
         [switch]$VerifyCurrentWorkspace
     )
-    $arguments = @(
-        '-ProjectRoot', $tempRoot,
-        '-ManifestPath', $ManifestPath,
-        '-SchemaPath', $hostSchema,
-        '-CheckpointSchemaPath', $checkpointSchema,
-        '-CatalogSchemaPath', $catalogSchema,
-        '-TrialsSchemaPath', $trialsSchema,
-        '-Json'
-    )
-    if ($VerifyCurrentWorkspace) { $arguments += '-VerifyCurrentWorkspace' }
-    Invoke-ScriptProcess -ScriptPath $validator -Name $Name -Arguments $arguments
+    $parameters = @{
+        ProjectRoot = $tempRoot
+        ManifestPath = $ManifestPath
+        SchemaPath = $hostSchema
+        CheckpointSchemaPath = $checkpointSchema
+        CatalogSchemaPath = $catalogSchema
+        TrialsSchemaPath = $trialsSchema
+        VerifyCurrentWorkspace = $VerifyCurrentWorkspace
+        Json = $true
+    }
+    Invoke-JsonScriptInProcess -ScriptPath $validator -Parameters $parameters
 }
 
 try {

@@ -1,6 +1,6 @@
 ---
 name: improve-codebase-architecture
-description: Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.
+description: Scan for deepening opportunities, present a visual report, and grill the selected architecture change.
 ---
 
 # Improve Codebase Architecture

@@ -135,6 +135,46 @@ $GlobalState = New-GlobalGovernanceWiring `
     -SharedAgentSkills (Join-Path $GlobalRoot 'agents\skills') `
     -EnvironmentScope Process `
     -StatePath (Join-Path $GlobalRoot 'state.json')
+$UnownedGlobalRoot = Join-Path $Root 'unowned-global'
+$UnownedGlobal = New-GlobalGovernanceWiring `
+    -Core $Core `
+    -ClaudeHome (Join-Path $UnownedGlobalRoot 'claude') `
+    -CodexHome (Join-Path $UnownedGlobalRoot 'codex') `
+    -SharedAgentSkills (Join-Path $UnownedGlobalRoot 'agents\skills') `
+    -EnvironmentScope Process `
+    -StatePath (Join-Path $UnownedGlobalRoot 'state.json')
+$UnownedPackPath = Join-Path $UnownedGlobalRoot 'agents\skills\python'
+New-Item -ItemType Directory -Path (Split-Path $UnownedPackPath -Parent) `
+    -Force | Out-Null
+New-Item -ItemType Junction -Path $UnownedPackPath `
+    -Target (Join-Path $Core 'packs\python') | Out-Null
+$UnownedRemovalFailed = $false
+try {
+    Invoke-GovernanceWiring `
+        -Resources $UnownedGlobal.Resources `
+        -Action Apply `
+        -StatePath $UnownedGlobal.StatePath | Out-Null
+} catch {
+    $UnownedRemovalFailed = $true
+}
+Assert-True $UnownedRemovalFailed (
+    'Absent desired state must not remove a matching unowned junction.'
+)
+Assert-True (Test-Path -LiteralPath $UnownedPackPath) (
+    'Unowned matching junction must remain untouched.'
+)
+$LegacyPack = New-JunctionResource `
+    -Path (Join-Path $GlobalRoot 'agents\skills\python') `
+    -Target (Join-Path $Core 'packs\python') `
+    -Owner 'projectD-core/global'
+Invoke-GovernanceWiring `
+    -Resources @($LegacyPack) `
+    -Action Apply `
+    -StatePath $GlobalState.StatePath | Out-Null
+Assert-True (
+    (Get-Item (Join-Path $GlobalRoot 'agents\skills\python')).LinkType -eq
+        'Junction'
+) 'Fixture must start with the legacy global pack junction.'
 [Environment]::SetEnvironmentVariable('PROJECTD_CORE', $null, 'Process')
 Invoke-GovernanceWiring `
     -Resources $GlobalState.Resources `
@@ -147,12 +187,21 @@ $GlobalCheck = @(
         -StatePath $GlobalState.StatePath
 )
 Assert-True (
-    @($GlobalCheck | Where-Object State -NE 'Compliant').Count -eq 0
+    @($GlobalCheck | Where-Object { $_.State -ne $_.ExpectedState }).Count -eq 0
 ) 'Global desired state must be fully compliant after Apply.'
 Assert-True (
-    (Get-Item (Join-Path $GlobalRoot 'agents\skills\python')).LinkType -eq
+    (Get-Item (Join-Path $GlobalRoot 'agents\skills\research')).LinkType -eq
         'Junction'
-) 'Global desired state must create skill junctions.'
+) 'Global desired state must expose core Skill junctions.'
+Assert-True (
+    -not (Test-Path (Join-Path $GlobalRoot 'agents\skills\python'))
+) 'Global desired state must keep stack packs out of the global catalog.'
+Assert-True (
+    @($GlobalState.Resources | Where-Object {
+        $_.Path -eq (Join-Path $GlobalRoot 'agents\skills\grill-me') -and
+        $_.DesiredState -ceq 'Absent'
+    }).Count -eq 1
+) 'Global desired state must retire the merged grill-me alias.'
 Invoke-GovernanceWiring `
     -Resources $GlobalState.Resources `
     -Action Remove `
@@ -185,13 +234,27 @@ $FleetItem = [pscustomobject]@{
     category = 'side'
     packs = @('python')
 }
+$InvalidFleetFailed = $false
+try {
+    New-FleetGovernanceWiring `
+        -Core $Core `
+        -FleetItems @([pscustomobject]@{
+            path = $FleetProject
+            category = 'side'
+            packs = @('..\core\skills\research')
+        }) `
+        -StatePath (Join-Path $Root 'invalid-fleet-state.json') | Out-Null
+} catch {
+    $InvalidFleetFailed = $true
+}
+Assert-True $InvalidFleetFailed 'Fleet pack names must reject path traversal.'
 $FleetState = New-FleetGovernanceWiring `
     -Core $Core `
     -FleetItems @($FleetItem) `
     -StatePath (Join-Path $Root 'fleet-state.json')
 Assert-True (
-    $FleetState.Resources.Count -eq 4
-) 'Fleet desired state must include three entry files and one .gitignore.'
+    $FleetState.Resources.Count -eq 6
+) 'Fleet desired state must include entries, .gitignore, and scoped pack links.'
 Invoke-GovernanceWiring `
     -Resources $FleetState.Resources `
     -Action Apply `
@@ -219,5 +282,18 @@ foreach ($EntryPattern in @('/AGENTS.md', '/CLAUDE.md', '/GEMINI.md')) {
         $FleetGitIgnore.Contains($EntryPattern)
     ) "Fleet Apply must ignore $EntryPattern at the project root."
 }
+foreach ($ScopedSkill in @(
+    '.agents\skills\python',
+    '.claude\skills\python'
+)) {
+    $ScopedSkillPath = Join-Path $FleetProject $ScopedSkill
+    Assert-True (
+        (Get-Item $ScopedSkillPath).LinkType -eq 'Junction'
+    ) "Fleet Apply must create scoped pack junction $ScopedSkill."
+}
+Assert-True (
+    $FleetGitIgnore.Contains('/.agents/skills/python') -and
+    $FleetGitIgnore.Contains('/.claude/skills/python')
+) 'Fleet .gitignore must cover only the managed pack junctions.'
 
 Write-Output 'GOVERNANCE_WIRING_CONTRACT_OK'

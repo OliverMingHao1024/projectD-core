@@ -1,6 +1,6 @@
 ---
 name: skill-update-check
-description: Check adopted GitHub-sourced CanonicalSkills for relevant upstream path changes by comparing pinned content digests. Use when the user asks whether imported Skills have updates, wants a read-only upstream drift report, or needs to identify which adopted Skills require re-review. Report non-GitHub providers as skipped until a provider-specific update adapter exists.
+description: Compare pinned digests to find upstream changes in adopted GitHub Skills and identify those needing re-review.
 ---
 
 # Skill Update Check
