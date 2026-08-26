@@ -1,6 +1,6 @@
 ---
 name: grill-with-docs
-description: Stress-test a plan or design through a relentless one-question-at-a-time interview while proposing confirmed domain glossary and architectural-decision updates. Use when the user wants to grill an idea and preserve the resulting terminology or decisions as project documentation.
+description: Grill a plan one question at a time and preserve confirmed terms and architecture decisions.
 ---
 
 # Grill with Docs

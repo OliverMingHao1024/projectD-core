@@ -1,6 +1,6 @@
 ---
 name: codegraph
-description: Use an existing CodeGraph index to explore symbols, callers, dependencies, and code paths. Trigger when a repository contains .codegraph or the user explicitly asks for CodeGraph; do not install or initialize it without explicit approval.
+description: Explore symbols, callers, dependencies, and paths through an existing CodeGraph; never install it implicitly.
 ---
 
 # CodeGraph

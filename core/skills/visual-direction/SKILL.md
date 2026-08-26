@@ -1,6 +1,6 @@
 ---
 name: visual-direction
-description: Establish or review an evidence-based visual direction for a web interface before implementation. Use for greenfield UI art direction, redesign direction, or an interface that feels generic or visually inconsistent; do not use for narrow implementation-only fixes.
+description: Set evidence-based visual direction for greenfield UI, redesigns, or inconsistent interfaces.
 ---
 
 # Visual Direction

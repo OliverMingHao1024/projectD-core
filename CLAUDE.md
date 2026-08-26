@@ -12,8 +12,8 @@
 
 ## 外部工具參考（core/skills/）
 
-- `core/skills/codegraph.md` — 若專案根目錄有 `.codegraph/`，理解/定位程式碼優先用它
-- `core/skills/grilling.md` — 動手前想壓力測試計畫/決策時使用 `/grill-me`
+- `core/skills/codegraph/SKILL.md` — 若專案根目錄有 `.codegraph/`，理解/定位程式碼優先用它
+- `core/skills/grilling/SKILL.md` — 動手前想壓力測試計畫/決策時使用「grill me」
 
 這些是外部工具/技能庫的參考文件，不是自己重寫的內容；是否已安裝以實際環境為準。
 

@@ -39,22 +39,7 @@ jobs:
       - name: Run governance security trace contract
         shell: pwsh
         run: ./scripts/tests/governance-trace-eval.contract.ps1
-      - name: Run governance host trial contract
-        shell: pwsh
-        run: ./scripts/tests/governance-host-trial.contract.ps1
-      - name: Run governance durable operation-log contract
-        shell: pwsh
-        run: ./scripts/tests/governance-operation-log.contract.ps1
-      - name: Run Codex and Claude pre-effect hook contract
-        shell: pwsh
-        run: ./scripts/tests/governance-host-operation-hook.contract.ps1
-      - name: Run governance host upgrade gate contract
-        shell: pwsh
-        run: ./scripts/tests/governance-host-upgrade-gate.contract.ps1
-      - name: Run Claude governance run-plan contract
-        shell: pwsh
-        run: ./scripts/tests/governance-host-run-plan.contract.ps1
-      - name: Run portable repository checks
+      - name: Run portable repository checks and heavy governance contracts
         shell: pwsh
         run: >-
           ./scripts/projectd-check.ps1

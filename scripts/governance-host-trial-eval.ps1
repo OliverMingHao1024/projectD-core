@@ -7,7 +7,8 @@ param(
     [string]$CatalogSchemaPath,
     [string]$TrialsSchemaPath,
     [switch]$VerifyCurrentWorkspace,
-    [switch]$Json
+    [switch]$Json,
+    [switch]$NoExit
 )
 
 $ErrorActionPreference = 'Stop'
@@ -418,4 +419,4 @@ if ($Json) {
     "Summary: $(if ($result.passed) { '3 passed, 0 failed' } else { "0 passed, $($errors.Count) failed" })"
 }
 
-if (-not $result.passed) { exit 1 }
+if (-not $result.passed -and -not $NoExit) { exit 1 }

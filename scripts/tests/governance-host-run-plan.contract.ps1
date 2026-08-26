@@ -41,34 +41,34 @@ function Invoke-PlanValidator {
         [Parameter(Mandatory)][string]$PlanPath,
         [Parameter(Mandatory)][string]$Name
     )
-    $pwsh = Get-Command pwsh -ErrorAction Stop
-    $startInfo = [Diagnostics.ProcessStartInfo]::new()
-    $startInfo.FileName = $pwsh.Source
-    $startInfo.UseShellExecute = $false
-    $startInfo.CreateNoWindow = $true
-    $startInfo.RedirectStandardOutput = $true
-    $startInfo.RedirectStandardError = $true
-    foreach ($argument in @(
-        '-NoProfile', '-File', $validator,
-        '-ProjectRoot', $tempRoot,
-        '-PlanPath', $PlanPath,
-        '-SchemaPath', $schema,
-        '-CatalogSchemaPath', $catalogSchema,
-        '-Json'
-    )) {
-        [void]$startInfo.ArgumentList.Add($argument)
+    $parameters = @{
+        ProjectRoot = $tempRoot
+        PlanPath = $PlanPath
+        SchemaPath = $schema
+        CatalogSchemaPath = $catalogSchema
+        Json = $true
+        NoExit = $true
     }
-    $process = [Diagnostics.Process]::Start($startInfo)
-    $stdout = $process.StandardOutput.ReadToEnd()
-    $stderr = $process.StandardError.ReadToEnd()
-    $process.WaitForExit()
-    [pscustomobject]@{
-        ExitCode = $process.ExitCode
-        Stdout = $stdout
-        Stderr = $stderr
-        Result = if ($stdout) {
+    try {
+        $stdout = @(& $validator @parameters) -join "`n"
+        $result = if ($stdout) {
             try { $stdout | ConvertFrom-Json } catch { $null }
         } else { $null }
+        [pscustomobject]@{
+            ExitCode = if ($null -ne $result -and [bool]$result.passed) {
+                0
+            } else { 1 }
+            Stdout = $stdout
+            Stderr = ''
+            Result = $result
+        }
+    } catch {
+        [pscustomobject]@{
+            ExitCode = 2
+            Stdout = ''
+            Stderr = $_.Exception.Message
+            Result = $null
+        }
     }
 }
 

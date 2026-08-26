@@ -67,7 +67,9 @@ function New-JunctionResource {
     param(
         [Parameter(Mandatory)][string]$Path,
         [Parameter(Mandatory)][string]$Target,
-        [Parameter(Mandatory)][string]$Owner
+        [Parameter(Mandatory)][string]$Owner,
+        [ValidateSet('Present', 'Absent')]
+        [string]$DesiredState = 'Present'
     )
 
     [pscustomobject]@{
@@ -75,6 +77,7 @@ function New-JunctionResource {
         Path = [IO.Path]::GetFullPath($Path)
         Target = [IO.Path]::GetFullPath($Target)
         Owner = $Owner
+        DesiredState = $DesiredState
     }
 }
 
@@ -172,15 +175,33 @@ function New-GlobalGovernanceWiring {
         }
     }
 
+    $coreSkillRoot = [IO.Path]::GetFullPath(
+        (Join-Path $resolvedCore 'core\skills')
+    )
     foreach ($skill in @(Get-CanonicalSkillDirectories $resolvedCore)) {
+        $desiredState = if (
+            [IO.Path]::GetFullPath($skill.Parent.FullName) -ceq $coreSkillRoot
+        ) { 'Present' } else { 'Absent' }
         $resources.Add((New-JunctionResource `
             -Path (Join-Path $claudeSkills $skill.Name) `
             -Target $skill.FullName `
-            -Owner $owner))
+            -Owner $owner `
+            -DesiredState $desiredState))
         $resources.Add((New-JunctionResource `
             -Path (Join-Path $SharedAgentSkills $skill.Name) `
             -Target $skill.FullName `
-            -Owner $owner))
+            -Owner $owner `
+            -DesiredState $desiredState))
+    }
+    foreach ($retiredSkill in @('grill-me')) {
+        $retiredTarget = Join-Path $resolvedCore "core\skills\$retiredSkill"
+        foreach ($skillRoot in @($claudeSkills, $SharedAgentSkills)) {
+            $resources.Add((New-JunctionResource `
+                -Path (Join-Path $skillRoot $retiredSkill) `
+                -Target $retiredTarget `
+                -Owner $owner `
+                -DesiredState Absent))
+        }
     }
 
     $blockStart = '<!-- PROJECTD_CORE_START -->'
@@ -199,8 +220,8 @@ $blockStart
 1. 讀 $bt$rulesPath$bt（L0 規則）
 2. 讀 $bt$vaultPath$bt，依其 init 序列讀取 identity/memory/governance
 3. 依 governance INDEX 的 L1-L6 摘要做語意路由，只載入命中的治理規則
-4. 需要工作流或技術棧規範時，才使用已連結於 $bt~/.claude/skills/$bt 的對應 skill；
-   canonical 內容只在 projectD-core 的 ${bt}core/skills/$bt 與 ${bt}packs/$bt 維護
+4. 通用 workflow Skill 由 $bt~/.claude/skills/$bt 按需載入；技術棧 pack 由 Fleet
+   接到各專案的 ${bt}.claude/skills/$bt，不放進全域 Skill catalog
 
 角色 agent（已複製於 $bt~/.claude/agents/$bt）：${bt}pm$bt（需求釐清）、${bt}sa$bt（技術分析）、
 ${bt}ux$bt（互動設計）、${bt}sd$bt（架構設計）、${bt}pg$bt（實作/審查/測試）、${bt}qa$bt（獨立驗證）。
@@ -216,8 +237,8 @@ $blockStart
 1. 讀 $bt$rulesPath$bt（L0 規則）
 2. 讀 $bt$vaultPath$bt，依其 init 序列讀取 identity、memory、governance
 3. 依 $bt$governancePath$bt 的 L1-L6 摘要做語意路由，只載入命中的治理規則
-4. 需要工作流或技術棧規範時，才使用已連結於 $bt$SharedAgentSkills$bt 的對應 skill；
-   canonical 內容只在 projectD-core 的 ${bt}core/skills/$bt 與 ${bt}packs/$bt 維護
+4. 通用 workflow Skill 由 $bt$SharedAgentSkills$bt 按需載入；技術棧 pack 由 Fleet
+   接到各專案的 ${bt}.agents/skills/$bt，不放進全域 Skill catalog
 5. 只有任務需要角色分工時，才讀 $bt$rolesPath$bt 下對應的 pm、sa、ux、sd、pg、qa 指引
 
 專案自身較近的 AGENTS.md 與使用者當次明確指令優先；不要預先載入整個 core。
@@ -306,11 +327,23 @@ function New-FleetGovernanceWiring {
         if ([string]$item.category -notin @('work', 'side')) {
             throw "[$projectPath] category must be work or side."
         }
-        $missingPacks = @(
+        $selectedPacks = @(
             $item.packs |
                 Where-Object {
                     -not [string]::IsNullOrWhiteSpace([string]$_)
                 } |
+                ForEach-Object { [string]$_ } |
+                Sort-Object -Unique
+        )
+        $invalidPacks = @(
+            $selectedPacks |
+                Where-Object { $_ -cnotmatch '^[a-z0-9]+(?:-[a-z0-9]+)*$' }
+        )
+        if ($invalidPacks.Count -gt 0) {
+            throw "[$projectPath] invalid pack names: $($invalidPacks -join ', ')."
+        }
+        $missingPacks = @(
+            $selectedPacks |
                 Where-Object {
                     -not (Test-Path -LiteralPath (
                         Join-Path $resolvedCore "packs\$([string]$_)\SKILL.md"
@@ -329,16 +362,33 @@ function New-FleetGovernanceWiring {
                 -Content $content `
                 -Owner "projectD-core/fleet/$projectPath"))
         }
+        foreach ($pack in $selectedPacks) {
+            $target = Join-Path $resolvedCore "packs\$pack"
+            foreach ($relativeRoot in @('.agents\skills', '.claude\skills')) {
+                $resources.Add((New-JunctionResource `
+                    -Path (Join-Path $projectPath "$relativeRoot\$pack") `
+                    -Target $target `
+                    -Owner "projectD-core/fleet/$projectPath"))
+            }
+        }
         $gitIgnoreStart = '# PROJECTD_CORE_AI_AGENT_MD_START'
         $gitIgnoreEnd = '# PROJECTD_CORE_AI_AGENT_MD_END'
-        $gitIgnoreContent = @(
+        $gitIgnoreLines = [Collections.Generic.List[string]]::new()
+        foreach ($line in @(
             $gitIgnoreStart,
             '# AI agent entry files managed by projectD-core.',
             '/AGENTS.md',
             '/CLAUDE.md',
-            '/GEMINI.md',
-            $gitIgnoreEnd
-        ) -join "`n"
+            '/GEMINI.md'
+        )) {
+            $gitIgnoreLines.Add($line)
+        }
+        foreach ($pack in $selectedPacks) {
+            $gitIgnoreLines.Add("/.agents/skills/$pack")
+            $gitIgnoreLines.Add("/.claude/skills/$pack")
+        }
+        $gitIgnoreLines.Add($gitIgnoreEnd)
+        $gitIgnoreContent = $gitIgnoreLines -join "`n"
         $resources.Add((New-ManagedBlockResource `
             -Path (Join-Path $projectPath '.gitignore') `
             -BlockStart $gitIgnoreStart `
@@ -655,7 +705,16 @@ function Get-GovernanceWiringPlan {
             $null
         }
         $inspection = Get-ResourceInspection $resource $stateEntry
-        $operation = switch ($Action) {
+        $desiredState = if (
+            $resource.PSObject.Properties.Name -contains 'DesiredState'
+        ) { [string]$resource.DesiredState } else { 'Present' }
+        $effectiveAction = if (
+            $Action -eq 'Apply' -and $desiredState -ceq 'Absent'
+        ) { 'Remove' } else { $Action }
+        $expectedState = if (
+            $Action -eq 'Remove' -or $desiredState -ceq 'Absent'
+        ) { 'Missing' } else { 'Compliant' }
+        $operation = switch ($effectiveAction) {
             'Check' { 'None' }
             'Apply' {
                 switch ($inspection.State) {
@@ -674,12 +733,27 @@ function Get-GovernanceWiringPlan {
                 }
             }
         }
+        $message = $inspection.Message
+        if (
+            $Action -eq 'Apply' -and
+            $desiredState -ceq 'Absent' -and
+            $inspection.State -ne 'Missing' -and
+            $null -eq $stateEntry
+        ) {
+            $operation = 'Conflict'
+            $message = (
+                'Absent desired state cannot remove a path without ' +
+                'GovernanceWiring ownership state.'
+            )
+        }
         [pscustomobject]@{
             Resource = $resource
             Key = $key
             State = $inspection.State
             Operation = $operation
-            Message = $inspection.Message
+            EffectiveAction = $effectiveAction
+            ExpectedState = $expectedState
+            Message = $message
             Diff = if ($inspection.ContainsKey('Diff')) { $inspection.Diff } else { $null }
         }
     }
@@ -983,7 +1057,10 @@ function Invoke-GovernanceWiring {
     )
     try {
         foreach ($item in $plan) {
-            Invoke-ResourceMutation -PlanItem $item -Action $Action -State $state
+            Invoke-ResourceMutation `
+                -PlanItem $item `
+                -Action $item.EffectiveAction `
+                -State $state
             if ($item.Operation -ne 'None' -and $AfterMutation) {
                 & $AfterMutation $item
             }
@@ -995,8 +1072,14 @@ function Invoke-GovernanceWiring {
                 -Action Check `
                 -StatePath $StatePath
         )
-        $expectedState = if ($Action -eq 'Apply') { 'Compliant' } else { 'Missing' }
-        $failed = @($verification | Where-Object State -NE $expectedState)
+        $failed = @(
+            if ($Action -eq 'Remove') {
+                $verification | Where-Object State -NE 'Missing'
+            } else {
+                $verification |
+                    Where-Object { $_.State -ne $_.ExpectedState }
+            }
+        )
         if ($failed.Count -gt 0) {
             $details = ($failed | ForEach-Object {
                 "$($_.Resource.ResourceType)[$($_.Key)]: " +

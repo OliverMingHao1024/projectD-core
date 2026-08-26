@@ -1,6 +1,6 @@
 ---
 name: review-animations
-description: Review animation and motion changes for purpose, interaction frequency, continuity, interruptibility, accessibility, framework fit, and measured performance. Use for motion-focused code review of a diff, component, prototype, or implementation; do not use as a substitute for general code review.
+description: Review motion purpose, continuity, interruptibility, accessibility, fit, and measured performance.
 ---
 
 # Review Animations

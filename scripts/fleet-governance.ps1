@@ -33,7 +33,7 @@ $plan = @(
 )
 
 if ($Mode -eq 'Check') {
-    $issues = @($plan | Where-Object State -NE 'Compliant')
+    $issues = @($plan | Where-Object { $_.State -ne $_.ExpectedState })
     foreach ($issue in $issues) {
         Write-Host (
             "[FAIL] $($issue.Resource.Path): $($issue.Message)"

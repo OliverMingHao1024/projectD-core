@@ -93,6 +93,8 @@ try {
         'governance-asset-inventory',
         'governance-security-traces',
         'governance-host-trial-contract',
+        'governance-operation-log-contract',
+        'governance-host-operation-hook-contract',
         'governance-host-upgrade-gate-contract',
         'governance-host-run-plan-contract'
     )) {

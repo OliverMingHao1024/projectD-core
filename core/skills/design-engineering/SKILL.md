@@ -1,6 +1,6 @@
 ---
 name: design-engineering
-description: Design or review polished web interfaces using evidence-based interaction, motion, component, typography, accessibility, and perceived-performance principles. Use when improving UI craft, interaction feedback, component behavior, motion cohesion, or the small implementation details that affect how an interface feels.
+description: Improve web UI interaction, motion, typography, accessibility, and perceived performance.
 ---
 
 # Design Engineering

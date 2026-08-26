@@ -1,6 +1,6 @@
 ---
 name: security-review
-description: Perform an evidence-based, read-only security review of a design, working-tree change, fixed-point diff, or implementation. Use when the user asks for a security review or when a change materially affects a trust boundary or security control, such as authentication, authorization, secrets, untrusted input, sensitive data, externally reachable APIs, file handling, third-party integrations, payments, or deployment privileges; do not use as a generic checklist for unrelated or low-risk changes in those areas.
+description: Read-only security review for trust boundaries, secrets, sensitive data, files, APIs, or privileges.
 ---
 
 # Security Review

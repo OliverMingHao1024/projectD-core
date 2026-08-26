@@ -51,6 +51,36 @@ function Invoke-ScriptProcess {
     }
 }
 
+function Invoke-JsonScriptInProcess {
+    param(
+        [Parameter(Mandatory)][string]$ScriptPath,
+        [Parameter(Mandatory)][hashtable]$Parameters
+    )
+    try {
+        $Parameters.NoExit = $true
+        $output = @(& $ScriptPath @Parameters)
+        $stdout = $output -join "`n"
+        $result = if ($stdout) {
+            try { $stdout | ConvertFrom-Json } catch { $null }
+        } else { $null }
+        [pscustomobject]@{
+            ExitCode = if ($null -ne $result -and [bool]$result.passed) {
+                0
+            } else { 1 }
+            Stdout = $stdout
+            Stderr = ''
+            Result = $result
+        }
+    } catch {
+        [pscustomobject]@{
+            ExitCode = 2
+            Stdout = ''
+            Stderr = $_.Exception.Message
+            Result = $null
+        }
+    }
+}
+
 function New-Trials {
     param(
         [Parameter(Mandatory)][string]$Model,
@@ -149,16 +179,16 @@ function Invoke-Gate {
         [Parameter(Mandatory)][string]$BaselinePath,
         [Parameter(Mandatory)][string]$CandidatePath
     )
-    Invoke-ScriptProcess -ScriptPath $gate -Arguments @(
-        '-ProjectRoot', $tempRoot,
-        '-BaselineManifestPath', $BaselinePath,
-        '-CandidateManifestPath', $CandidatePath,
-        '-HostSchemaPath', $hostSchema,
-        '-CheckpointSchemaPath', $checkpointSchema,
-        '-CatalogSchemaPath', $catalogSchema,
-        '-TrialsSchemaPath', $trialsSchema,
-        '-Json'
-    )
+    Invoke-JsonScriptInProcess -ScriptPath $gate -Parameters @{
+        ProjectRoot = $tempRoot
+        BaselineManifestPath = $BaselinePath
+        CandidateManifestPath = $CandidatePath
+        HostSchemaPath = $hostSchema
+        CheckpointSchemaPath = $checkpointSchema
+        CatalogSchemaPath = $catalogSchema
+        TrialsSchemaPath = $trialsSchema
+        Json = $true
+    }
 }
 
 try {

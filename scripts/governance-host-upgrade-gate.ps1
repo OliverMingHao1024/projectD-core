@@ -7,7 +7,8 @@ param(
     [string]$CheckpointSchemaPath,
     [string]$CatalogSchemaPath,
     [string]$TrialsSchemaPath,
-    [switch]$Json
+    [switch]$Json,
+    [switch]$NoExit
 )
 
 $ErrorActionPreference = 'Stop'
@@ -36,39 +37,6 @@ if ([string]::IsNullOrWhiteSpace($TrialsSchemaPath)) {
 $validator = Join-Path $PSScriptRoot 'governance-host-trial-eval.ps1'
 $errors = [Collections.Generic.List[string]]::new()
 
-function Invoke-CapturedProcess {
-    param(
-        [Parameter(Mandatory)][string]$FilePath,
-        [Parameter(Mandatory)][string[]]$Arguments
-    )
-    $startInfo = [Diagnostics.ProcessStartInfo]::new()
-    $startInfo.FileName = $FilePath
-    $startInfo.UseShellExecute = $false
-    $startInfo.CreateNoWindow = $true
-    $startInfo.RedirectStandardOutput = $true
-    $startInfo.RedirectStandardError = $true
-    foreach ($argument in $Arguments) {
-        [void]$startInfo.ArgumentList.Add($argument)
-    }
-    $process = [Diagnostics.Process]::Start($startInfo)
-    $stdoutTask = $process.StandardOutput.ReadToEndAsync()
-    $stderrTask = $process.StandardError.ReadToEndAsync()
-    $timedOut = -not $process.WaitForExit(30000)
-    if ($timedOut) {
-        $process.Kill($true)
-        $process.WaitForExit()
-    }
-    $stdout = $stdoutTask.GetAwaiter().GetResult()
-    $stderr = $stderrTask.GetAwaiter().GetResult()
-    [pscustomobject]@{
-        ExitCode = if ($timedOut) { -1 } else { $process.ExitCode }
-        Stdout = $stdout
-        Stderr = if ($timedOut) {
-            "Process timed out after 30000 ms. $stderr".Trim()
-        } else { $stderr }
-    }
-}
-
 function Get-BytesSha256 {
     param([Parameter(Mandatory)][byte[]]$Bytes)
     return [Convert]::ToHexString(
@@ -91,31 +59,27 @@ function Read-ValidatedManifest {
         return $null
     }
 
-    $pwsh = Get-Command pwsh -ErrorAction SilentlyContinue
-    if ($null -eq $pwsh) {
-        $errors.Add('pwsh executable is required to validate host trials.')
-        return $null
+    $validationParameters = @{
+        ProjectRoot = $root
+        ManifestPath = $resolved
+        SchemaPath = $HostSchemaPath
+        CheckpointSchemaPath = $CheckpointSchemaPath
+        CatalogSchemaPath = $CatalogSchemaPath
+        TrialsSchemaPath = $TrialsSchemaPath
+        Json = $true
+        NoExit = $true
     }
-    $validation = Invoke-CapturedProcess -FilePath $pwsh.Source -Arguments @(
-        '-NoProfile', '-File', $validator,
-        '-ProjectRoot', $root,
-        '-ManifestPath', $resolved,
-        '-SchemaPath', $HostSchemaPath,
-        '-CheckpointSchemaPath', $CheckpointSchemaPath,
-        '-CatalogSchemaPath', $CatalogSchemaPath,
-        '-TrialsSchemaPath', $TrialsSchemaPath,
-        '-Json'
-    )
+    $validationOutput = @(& $validator @validationParameters)
     $validationResult = $null
     try {
-        $validationResult = $validation.Stdout | ConvertFrom-Json
+        $validationResult = ($validationOutput -join "`n") | ConvertFrom-Json
     } catch {
-        $details = @($validation.Stderr.Trim(), $validation.Stdout.Trim()) |
+        $details = @($validationOutput | ForEach-Object { "$($_)".Trim() }) |
             Where-Object { $_ }
         $errors.Add("$Label validation did not return JSON: $($details -join ' | ')")
         return $null
     }
-    if ($validation.ExitCode -ne 0 -or -not [bool]$validationResult.passed) {
+    if (-not [bool]$validationResult.passed) {
         $details = @($validationResult.errors | ForEach-Object { [string]$_ })
         if (-not $details.Count) { $details = @('unknown validation failure') }
         $errors.Add("$Label is invalid: $($details -join ' | ')")
@@ -331,4 +295,4 @@ if ($Json) {
     foreach ($message in $errors) { "[FAIL] upgrade-gate: $message" }
 }
 
-if (-not $result.passed) { exit 1 }
+if (-not $result.passed -and -not $NoExit) { exit 1 }

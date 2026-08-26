@@ -1,6 +1,6 @@
 ---
 name: improve-animations
-description: Audit animation and motion across a web project, prioritize evidence-based improvements, and optionally write implementation plans after explicit user approval. Use when a user asks to improve animations, audit motion quality, reduce jank, strengthen accessibility, or prepare a motion-improvement roadmap.
+description: Audit web motion, prioritize evidence-based improvements, reduce jank, and strengthen motion accessibility.
 ---
 
 # Improve Animations

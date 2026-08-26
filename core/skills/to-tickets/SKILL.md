@@ -1,6 +1,6 @@
 ---
 name: to-tickets
-description: Break an approved plan, specification, issue, or settled conversation into dependency-aware tracer-bullet tickets. Use when the user wants executable vertical slices, acceptance criteria, blocking edges, or a reviewed ticket breakdown before publishing work to a local or external tracker.
+description: Break approved work into dependency-aware tracer-bullet tickets with acceptance criteria and blocking edges.
 ---
 
 # To Tickets

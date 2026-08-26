@@ -30,6 +30,9 @@ function Get-SkillCatalogCheck {
                 Where-Object Name -NotLike '_*'
         }
     )
+    $coreSkillRoot = [IO.Path]::GetFullPath((Join-Path $Core 'core\skills'))
+    $globalDiscoveryChars = 0
+    $globalDiscoveryBudget = 6000
     $bad = @()
     $duplicateNames = @(
         $skills | Group-Object Name | Where-Object Count -GT 1
@@ -84,7 +87,27 @@ function Get-SkillCatalogCheck {
         )
         if ($descriptionLines.Count -ne 1) {
             $bad += "$($skillDirectory.Name): description must be one non-empty line"
+        } elseif (
+            [IO.Path]::GetFullPath($skillDirectory.Parent.FullName) -ceq
+                $coreSkillRoot
+        ) {
+            $description = [regex]::Match(
+                $descriptionLines[0],
+                '^description:\s*(.+?)\s*$'
+            ).Groups[1].Value
+            $catalogPath = [IO.Path]::GetRelativePath($Core, $skillPath)
+            $globalDiscoveryChars += (
+                $skillDirectory.Name.Length +
+                $description.Length +
+                $catalogPath.Length
+            )
         }
+    }
+    if ($globalDiscoveryChars -gt $globalDiscoveryBudget) {
+        $bad += (
+            "global Skill discovery metadata is $globalDiscoveryChars chars; " +
+            "budget is $globalDiscoveryBudget"
+        )
     }
     if ($bad.Count) {
         return [pscustomobject]@{
@@ -94,7 +117,10 @@ function Get-SkillCatalogCheck {
     return [pscustomobject]@{
         name = 'skill-catalog'
         passed = $true
-        message = "$($skills.Count) canonical skill(s) valid"
+        message = (
+            "$($skills.Count) canonical skill(s) valid; global discovery " +
+            "$globalDiscoveryChars/$globalDiscoveryBudget chars"
+        )
     }
 }
 
@@ -281,6 +307,107 @@ function Get-IndexRoutingCheck {
     }
 }
 
+function Get-SessionInitBudgetCheck {
+    param([Parameter(Mandatory)][string]$Core)
+
+    $paths = @(
+        'core\constitution\rules.md',
+        'vault\README.md',
+        'vault\identity\profile.md',
+        'vault\memory\memory-summary.md',
+        'vault\governance\INDEX.md'
+    )
+    $missing = @(
+        $paths | Where-Object {
+            -not (Test-Path -LiteralPath (Join-Path $Core $_) -PathType Leaf)
+        }
+    )
+    if ($missing.Count -gt 0) {
+        return [pscustomobject]@{
+            name = 'session-init-budget'
+            passed = $false
+            message = "Missing init files: $($missing -join ', ')"
+        }
+    }
+    $bytes = 0
+    $lines = 0
+    foreach ($path in $paths) {
+        $fullPath = Join-Path $Core $path
+        $bytes += (Get-Item -LiteralPath $fullPath).Length
+        $lines += @([IO.File]::ReadAllLines($fullPath)).Count
+    }
+    $budget = 10KB
+    return [pscustomobject]@{
+        name = 'session-init-budget'
+        passed = ($bytes -le $budget)
+        message = "$bytes/$budget bytes across $lines lines"
+    }
+}
+
+function Get-StagingLifecycleCheck {
+    param([Parameter(Mandatory)][string]$Core)
+
+    $stagingRoot = Join-Path $Core 'packs\_staging'
+    $registryPath = Join-Path $Core 'vault\governance\skill-registry.json'
+    try {
+        $registry = Get-Content -Raw -LiteralPath $registryPath |
+            ConvertFrom-Json
+        $candidateById = @{}
+        foreach ($candidate in @($registry.candidates)) {
+            $candidateById[[string]$candidate.id] = $candidate
+        }
+        $bad = @()
+        foreach ($directory in @(
+            Get-ChildItem -LiteralPath $stagingRoot -Directory
+        )) {
+            if (-not $candidateById.ContainsKey($directory.Name)) {
+                $bad += "$($directory.Name): no registry candidate"
+                continue
+            }
+            $status = [string]$candidateById[$directory.Name].lifecycle_status
+            if ($status -in @('adopted', 'rejected')) {
+                $bad += "$($directory.Name): completed lifecycle $status remains staged"
+            }
+        }
+        return [pscustomobject]@{
+            name = 'staging-lifecycle'
+            passed = ($bad.Count -eq 0)
+            message = if ($bad.Count) {
+                $bad -join '; '
+            } else { 'Only active or held candidates remain staged' }
+        }
+    } catch {
+        return [pscustomobject]@{
+            name = 'staging-lifecycle'
+            passed = $false
+            message = "Staging lifecycle check failed: $($_.Exception.Message)"
+        }
+    }
+}
+
+function Get-CiGovernanceDedupCheck {
+    param([Parameter(Mandatory)][string]$Core)
+
+    $workflowPath = Join-Path $Core '.github\workflows\governance-check.yml'
+    $workflow = Get-Content -Raw -LiteralPath $workflowPath
+    $duplicated = @(
+        @(
+            'governance-host-trial.contract.ps1',
+            'governance-operation-log.contract.ps1',
+            'governance-host-operation-hook.contract.ps1',
+            'governance-host-upgrade-gate.contract.ps1',
+            'governance-host-run-plan.contract.ps1'
+        ) | Where-Object { $workflow.Contains($_) }
+    )
+    return [pscustomobject]@{
+        name = 'ci-governance-dedup'
+        passed = ($duplicated.Count -eq 0)
+        message = if ($duplicated.Count) {
+            'Aggregate GovernanceEvals duplicates: ' + ($duplicated -join ', ')
+        } else { 'Heavy governance contracts run only through the aggregate check' }
+    }
+}
+
 function Get-FleetCatalogCheck {
     param(
         [Parameter(Mandatory)][string]$Core,
@@ -314,6 +441,10 @@ function Get-FleetCatalogCheck {
                 $bad += "project path missing: $($item.path)"
             }
             foreach ($pack in @($item.packs)) {
+                if ([string]$pack -cnotmatch '^[a-z0-9]+(?:-[a-z0-9]+)*$') {
+                    $bad += "$($item.path): invalid pack name $pack"
+                    continue
+                }
                 if (
                     -not (
                         Test-Path -LiteralPath (
@@ -348,6 +479,9 @@ foreach ($checkResult in @(
     Get-SkillCatalogCheck -Core $core
     Get-SkillRegistryCheck -Core $core
     Get-IndexRoutingCheck -Core $core
+    Get-SessionInitBudgetCheck -Core $core
+    Get-StagingLifecycleCheck -Core $core
+    Get-CiGovernanceDedupCheck -Core $core
     Get-FleetCatalogCheck -Core $core -FleetPath $FleetPath -SkipFleet:$SkipFleet
 )) {
     Add-Result $checkResult.name $checkResult.passed $checkResult.message
@@ -476,6 +610,46 @@ function Child([string]$n,[scriptblock]$a){
         Add-Result $n $false $_.Exception.Message
     }
 }
+
+function ChildGroup {
+    param(
+        [Parameter(Mandatory)][object[]]$Checks,
+        [Parameter(Mandatory)][string]$PowerShellPath
+    )
+
+    $groupResults = @(
+        $Checks | ForEach-Object -Parallel {
+            $check = $_
+            $childOutput = @(
+                & $using:PowerShellPath -NoProfile -File $check.path *>&1
+            )
+            $childExitCode = $LASTEXITCODE
+            $details = @(
+                $childOutput |
+                    Select-Object -Last 12 |
+                    ForEach-Object { "$_".Trim() } |
+                    Where-Object { $_ }
+            ) -join ' | '
+            [pscustomobject]@{
+                name = $check.name
+                passed = ($childExitCode -eq 0)
+                message = if ($childExitCode -eq 0) {
+                    'Child check passed'
+                } elseif ($details) {
+                    "Child check exited with code $childExitCode. Output: $details"
+                } else {
+                    "Child check exited with code $childExitCode."
+                }
+            }
+        } -ThrottleLimit ([Math]::Min(5, $Checks.Count))
+    )
+    foreach ($groupResult in $groupResults) {
+        Add-Result `
+            $groupResult.name `
+            ([bool]$groupResult.passed) `
+            ([string]$groupResult.message)
+    }
+}
 $pwsh=Get-Command pwsh -ErrorAction SilentlyContinue
 if($null -eq $pwsh){
     Add-Result 'fleet-inspect-contract' $false 'pwsh executable not found'
@@ -565,39 +739,38 @@ if ($GovernanceEvals) {
                 Join-Path $core 'scripts\governance-trace-eval.ps1'
             )
         }
-        Child 'governance-host-trial-contract' {
-            & $pwsh.Source -NoProfile -File (
-                Join-Path $core 'scripts\tests\governance-host-trial.contract.ps1'
-            )
-        }
-        Child 'governance-operation-log-contract' {
-            & $pwsh.Source -NoProfile -File (
-                Join-Path $core (
+        ChildGroup -PowerShellPath $pwsh.Source -Checks @(
+            [pscustomobject]@{
+                name = 'governance-host-trial-contract'
+                path = Join-Path $core (
+                    'scripts\tests\governance-host-trial.contract.ps1'
+                )
+            }
+            [pscustomobject]@{
+                name = 'governance-operation-log-contract'
+                path = Join-Path $core (
                     'scripts\tests\governance-operation-log.contract.ps1'
                 )
-            )
-        }
-        Child 'governance-host-operation-hook-contract' {
-            & $pwsh.Source -NoProfile -File (
-                Join-Path $core (
+            }
+            [pscustomobject]@{
+                name = 'governance-host-operation-hook-contract'
+                path = Join-Path $core (
                     'scripts\tests\governance-host-operation-hook.contract.ps1'
                 )
-            )
-        }
-        Child 'governance-host-upgrade-gate-contract' {
-            & $pwsh.Source -NoProfile -File (
-                Join-Path $core (
+            }
+            [pscustomobject]@{
+                name = 'governance-host-upgrade-gate-contract'
+                path = Join-Path $core (
                     'scripts\tests\governance-host-upgrade-gate.contract.ps1'
                 )
-            )
-        }
-        Child 'governance-host-run-plan-contract' {
-            & $pwsh.Source -NoProfile -File (
-                Join-Path $core (
+            }
+            [pscustomobject]@{
+                name = 'governance-host-run-plan-contract'
+                path = Join-Path $core (
                     'scripts\tests\governance-host-run-plan.contract.ps1'
                 )
-            )
-        }
+            }
+        )
     }
 }
 

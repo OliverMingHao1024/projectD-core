@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: Perform a read-only review of an uncommitted working tree, branch, commit, tag, or pull-request diff along separate Standards and Spec axes. Use when the user asks for code review, wants changes reviewed since a fixed point, or when an implementation workflow requires its mandatory review gate.
+description: Read-only review of a working tree, branch, commit, tag, or PR along separate Standards and Spec axes.
 ---
 
 # Code Review

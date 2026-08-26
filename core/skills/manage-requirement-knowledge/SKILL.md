@@ -1,6 +1,6 @@
 ---
 name: manage-requirement-knowledge
-description: Capture and evolve governed ProjectD requirement knowledge. Use when a user attaches a DOC or DOCX requirement, asks to formalize or adjust a requirement, or confirms that debugging changed a specification and the result should enter ProjectD-knowledge.
+description: Govern ProjectD requirements from DOC/DOCX input, formal changes, or debugging that changes a spec.
 ---
 
 # Manage Requirement Knowledge
@@ -37,7 +37,7 @@ to the owner before writing when the match is not already explicit.
 2. Run `<core>/scripts/knowledge-requirement.ps1 -Mode new ...`. Treat duplicate
    digest, unsupported DOC conversion, review markup, or missing source as a
    blocking result, not a warning to bypass.
-3. Run `grill-me` one question at a time. Do not implement the business change.
+3. Run `grilling` one question at a time. Do not implement the business change.
 4. Run `to-spec` after shared understanding. Create candidate `confirmed.md` and
    `delta.md` from the KnowledgeWorkspace templates; preserve the OriginalSpec.
 5. Keep OriginalSpec, ConfirmedSpec, SpecDelta, any provisional FeaturePage, and

@@ -1,6 +1,6 @@
 ---
 name: select-frontend-capability
-description: Select or review a frontend capability without locking every project to one framework, library, vendor, or author's preferences. Use when choosing or replacing UI primitives, notifications, forms, client or server state, motion, charts, virtualization, styling, accessibility infrastructure, or similar frontend dependencies in React, Angular, mixed monorepos, or other web projects.
+description: Select or replace frontend UI, forms, state, motion, charts, styling, or accessibility capabilities.
 ---
 
 # Select Frontend Capability

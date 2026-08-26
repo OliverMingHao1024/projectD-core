@@ -4,7 +4,8 @@ param(
     [Parameter(Mandatory)][string]$PlanPath,
     [string]$SchemaPath,
     [string]$CatalogSchemaPath,
-    [switch]$Json
+    [switch]$Json,
+    [switch]$NoExit
 )
 
 $ErrorActionPreference = 'Stop'
@@ -221,4 +222,4 @@ if ($Json) {
     foreach ($message in $errors) { "[FAIL] Claude run-plan: $message" }
 }
 
-if (-not $result.passed) { exit 1 }
+if (-not $result.passed -and -not $NoExit) { exit 1 }

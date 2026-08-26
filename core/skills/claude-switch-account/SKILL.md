@@ -1,6 +1,6 @@
 ---
 name: claude-switch-account
-description: Safely inspect and switch the active Claude Code subscription account through official auth commands, with alias resolution, subscription-only billing checks, and post-login identity verification. Use when the user asks which Claude account is active, asks to switch Claude to work, personal, or 個人, wants to change Claude accounts, or needs to verify Claude is not using API billing.
+description: Inspect or switch Claude Code work/personal subscription accounts and verify billing and identity.
 ---
 
 # Claude Switch Account
