@@ -1,0 +1,61 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh",
+            "args": [
+              "-NoProfile",
+              "-File",
+              "${CLAUDE_PROJECT_DIR}/scripts/governance-host-operation-hook.ps1",
+              "-HostName",
+              "claude"
+            ],
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh",
+            "args": [
+              "-NoProfile",
+              "-File",
+              "${CLAUDE_PROJECT_DIR}/scripts/governance-host-operation-hook.ps1",
+              "-HostName",
+              "claude"
+            ],
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh",
+            "args": [
+              "-NoProfile",
+              "-File",
+              "${CLAUDE_PROJECT_DIR}/scripts/governance-host-operation-hook.ps1",
+              "-HostName",
+              "claude"
+            ],
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

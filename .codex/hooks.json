@@ -1,0 +1,30 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"$(git rev-parse --show-toplevel)/scripts/governance-host-operation-hook.ps1\" -HostName codex",
+            "commandWindows": "pwsh -NoProfile -Command \"$root = (& git rev-parse --show-toplevel).Trim(); & (Join-Path $root 'scripts\\governance-host-operation-hook.ps1') -HostName codex -ProjectRoot $root\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -File \"$(git rev-parse --show-toplevel)/scripts/governance-host-operation-hook.ps1\" -HostName codex",
+            "commandWindows": "pwsh -NoProfile -Command \"$root = (& git rev-parse --show-toplevel).Trim(); & (Join-Path $root 'scripts\\governance-host-operation-hook.ps1') -HostName codex -ProjectRoot $root\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

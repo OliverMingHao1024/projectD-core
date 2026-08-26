@@ -1,0 +1,245 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://projectd.local/schemas/governance-operation-logs.schema.json",
+  "title": "projectD privacy-preserving durable operation log",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "log_id",
+    "task_ref",
+    "host_run_id",
+    "case_id",
+    "privacy",
+    "started_at",
+    "runner_state",
+    "records"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "log_id": { "$ref": "#/$defs/slug" },
+    "task_ref": { "$ref": "#/$defs/slug" },
+    "host_run_id": { "$ref": "#/$defs/slug" },
+    "case_id": { "const": "interrupted-task-reads-checkpoint-before-resume" },
+    "privacy": { "$ref": "#/$defs/privacy" },
+    "started_at": { "type": "string", "format": "date-time" },
+    "completed_at": { "type": "string", "format": "date-time" },
+    "runner_state": { "$ref": "#/$defs/runnerState" },
+    "records": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1024,
+      "items": {
+        "oneOf": [
+          { "$ref": "#/$defs/operationStarted" },
+          { "$ref": "#/$defs/effectIntended" },
+          { "$ref": "#/$defs/effectResult" },
+          { "$ref": "#/$defs/operationFinished" }
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[A-Fa-f0-9]{64}$"
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "content_mode",
+        "redaction_status",
+        "contains_raw_prompt",
+        "contains_chain_of_thought",
+        "contains_secret_values",
+        "contains_private_data",
+        "contains_tool_arguments",
+        "contains_tool_output"
+      ],
+      "properties": {
+        "content_mode": { "const": "metadata-only" },
+        "redaction_status": { "const": "verified" },
+        "contains_raw_prompt": { "const": false },
+        "contains_chain_of_thought": { "const": false },
+        "contains_secret_values": { "const": false },
+        "contains_private_data": { "const": false },
+        "contains_tool_arguments": { "const": false },
+        "contains_tool_output": { "const": false }
+      }
+    },
+    "runnerState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "pending_effect_id", "last_sequence"],
+      "properties": {
+        "status": {
+          "enum": [
+            "open",
+            "replayable",
+            "requires-reconciliation",
+            "completed",
+            "failed",
+            "aborted"
+          ]
+        },
+        "pending_effect_id": {
+          "type": ["string", "null"],
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "last_sequence": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "operationStarted": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_id",
+        "sequence",
+        "previous_record_id",
+        "occurred_at",
+        "operation_id",
+        "type",
+        "operation_kind",
+        "authorization"
+      ],
+      "properties": {
+        "record_id": { "$ref": "#/$defs/slug" },
+        "sequence": { "type": "integer", "minimum": 1 },
+        "previous_record_id": { "type": "null" },
+        "occurred_at": { "type": "string", "format": "date-time" },
+        "operation_id": { "$ref": "#/$defs/slug" },
+        "type": { "const": "operation-started" },
+        "operation_kind": { "const": "run" },
+        "authorization": {
+          "enum": [
+            "contract-fixture",
+            "explicit-current-task",
+            "host-hook-policy"
+          ]
+        }
+      }
+    },
+    "effectIntended": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_id",
+        "sequence",
+        "previous_record_id",
+        "occurred_at",
+        "operation_id",
+        "type",
+        "effect_id",
+        "effect_kind",
+        "target",
+        "classification",
+        "authorized",
+        "authorization_basis",
+        "external",
+        "destructive",
+        "replay",
+        "argument_integrity"
+      ],
+      "properties": {
+        "record_id": { "$ref": "#/$defs/slug" },
+        "sequence": { "type": "integer", "minimum": 1 },
+        "previous_record_id": { "$ref": "#/$defs/slug" },
+        "occurred_at": { "type": "string", "format": "date-time" },
+        "operation_id": { "$ref": "#/$defs/slug" },
+        "type": { "const": "effect-intended" },
+        "effect_id": { "$ref": "#/$defs/slug" },
+        "effect_kind": {
+          "enum": [
+            "checkpoint-write",
+            "smoke-test",
+            "final-state-observation",
+            "durable-write",
+            "tool",
+            "external-action"
+          ]
+        },
+        "target": { "$ref": "#/$defs/slug" },
+        "classification": {
+          "enum": ["source", "control", "action", "evidence"]
+        },
+        "authorized": { "type": "boolean" },
+        "authorization_basis": {
+          "enum": [
+            "contract-fixture",
+            "explicit-current-task",
+            "host-policy-pending",
+            "unverified"
+          ]
+        },
+        "external": { "type": "boolean" },
+        "destructive": { "type": "boolean" },
+        "replay": { "enum": ["never", "safe"] },
+        "argument_integrity": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "effectResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_id",
+        "sequence",
+        "previous_record_id",
+        "occurred_at",
+        "operation_id",
+        "type",
+        "effect_id",
+        "result",
+        "evidence_code",
+        "authorization_evidence"
+      ],
+      "properties": {
+        "record_id": { "$ref": "#/$defs/slug" },
+        "sequence": { "type": "integer", "minimum": 1 },
+        "previous_record_id": { "$ref": "#/$defs/slug" },
+        "occurred_at": { "type": "string", "format": "date-time" },
+        "operation_id": { "$ref": "#/$defs/slug" },
+        "type": { "const": "effect-result" },
+        "effect_id": { "$ref": "#/$defs/slug" },
+        "result": {
+          "enum": ["succeeded", "failed", "interrupted", "unknown"]
+        },
+        "evidence_code": { "$ref": "#/$defs/slug" },
+        "authorization_evidence": {
+          "enum": [
+            "contract-fixture",
+            "explicit-current-task",
+            "host-permitted",
+            "not-authorized"
+          ]
+        }
+      }
+    },
+    "operationFinished": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_id",
+        "sequence",
+        "previous_record_id",
+        "occurred_at",
+        "operation_id",
+        "type",
+        "outcome"
+      ],
+      "properties": {
+        "record_id": { "$ref": "#/$defs/slug" },
+        "sequence": { "type": "integer", "minimum": 1 },
+        "previous_record_id": { "$ref": "#/$defs/slug" },
+        "occurred_at": { "type": "string", "format": "date-time" },
+        "operation_id": { "$ref": "#/$defs/slug" },
+        "type": { "const": "operation-finished" },
+        "outcome": { "enum": ["completed", "failed", "aborted"] }
+      }
+    }
+  }
+}

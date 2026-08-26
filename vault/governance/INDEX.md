@@ -42,8 +42,9 @@
   原始 PM/SA/SD 決策脈絡見歷史文件 `plan-skill-import.md`／`prd-skill-import.md`／
   `sa-analysis-skill-import.md`。
 - Governance Evals v2：Phase 1／2 已完成；Phase 3 的 Codex／Claude adapter contracts、
-  Claude paired-pilot run-plan integrity 與 paired upgrade gate 已完成，live runner／observers、
-  真實 pilots／paired evidence、Copilot 與 cross-host matrix 尚待後續；
+  durable operation-log schema／pure reducer／manual-drive crash contract、repo-local synchronous
+  PreToolUse／PostToolUse hook seam、Claude paired-pilot run-plan integrity 與 paired upgrade gate
+  已完成；真實 runner／observers、授權 pilots／paired evidence、Copilot 與 cross-host matrix 尚待後續；
   Phase 4 尚未開始。主規格見
   `../../docs/specs/governance-evals-v2.md`，研究依據見
   `../../docs/research/ai-governance-gap-analysis-2026-08-21.md`，採用證據見

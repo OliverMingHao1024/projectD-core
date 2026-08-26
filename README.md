@@ -191,7 +191,7 @@ pwsh -File scripts/projectd-check.ps1 -Json
 pwsh -File scripts/projectd-check.ps1 -GovernanceEvals
 ```
 
-`-GovernanceEvals` 會分別檢查七層：
+`-GovernanceEvals` 會分別檢查九層：
 
 - structural eval：重要治理文字與入口同步契約；
 - behavior catalog：provider-neutral 的真實 trial／tool event／final-state 評估契約；
@@ -202,6 +202,11 @@ pwsh -File scripts/projectd-check.ps1 -GovernanceEvals
   rollback 演練；
 - host trial contract：驗證 Codex-first 的 host provenance、模型／CLI 版本、來源 integrity、
   checkpoint recovery 與 unavailable metrics 語意，不會在 CI 啟動真實模型；
+- durable operation log：以 metadata-only intent/result records、pure reducer、current replay
+  declaration 與 10 個 manual-drive action prefixes 驗證 crash/reopen/recovery；
+- Codex／Claude host hooks：以同步 PreToolUse 在 effect 前寫入 intent、PostToolUse／
+  PostToolUseFailure 在 effect 後寫入結果；契約驗證隱私、冪等、identity mismatch fail-closed
+  與每個 tool call 的獨立 single-writer log，不會在 CI 啟動真實 host；
 - paired upgrade gate：用相同 catalog／harness 的 baseline 與 candidate manifest 做離線比較，
   high／critical 失敗或整體通過數下降都會阻擋 promotion。
 - Claude paired-pilot run plan：固定完整模型 ID、instruction／fixture digest、案例 observer、
@@ -269,6 +274,39 @@ pwsh -File scripts/claude-governance-adapter.ps1 `
 Claude adapter 會讀取本機 `claude --version`，但同樣不讀取 session、prompt、reasoning 或
 credential，也不會自行呼叫 Claude。真實 runner 必須先具備固定 instruction digest 與獨立
 observable-state grader，不能把模型自述直接當作成功證據。
+
+Phase 3 的 durable-operation vertical slice 另以 metadata-only operation log 補足「effect 前
+intent、effect 後 result」與 pure reducer。Repo-local `.codex/hooks.json` 與
+`.claude/settings.json` 已把支援的 tool path 接至同步共用 handler；handler 只保存不可逆識別雜湊、
+分類、授權狀態與結果代碼，不保存原始 tool arguments、output 或 error。Composite recovery gate 同時要求 operation state 可續跑、checkpoint
+case 通過、current workspace 相符、smoke test 通過，以及三個 recovery effects 都已有成功結果：
+
+```powershell
+pwsh -File scripts/governance-operation-log-eval.ps1 `
+  -OperationLogPath .local/governance/operation-log.json `
+  -HostManifestPath .local/governance/host-trial.json `
+  -CurrentSafeEffectKinds checkpoint-write,smoke-test,final-state-observation `
+  -VerifyCurrentWorkspace
+```
+
+共用 handler 位於 `scripts/governance-host-operation-hook.ps1`，每個 tool call 的 evidence 寫到
+Git ignored 的 `.local/governance/operation-hooks/<host>/`。Pre hook 成功時不輸出 allow decision，
+因此不會略過 host 原有的 permission flow；無法先落盤或 identity 不一致時 exit 2、fail closed。
+Repo-local hook 仍須經 host 的 project trust 機制啟用；Codex 會按 hook definition hash 要求檢視，
+可用 `/hooks` 確認來源與信任狀態。未信任、被使用者／管理政策停用，或 host 未載入設定時，
+contract 通過也不代表 live interception 已生效。Codex 同一事件的多個 matching hooks 會並行
+啟動，因此其他 hook 自身造成的 side effect 不在這份 operation log 的 exactly-once 邊界。
+Codex 官方列明 hosted tools（例如 WebSearch）及部分 specialized paths 不受此 hook 機制涵蓋；
+Claude 的 `@` references 與 `EndConversation` 亦不在 hook coverage。Host policy 是否真的完成
+task-scoped authorization 仍屬未驗證，所以這類 evidence 固定為 `host-hook-unverified`、
+`authorization_verified=false`，不能單獨令 `safe_to_resume=true`。
+
+Operation log schema 位於 `evals/schemas/governance-operation-logs.schema.json`。持久內容只允許
+分類、授權、target code、argument digest、replay class 與 result code，不允許 raw prompt、
+reasoning、tool arguments/output、秘密或私人資料。`safe` replay 只在 persisted declaration 與
+current declaration 同時允許，且 effect 非 external／destructive 時成立；其他中斷狀態一律
+要求 reconciliation。Hook contract 證明 repo-local handler 的 deterministic pre/post durability；
+它不等同真實模型 pilot、完整 observer 或所有 host tool path 的 runtime 證明。
 
 開始 pilot 前，先建立 repo-local、通常位於 `.local/governance/` 的 paired-pilot JSON，並執行：
 
