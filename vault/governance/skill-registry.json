@@ -697,11 +697,11 @@
       "source_path": "agents/skills/gpt-image-2-style-library",
       "observed_commit": "9a7b2e9c39f816d6c699c2a133e11b6d8bfdc464",
       "upstream_digest": "sha256:98519a3bfd28c5ab5630771a536f18fbe3627123cd7dd7a8801fa5da166a60f9",
-      "lifecycle_status": "held",
-      "target": null,
-      "canonical_name": null,
+      "lifecycle_status": "adopted",
+      "target": "core/skills/gpt-image-2-style-library",
+      "canonical_name": "gpt-image-2-style-library",
       "decision_record": "freestylefly/awesome-gpt-image-2 — agents/skills/gpt-image-2-style-library",
-      "migration_status": "needs-review"
+      "migration_status": "complete"
     }
   ]
 }
