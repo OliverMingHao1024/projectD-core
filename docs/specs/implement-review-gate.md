@@ -77,6 +77,6 @@ and behavior-affecting configuration changes.
 
 ## References
 
-- [Targeted Skill intake ADR](../adr/0001-targeted-skill-intake.md)
+- [Targeted Skill intake ADR](../adr/0016-targeted-skill-intake.md)
 - [Upstream implement Skill](https://github.com/mattpocock/skills/tree/ed37663cc5fbef691ddfecd080dff42f7e7e350d/skills/engineering/implement)
 - [Upstream code-review Skill](https://github.com/mattpocock/skills/tree/ed37663cc5fbef691ddfecd080dff42f7e7e350d/skills/engineering/code-review)

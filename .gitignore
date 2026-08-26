@@ -2,5 +2,8 @@ fleet/fleet.json
 .local/
 __pycache__/
 *.py[cod]
+.coverage
+.pytest_cache/
+.ruff_cache/
 .claude/output-styles/
 .claude/settings.local.json
