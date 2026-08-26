@@ -5,7 +5,6 @@ import re
 import unittest
 from pathlib import Path
 
-
 CORE = Path(__file__).parents[1]
 DIGEST_PATTERN = re.compile(r"^sha256:[0-9a-f]{64}$")
 

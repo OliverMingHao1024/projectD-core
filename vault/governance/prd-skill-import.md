@@ -1,7 +1,7 @@
 # PRD：從 GitHub 引入高星 Skill 的可重複機制
 
 > **歷史 PRD**：現行定向搜尋、路徑級候選、registry 與更新檢查架構見
-> `../../docs/adr/0001-targeted-skill-intake.md`。本檔不再是現行行為契約。
+> `../../docs/adr/0016-targeted-skill-intake.md`。本檔不再是現行行為契約。
 
 > 本文件經 `/grill-me` 逐項確認決策後，由 `pm` agent 整理成正式 PRD。
 

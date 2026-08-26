@@ -4,7 +4,6 @@ import json
 import unittest
 from pathlib import Path
 
-
 CORE = Path(__file__).parents[1]
 
 

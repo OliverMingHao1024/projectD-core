@@ -1,7 +1,7 @@
 # SA 技術分析：從 GitHub 引入高星 Skill 的可重複機制
 
 > **歷史分析**：預設廣掃、repo 級 ID 與「外部參考型／pack」落點判準已被
-> `../../docs/adr/0001-targeted-skill-intake.md` 取代；保留本檔供追溯。
+> `../../docs/adr/0016-targeted-skill-intake.md` 取代；保留本檔供追溯。
 
 對應 PRD：`vault/governance/prd-skill-import.md`
 分析者：SA agent／日期：2026-07-24
