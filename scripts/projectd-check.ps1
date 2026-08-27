@@ -673,6 +673,8 @@ if($null -eq $pwsh){
     Add-Result 'skill-scout-contract' $false 'pwsh executable not found'
     Add-Result 'skill-update-check-contract' $false 'pwsh executable not found'
     Add-Result 'claude-switch-account-contract' $false 'pwsh executable not found'
+    Add-Result 'usage-contract' $false 'pwsh executable not found'
+    Add-Result 'codex-usage-ledger-contract' $false 'pwsh executable not found'
 }else{
     Child 'fleet-inspect-contract' {
         & $pwsh.Source -NoProfile -File (
@@ -695,6 +697,16 @@ if($null -eq $pwsh){
     Child 'claude-switch-account-contract' {
         & $pwsh.Source -NoProfile -File (
             Join-Path $core 'scripts\tests\claude-switch-account.contract.ps1'
+        )
+    }
+    Child 'usage-contract' {
+        & $pwsh.Source -NoProfile -File (
+            Join-Path $core 'scripts\tests\usage-contract.contract.ps1'
+        )
+    }
+    Child 'codex-usage-ledger-contract' {
+        & $pwsh.Source -NoProfile -File (
+            Join-Path $core 'scripts\tests\codex-usage-ledger.contract.ps1'
         )
     }
 }

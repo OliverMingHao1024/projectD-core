@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://projectd.local/schemas/usage-account-profiles.schema.json",
+  "title": "projectD local usage account profiles",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "accounts"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "accounts": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": { "$ref": "#/$defs/account" }
+    }
+  },
+  "$defs": {
+    "account": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "account_id", "alias", "aliases", "email"],
+      "properties": {
+        "provider": { "enum": ["codex", "claude"] },
+        "account_id": {
+          "type": "string",
+          "pattern": "^acct_[a-f0-9]{32}$"
+        },
+        "alias": { "$ref": "#/$defs/alias" },
+        "aliases": {
+          "type": "array",
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/alias" }
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "maxLength": 254
+        }
+      }
+    },
+    "alias": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "maxLength": 64
+    }
+  }
+}

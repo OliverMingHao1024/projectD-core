@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://projectd.local/schemas/usage-device-profile.schema.json",
+  "title": "projectD local usage device profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "device_id", "environment"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "device_id": {
+      "type": "string",
+      "pattern": "^dev_[a-f0-9]{32}$"
+    },
+    "environment": { "enum": ["work", "home", "other"] }
+  }
+}

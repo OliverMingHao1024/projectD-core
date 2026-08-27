@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://projectd.local/schemas/codex-usage-projection.schema.json",
+  "title": "projectD metadata-only Codex completed-turn usage projection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source",
+    "captured_at",
+    "occurred_at",
+    "turn_status",
+    "thread_id",
+    "turn_id",
+    "model",
+    "usage"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "source": { "const": "codex-app-server" },
+    "captured_at": { "type": "string", "format": "date-time" },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "turn_status": { "const": "completed" },
+    "thread_id": { "$ref": "#/$defs/providerId" },
+    "turn_id": { "$ref": "#/$defs/providerId" },
+    "model": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$"
+    },
+    "usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input_tokens",
+        "cached_input_tokens",
+        "output_tokens",
+        "reasoning_tokens"
+      ],
+      "properties": {
+        "input_tokens": { "$ref": "#/$defs/tokenCount" },
+        "cached_input_tokens": { "$ref": "#/$defs/tokenCount" },
+        "output_tokens": { "$ref": "#/$defs/tokenCount" },
+        "reasoning_tokens": { "$ref": "#/$defs/tokenCount" },
+        "cache_creation_tokens": { "$ref": "#/$defs/tokenCount" }
+      }
+    }
+  },
+  "$defs": {
+    "providerId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "tokenCount": {
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}
