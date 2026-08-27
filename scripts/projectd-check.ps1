@@ -33,6 +33,7 @@ function Get-SkillCatalogCheck {
     $coreSkillRoot = [IO.Path]::GetFullPath((Join-Path $Core 'core\skills'))
     $globalDiscoveryChars = 0
     $globalDiscoveryBudget = 6000
+    $perSkillDiscoveryBudget = 260
     $bad = @()
     $duplicateNames = @(
         $skills | Group-Object Name | Where-Object Count -GT 1
@@ -96,11 +97,19 @@ function Get-SkillCatalogCheck {
                 '^description:\s*(.+?)\s*$'
             ).Groups[1].Value
             $catalogPath = [IO.Path]::GetRelativePath($Core, $skillPath)
-            $globalDiscoveryChars += (
+            $perSkillChars = (
                 $skillDirectory.Name.Length +
                 $description.Length +
                 $catalogPath.Length
             )
+            if ($perSkillChars -gt $perSkillDiscoveryBudget) {
+                $bad += (
+                    "$($skillDirectory.Name): discovery metadata is " +
+                    "$perSkillChars chars; per-skill budget is " +
+                    "$perSkillDiscoveryBudget (trim the description)"
+                )
+            }
+            $globalDiscoveryChars += $perSkillChars
         }
     }
     if ($globalDiscoveryChars -gt $globalDiscoveryBudget) {
@@ -114,13 +123,17 @@ function Get-SkillCatalogCheck {
             name = 'skill-catalog'; passed = $false; message = ($bad -join '; ')
         }
     }
+    $discoveryMessage = (
+        "$($skills.Count) canonical skill(s) valid; global discovery " +
+        "$globalDiscoveryChars/$globalDiscoveryBudget chars"
+    )
+    if ($globalDiscoveryChars -ge ($globalDiscoveryBudget * 0.8)) {
+        $discoveryMessage += ' [WARN: at or above 80% of budget]'
+    }
     return [pscustomobject]@{
         name = 'skill-catalog'
         passed = $true
-        message = (
-            "$($skills.Count) canonical skill(s) valid; global discovery " +
-            "$globalDiscoveryChars/$globalDiscoveryBudget chars"
-        )
+        message = $discoveryMessage
     }
 }
 
@@ -337,10 +350,14 @@ function Get-SessionInitBudgetCheck {
         $lines += @([IO.File]::ReadAllLines($fullPath)).Count
     }
     $budget = 10KB
+    $message = "$bytes/$budget bytes across $lines lines"
+    if ($bytes -le $budget -and $bytes -ge ($budget * 0.8)) {
+        $message += ' [WARN: at or above 80% of budget]'
+    }
     return [pscustomobject]@{
         name = 'session-init-budget'
         passed = ($bytes -le $budget)
-        message = "$bytes/$budget bytes across $lines lines"
+        message = $message
     }
 }
 
