@@ -131,6 +131,61 @@ function ConvertTo-ProjectDCodexUsageEvent {
         -Metrics $metrics
 }
 
+function ConvertTo-ProjectDClaudeUsageEvent {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]$Projection,
+        [Parameter(Mandatory)]$Identity
+    )
+
+    Assert-UsageLedgerSchemaValue `
+        -Value $Projection `
+        -SchemaFileName 'claude-usage-projection.schema.json' `
+        -Label 'Claude usage projection'
+    if (@(Find-SensitiveValue $Projection).Count -gt 0) {
+        throw 'Claude usage projection contains sensitive-looking metadata.'
+    }
+    if (
+        [string]$Identity.provider -cne 'claude' -or
+        [string]$Identity.verification_status -cne 'verified'
+    ) {
+        throw 'Claude usage ingestion requires a verified Claude identity.'
+    }
+
+    $identityMaterial = @(
+        'claude',
+        [string]$Projection.session_id,
+        [string]$Projection.turn_id
+    ) | ConvertTo-Json -Compress
+    $digest = Get-UsageLedgerSha256 -Text $identityMaterial
+    $metrics = [ordered]@{
+        input_tokens = $Projection.usage.input_tokens
+        cached_input_tokens = $Projection.usage.cached_input_tokens
+        output_tokens = $Projection.usage.output_tokens
+        reasoning_tokens = $Projection.usage.reasoning_tokens
+    }
+    if (
+        $Projection.usage.PSObject.Properties.Name -ccontains
+            'cache_creation_tokens'
+    ) {
+        $metrics.cache_creation_tokens = (
+            $Projection.usage.cache_creation_tokens
+        )
+    }
+
+    $occurred = ConvertTo-UsageLedgerUtcTimestamp `
+        -Value $Projection.occurred_at -Label 'OccurredAt'
+    return New-ProjectDUsageEvent `
+        -EventId "evt_claude_$digest" `
+        -SourceEventId "claude_turn_$digest" `
+        -SessionId ([string]$Projection.session_id) `
+        -TurnId ([string]$Projection.turn_id) `
+        -OccurredAt $occurred.ToString('o') `
+        -Identity $Identity `
+        -Model ([string]$Projection.model) `
+        -Metrics $metrics
+}
+
 function ConvertTo-ProjectDCodexQuotaSnapshot {
     [CmdletBinding()]
     param(
@@ -553,6 +608,7 @@ function Write-ProjectDCodexQuotaSnapshot {
 
 Export-ModuleMember -Function @(
     'ConvertTo-ProjectDCodexUsageEvent',
+    'ConvertTo-ProjectDClaudeUsageEvent',
     'ConvertTo-ProjectDCodexQuotaSnapshot',
     'Write-ProjectDUsageLedgerEvent',
     'Write-ProjectDCodexQuotaSnapshot'

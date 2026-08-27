@@ -1,6 +1,6 @@
 # Codex／Claude Token 用量監控
 
-- 狀態：approved / Phase 1 contract + Codex local ledger ingestion implemented
+- 狀態：approved / Phase 1 contract + Codex and Claude local ledger ingestion implemented
 - Parent tickets：[#38](https://github.com/OliverMingHao1024/projectD-core/issues/38)–[#44](https://github.com/OliverMingHao1024/projectD-core/issues/44)
 - 實作順序：identity/event contract → Codex ledger → Claude ledger → source-side export gate → cross-device merge → reports → rollout
 
@@ -149,11 +149,43 @@ Quota snapshot 只保存 limit/window ID、使用百分比、window 長度與 re
 描述、方案訊息、email 或 per-turn token 欄位；命令輸出也只回報 `inserted`、`updated` 或
 `replayed` 狀態，與 token ledger 分開呈現。
 
+## Claude local ledger
+
+Claude importer 接受一份已從本機 Claude Code session transcript
+（`~/.claude/projects/<project>/<session-id>.jsonl`）萃取出的單一 completed-turn
+projection：每筆 assistant 訊息記錄含 `message.usage`（`input_tokens`、
+`cache_creation_input_tokens`、`cache_read_input_tokens`、`output_tokens`、
+`output_tokens_details.thinking_tokens`）、`message.model`、`sessionId` 與訊息
+`uuid`。萃取步驟只允許複製這些 metadata 欄位到 projection，不得複製 `content`、
+`thinking` 區塊文字或任何 tool 輸入輸出。
+
+Importer 只讀已存在的本機 JSON，不啟動 `claude` CLI、不讀取 transcript 全文，也不進行
+網路呼叫。每個 `session_id + turn_id`（採用該筆訊息的 `uuid`）會產生確定性的事件 ID；
+相同內容重播不重複寫入，同一 ID 若出現不同內容則 fail closed。Ledger 與 Codex 共用同一套
+`UsageLedger.psm1` 寫入器，但各自使用獨立檔案：
+
+- `.local/usage/claude-ledger.jsonl`：不含 email 與對話內容的 raw usage ledger。
+
+匯入範例：
+
+```powershell
+pwsh -NoProfile -File scripts/claude-usage-import.ps1 `
+  -ProjectionPath .local/capture/claude-turn.json `
+  -AccountReadPath .local/capture/claude-account-read.json
+```
+
+`AccountReadPath` 指向的檔案是 `{ auth: <claude auth status --json 原始輸出>,
+environmentState: { apiBilling, thirdParty } }`；identity 規則與判定與現有
+`claude-switch-account` Skill 完全一致（見上方 Identity rules），只有 identity 為
+`verified` 時才會寫入。目前沒有 Claude 官方 quota/rate-limit window 的對等本機
+snapshot（Claude Code 未提供對應的本機可讀 API），此範圍留待未來需求出現再評估。
+
 ## Verification
 
 ```powershell
 pwsh -NoProfile -File scripts/tests/usage-contract.contract.ps1
 pwsh -NoProfile -File scripts/tests/codex-usage-ledger.contract.ps1
+pwsh -NoProfile -File scripts/tests/claude-usage-ledger.contract.ps1
 pwsh -NoProfile -File scripts/tests/claude-switch-account.contract.ps1
 pwsh -NoProfile -File scripts/projectd-check.ps1 -SkipFleet -SkipGlobal -SkipWiring
 ```
@@ -168,10 +200,11 @@ pwsh -NoProfile -File scripts/claude-account.ps1 -Action Status
 
 ## Current boundary
 
-目前已建立 contract 與 Codex completed-turn 本機 ingestion seam，但尚不修改使用者層級的
-Codex OTel 設定，也不啟動 Codex App Server、collector、Claude monitoring、跨裝置同步或報表。
-Live capture 與 rollout 留在 #44；後續 tickets 必須沿用本契約，且所有 raw ledger 仍只保存在
-Git-ignored 的本機資料區。
+目前已建立 contract、Codex completed-turn 本機 ingestion seam，與 Claude Code
+completed-turn 本機 ingestion seam，但尚不修改使用者層級的 Codex OTel 設定、不自動從
+Claude transcript 萃取 projection、也不啟動 Codex App Server、collector、跨裝置同步或
+報表。Live capture（含自動萃取 Claude projection 的步驟）與 rollout 留在 #44；後續
+tickets 必須沿用本契約，且所有 raw ledger 仍只保存在 Git-ignored 的本機資料區。
 
 ## References
 
