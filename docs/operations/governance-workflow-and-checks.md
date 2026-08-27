@@ -55,11 +55,11 @@ CI 去重、Fleet catalog、文字掃描與 wiring。`-GovernanceEvals` 再執�
 2. behavior catalog；
 3. asset inventory；
 4. security trace replay；
-5. host trial contract；
-6. durable operation-log contract；
-7. Codex／Claude host hook contract；
+5. Claude paired-pilot run-plan contract；
+6. Codex／Claude host hook contract；
+7. host trial contract；
 8. paired upgrade gate；
-9. Claude paired-pilot run-plan contract。
+9. durable operation-log contract。
 
 所有檢查均為 deterministic/offline；contract 通過不代表真實模型、live hook 或完整 host
 coverage 已驗證。詳細限制見 [`governance-evals-v2-phase-3.md`](../specs/governance-evals-v2-phase-3.md)。
