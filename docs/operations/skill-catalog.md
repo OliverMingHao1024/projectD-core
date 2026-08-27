@@ -2,7 +2,7 @@
 
 ## 使用方式
 
-projectD 目前維護 43 個 Canonical Skill：34 個跨技術棧 Skill 與 9 個技術棧
+projectD 目前維護 44 個 Canonical Skill：35 個跨技術棧 Skill 與 9 個技術棧
 Pack。通常只要用自然語言描述工作，Agent 就會依 Skill 的 description 自動
 路由；需要明確指定時可說：
 
@@ -57,6 +57,7 @@ Pack。通常只要用自然語言描述工作，Agent 就會依 Skill 的 descr
 | [`select-frontend-capability`](../../core/skills/select-frontend-capability/SKILL.md) | 以需求選擇或替換前端能力與依賴。 | 選 UI primitive、表單、狀態、動效、圖表或 styling 方案。 |
 | [`show-me`](../../core/skills/show-me/SKILL.md) | 用最小且忠實的視覺呈現流程、結構、比較或狀態變化。 | 明確要求看圖、流程或關係，或短文無法清楚表達時。 |
 | [`visual-direction`](../../core/skills/visual-direction/SKILL.md) | 在實作前建立或審查有證據的視覺方向。 | 新介面、改版或視覺過於普通且不一致。 |
+| [`gpt-image-2-style-library`](../../core/skills/gpt-image-2-style-library/SKILL.md) | 從 awesome-gpt-image-2 style library 選定 GPT-Image2 視覺風格與提示詞模板。 | 需要撰寫、改寫或分類 GPT-Image2（或相容模型）的圖像生成提示詞。 |
 
 ## Skill 治理
 
