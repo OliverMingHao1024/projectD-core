@@ -111,10 +111,43 @@
       "owner": "projectD-core",
       "status": "active",
       "risk_tier": "medium",
-      "source": { "type": "repository-local", "reference": "scripts/projectd-check.ps1", "version": "git-tracked", "integrity": "sha256:272c62ef836d776e01b2af48d542b1e153ac13208eb3c4bc8e04d6bc0fed20e3" },
+      "source": { "type": "repository-local", "reference": "scripts/projectd-check.ps1", "version": "git-tracked", "integrity": "sha256:694d0ea81000a615061bff9b9512497381a35a311cc8a96ec0ffa271cb6ce5da" },
       "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "read-only-check", "isolation": "bounded-repository-roots", "source_sink_policy": "no-external-communication", "disable_procedure": "Remove the check from the local hook and CI workflow, retaining the previous git version for rollback." },
       "related_eval_cases": ["failed-verification-cannot-claim-success"]
+    },
+    {
+      "id": "tool-usage-ledger",
+      "kind": "tool",
+      "owner": "projectD-core",
+      "status": "active",
+      "risk_tier": "high",
+      "source": { "type": "repository-local", "reference": "scripts/lib/UsageLedger.psm1", "version": "phase-1-local-usage", "integrity": "sha256:d522e33506e570e2d6e1c230c76300c9cc6396ac2f026f8a9980d17f5d56ae8d" },
+      "capabilities": { "read": true, "write": true, "destructive": false, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
+      "controls": { "approval_policy": "explicit-local-import", "isolation": "single-writer-gitignored-local-output", "source_sink_policy": "strict-metadata-schemas-verified-identity-no-content-or-email", "disable_procedure": "Stop the Codex usage and quota import entry points, preserve or remove ignored local data according to the operator retention policy, and revert this module." },
+      "related_eval_cases": ["untrusted-content-cannot-exfiltrate-secrets", "failed-verification-cannot-claim-success"]
+    },
+    {
+      "id": "tool-codex-usage-import",
+      "kind": "tool",
+      "owner": "projectD-core",
+      "status": "active",
+      "risk_tier": "high",
+      "source": { "type": "repository-local", "reference": "scripts/codex-usage-import.ps1", "version": "phase-1-completed-turn-ledger", "integrity": "sha256:4527e3706d05df45594620d50bcf481d356b6a83fde8fac200ef5f7f98f05be7" },
+      "capabilities": { "read": true, "write": true, "destructive": false, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
+      "controls": { "approval_policy": "explicit-local-import", "isolation": "bounded-local-input-and-gitignored-output", "source_sink_policy": "verified-account-metadata-only-no-model-or-network-call", "disable_procedure": "Stop invoking the importer and retain or remove .local/usage/codex-ledger.jsonl according to the operator retention policy." },
+      "related_eval_cases": ["source-does-not-authorize-action", "untrusted-content-cannot-exfiltrate-secrets"]
+    },
+    {
+      "id": "tool-codex-quota-import",
+      "kind": "tool",
+      "owner": "projectD-core",
+      "status": "active",
+      "risk_tier": "high",
+      "source": { "type": "repository-local", "reference": "scripts/codex-quota-import.ps1", "version": "phase-1-quota-snapshot", "integrity": "sha256:79439aef6c8ff9a18c6db2fb049e1f4c2880f1cee7a2bc230b2d8fe8b5fe4b85" },
+      "capabilities": { "read": true, "write": true, "destructive": false, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
+      "controls": { "approval_policy": "explicit-local-import", "isolation": "bounded-local-input-and-separate-gitignored-snapshot", "source_sink_policy": "verified-account-quota-metadata-only-no-token-ledger-mixing", "disable_procedure": "Stop invoking the quota importer and retain or remove .local/usage/codex-quota-snapshot.json according to the operator retention policy." },
+      "related_eval_cases": ["source-does-not-authorize-action", "untrusted-content-cannot-exfiltrate-secrets"]
     },
     {
       "id": "tool-governance-common",

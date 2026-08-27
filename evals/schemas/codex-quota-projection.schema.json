@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://projectd.local/schemas/codex-quota-projection.schema.json",
+  "title": "projectD metadata-only Codex quota projection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "source", "captured_at", "windows"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "source": { "const": "codex-app-server" },
+    "captured_at": { "type": "string", "format": "date-time" },
+    "windows": {
+      "type": "array",
+      "maxItems": 32,
+      "items": { "$ref": "#/$defs/window" }
+    }
+  },
+  "$defs": {
+    "limitId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+    },
+    "window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "limit_id",
+        "window",
+        "used_percent",
+        "window_duration_minutes",
+        "resets_at"
+      ],
+      "properties": {
+        "limit_id": { "$ref": "#/$defs/limitId" },
+        "window": { "enum": ["primary", "secondary"] },
+        "used_percent": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "window_duration_minutes": {
+          "type": ["integer", "null"],
+          "minimum": 1
+        },
+        "resets_at": {
+          "type": ["integer", "null"],
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

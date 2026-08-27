@@ -91,6 +91,12 @@ Canonical Skill 位於：
 core/skills/claude-switch-account/
 ```
 
+穩定的 repository 公開入口（委派到上述 canonical Skill）為：
+
+```powershell
+& scripts/claude-account.ps1 -Action Status
+```
+
 本機接線狀態可用下列命令檢查：
 
 ```powershell
@@ -125,6 +131,7 @@ core/skills/claude-switch-account/
 ## 相關檔案
 
 - `core/skills/claude-switch-account/SKILL.md`：Agent 操作規則。
+- `scripts/claude-account.ps1`：穩定公開入口；只委派到 canonical Skill。
 - `core/skills/claude-switch-account/scripts/claude-account.ps1`：正式狀態檢查入口。
 - `core/skills/claude-switch-account/scripts/claude-account-core.ps1`：驗證核心。
 - `scripts/tests/claude-switch-account.contract.ps1`：契約測試。

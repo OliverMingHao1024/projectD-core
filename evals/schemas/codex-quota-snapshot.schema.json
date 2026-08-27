@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://projectd.local/schemas/codex-quota-snapshot.schema.json",
+  "title": "projectD de-identified Codex quota snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "captured_at",
+    "provider",
+    "identity",
+    "windows"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "captured_at": { "type": "string", "format": "date-time" },
+    "provider": { "const": "codex" },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "verification_status",
+        "account_id",
+        "account_alias",
+        "device_id",
+        "environment",
+        "billing_source"
+      ],
+      "properties": {
+        "verification_status": { "const": "verified" },
+        "account_id": {
+          "type": "string",
+          "pattern": "^acct_[a-f0-9]{32}$"
+        },
+        "account_alias": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "device_id": {
+          "type": "string",
+          "pattern": "^dev_[a-f0-9]{32}$"
+        },
+        "environment": { "enum": ["work", "home", "other"] },
+        "billing_source": {
+          "enum": [
+            "subscription",
+            "api-key",
+            "third-party-cloud",
+            "unavailable"
+          ]
+        }
+      }
+    },
+    "windows": {
+      "type": "array",
+      "maxItems": 32,
+      "items": { "$ref": "#/$defs/window" }
+    }
+  },
+  "$defs": {
+    "window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "limit_id",
+        "window",
+        "used_percent",
+        "window_duration_minutes",
+        "resets_at"
+      ],
+      "properties": {
+        "limit_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+        },
+        "window": { "enum": ["primary", "secondary"] },
+        "used_percent": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "window_duration_minutes": {
+          "type": ["integer", "null"],
+          "minimum": 1
+        },
+        "resets_at": {
+          "type": ["integer", "null"],
+          "minimum": 0
+        }
+      }
+    }
+  }
+}
