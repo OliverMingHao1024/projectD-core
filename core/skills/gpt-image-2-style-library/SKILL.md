@@ -1,6 +1,6 @@
 ---
 name: gpt-image-2-style-library
-description: Choose GPT-Image2 / gpt-image-2 visual styles and industrial prompt templates from the awesome-gpt-image-2 style library. Use when an agent needs to create, rewrite, classify, or improve image-generation prompts with repository-backed templates, categories, style tags, scene tags, pitfalls, and example cases.
+description: Choose GPT-Image2 visual styles and prompt templates from the awesome-gpt-image-2 library. Use when writing or classifying image-generation prompts.
 ---
 
 # GPT-Image2 Style Library
