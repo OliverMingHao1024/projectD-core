@@ -51,7 +51,7 @@ $policy = Read-ProjectDUsageExportPolicy -Path $PolicyPath
 
 try {
     $allRecords = [Collections.Generic.List[object]]::new()
-    foreach ($ledger in @($LedgerPath)) {
+    foreach ($ledger in @($LedgerPath | Where-Object { $_ })) {
         foreach ($record in @(Read-ProjectDUsageLedgerEvents -Path $ledger)) {
             $occurred = [DateTimeOffset]$record.event.occurred_at
             if ($occurred -ge $periodStartUtc -and $occurred -lt $periodEndUtc) {

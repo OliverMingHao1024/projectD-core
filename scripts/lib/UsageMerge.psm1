@@ -35,6 +35,19 @@ function Assert-UsageMergeSchemaValue {
     }
 }
 
+function ConvertTo-UsageMergeUtcTimestamp {
+    <#
+    ConvertFrom-Json auto-detects ISO 8601 strings and returns them as
+    culture-aware [DateTime] values, not strings. Casting one of those
+    with a bare [string] cast then formats it using the current
+    culture (e.g. "08/01/2026 00:00:00"), silently corrupting the
+    canonical UTC ISO-8601 representation. Route every date-time field
+    that may have crossed a JSON round-trip through this instead.
+    #>
+    param([Parameter(Mandatory)]$Value)
+    return ([DateTimeOffset]$Value).ToUniversalTime().ToString('o')
+}
+
 function Get-ProjectDUsageBatchDigest {
     param([Parameter(Mandatory)]$Batch)
     $canonical = $Batch | ConvertTo-Json -Depth 32 -Compress
@@ -74,7 +87,9 @@ function Get-UsageMergeRowKey {
     return (
         [string]$Row.alias + "`0" + [string]$Row.provider + "`0" +
         [string]$Row.model + "`0" + [string]$Row.device_id + "`0" +
-        [string]$Row.environment
+        [string]$Row.environment + "`0" +
+        (ConvertTo-UsageMergeUtcTimestamp $Row.period.start) + "`0" +
+        (ConvertTo-UsageMergeUtcTimestamp $Row.period.end)
     )
 }
 
@@ -146,6 +161,10 @@ function Merge-ProjectDUsageExportBatch {
             model = [string]$Row.model
             device_id = [string]$Row.device_id
             environment = [string]$Row.environment
+            period = [pscustomobject][ordered]@{
+                start = ConvertTo-UsageMergeUtcTimestamp $Row.period.start
+                end = ConvertTo-UsageMergeUtcTimestamp $Row.period.end
+            }
             run_count = [long]$Row.run_count
             sums = $sums
         }
@@ -156,7 +175,10 @@ function Merge-ProjectDUsageExportBatch {
         $rowIndex[(Get-UsageMergeRowKey $row)] = New-UsageMergeBucket -Row $row
     }
 
-    foreach ($row in @($Batch.rows)) {
+    foreach ($sourceRow in @($Batch.rows)) {
+        $row = $sourceRow | Select-Object *, @{
+            Name = 'period'; Expression = { $Batch.period }
+        } -ExcludeProperty period
         $key = Get-UsageMergeRowKey $row
         if (-not $rowIndex.Contains($key)) {
             $emptyRow = [pscustomobject][ordered]@{
@@ -165,6 +187,7 @@ function Merge-ProjectDUsageExportBatch {
                 model = $row.model
                 device_id = $row.device_id
                 environment = $row.environment
+                period = $row.period
                 run_count = 0
             }
             foreach ($name in $script:metricNames) {
@@ -190,7 +213,11 @@ function Merge-ProjectDUsageExportBatch {
 
     $totals = @(
         $rowIndex.Values |
-            Sort-Object -Property alias, provider, model, device_id, environment |
+            Sort-Object -Property @(
+                'alias', 'provider', 'model', 'device_id', 'environment',
+                @{ Expression = { $_.period.start } },
+                @{ Expression = { $_.period.end } }
+            ) |
             ForEach-Object {
                 $entry = $_
                 $out = [ordered]@{
@@ -199,6 +226,7 @@ function Merge-ProjectDUsageExportBatch {
                     model = $entry.model
                     device_id = $entry.device_id
                     environment = $entry.environment
+                    period = $entry.period
                     run_count = $entry.run_count
                 }
                 foreach ($name in $script:metricNames) {

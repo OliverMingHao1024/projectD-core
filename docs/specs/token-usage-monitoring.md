@@ -1,7 +1,7 @@
 # Codex／Claude Token 用量監控
 
 - 狀態：approved / Phase 1 contract + Codex and Claude local ledger ingestion +
-  source-side export gate + cross-device merge implemented
+  source-side export gate + cross-device merge + account-aware reports implemented
 - Parent tickets：[#38](https://github.com/OliverMingHao1024/projectD-core/issues/38)–[#44](https://github.com/OliverMingHao1024/projectD-core/issues/44)
 - 實作順序：identity/event contract → Codex ledger → Claude ledger → source-side export gate → cross-device merge → reports → rollout
 
@@ -109,6 +109,8 @@ Canonical schema：
 - `evals/schemas/usage-export-policy.schema.json`
 - `evals/schemas/usage-export-batch.schema.json`
 - `evals/schemas/usage-merge-state.schema.json`
+- `evals/schemas/usage-identity-diagnostic.schema.json`
+- `evals/schemas/usage-report.schema.json`
 
 Canonical module：`scripts/lib/UsageContract.psm1`。
 
@@ -234,6 +236,45 @@ allowlist、跨事件彙總與政策閘門，將 `.local/usage/*.jsonl` 裡已�
 - **UTC**：批次與合併狀態全程使用 UTC ISO 8601 時間戳；報表時區轉換與 Provider
   官方 quota reset 邊界的對應留待 #43 處理，本層不假設任何特定時區。
 
+## Account-aware reports
+
+`scripts/usage-report-run.ps1` produces a deterministic daily／weekly report,
+in one of two modes:
+
+- `-Mode local`：直接讀本機 ledger（`.local/usage/codex-ledger.jsonl`／
+  `claude-ledger.jsonl`），依 `day`／`week` 切 bucket，再依
+  provider／`alias`（帳號）／`device_id`／`environment`／`model` 分組。
+- `-Mode merged`：讀 `.local/usage/merge/merge-state.json` 的累加結果——
+  由於 #42 的 totals 已經保留每個匯出批次的 `period`，只要操作者固定用同一種
+  granularity（例如每天跑一次 export）產生批次，合併後仍能維持日期切分。
+
+兩種模式都輸出相同的 `evals/schemas/usage-report.schema.json` 形狀：
+`rows`（token 加總、estimated cost、runs，Provider 未提供的欄位固定
+`unavailable`，不用 0 或猜測值頂替）與 `quota_snapshots`（原樣帶入既有的
+`codex-quota-snapshot.json`，跟 `rows` 的本機 token 診斷完全分開呈現，兩者
+永遠不會被合併成同一個指標）分屬報表的兩個獨立區塊。
+
+`warnings` 陣列涵蓋四種型別：
+
+- `unknown_identity`／`account_mismatch`：來自 `codex-usage-import.ps1`／
+  `claude-usage-import.ps1` 在識別失敗時新寫入的
+  `.local/usage/diagnostics/identity-events.jsonl`（新增的
+  `Write-ProjectDUsageIdentityDiagnostic`，只在 identity 非 `verified` 時
+  才落地一筆不含 email／account_id／alias 的紀錄，import 本身仍照舊 fail
+  closed、不寫入 ledger）。
+- `data_gap`：在請求的期間內，任何一個 day／week bucket 完全沒有資料列，就
+  視為資料缺口並列出。
+- `anomalous_usage`：呼叫端可用 `-BaselineInputTokensPerRun`／
+  `-BaselineOutputTokensPerRun`／`-BaselineCostPerRun` 提供一個明確、確定性
+  的「每次 run」門檻；沒有提供門檻就不會產生任何 anomaly 警告——基準值永遠
+  由操作者明確給定，不是模型推論或統計學習出來的。
+
+報表產出後一樣會過內容 canary 掃描（沿用 `UsageExportGate` 的
+`Test-ProjectDUsageExportContentSafe`），逐項比對驗收條件：不揭露 email、
+organization、repository、path、prompt、session ID；相同輸入重跑會得到完全
+一致的 rows 與 warnings（`generated_at` 除外）；整條流程不呼叫模型或對外
+連線。
+
 ## Verification
 
 ```powershell
@@ -242,6 +283,7 @@ pwsh -NoProfile -File scripts/tests/codex-usage-ledger.contract.ps1
 pwsh -NoProfile -File scripts/tests/claude-usage-ledger.contract.ps1
 pwsh -NoProfile -File scripts/tests/usage-export-gate.contract.ps1
 pwsh -NoProfile -File scripts/tests/usage-merge.contract.ps1
+pwsh -NoProfile -File scripts/tests/usage-report.contract.ps1
 pwsh -NoProfile -File scripts/tests/claude-switch-account.contract.ps1
 pwsh -NoProfile -File scripts/projectd-check.ps1 -SkipFleet -SkipGlobal -SkipWiring
 ```

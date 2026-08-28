@@ -146,6 +146,8 @@ if (-not [string]::IsNullOrWhiteSpace($ExpectedAccountId)) {
     $identityArgs.ExpectedAccountId = $ExpectedAccountId
 }
 $identity = Resolve-ProjectDUsageIdentity @identityArgs
+Write-ProjectDUsageIdentityDiagnostic -Identity $identity -ProjectRoot $root `
+    | Out-Null
 $event = ConvertTo-ProjectDCodexUsageEvent `
     -Projection $projection -Identity $identity
 $result = Write-ProjectDUsageLedgerEvent `
