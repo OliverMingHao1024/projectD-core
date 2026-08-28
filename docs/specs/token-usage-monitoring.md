@@ -1,6 +1,7 @@
 # Codex／Claude Token 用量監控
 
-- 狀態：approved / Phase 1 contract + Codex and Claude local ledger ingestion implemented
+- 狀態：approved / Phase 1 contract + Codex and Claude local ledger ingestion +
+  source-side export gate implemented
 - Parent tickets：[#38](https://github.com/OliverMingHao1024/projectD-core/issues/38)–[#44](https://github.com/OliverMingHao1024/projectD-core/issues/44)
 - 實作順序：identity/event contract → Codex ledger → Claude ledger → source-side export gate → cross-device merge → reports → rollout
 
@@ -104,6 +105,9 @@ Canonical schema：
 - `evals/schemas/codex-usage-projection.schema.json`
 - `evals/schemas/codex-quota-projection.schema.json`
 - `evals/schemas/codex-quota-snapshot.schema.json`
+- `evals/schemas/claude-usage-projection.schema.json`
+- `evals/schemas/usage-export-policy.schema.json`
+- `evals/schemas/usage-export-batch.schema.json`
 
 Canonical module：`scripts/lib/UsageContract.psm1`。
 
@@ -180,12 +184,38 @@ environmentState: { apiBilling, thirdParty } }`；identity 規則與判定與現
 `verified` 時才會寫入。目前沒有 Claude 官方 quota/rate-limit window 的對等本機
 snapshot（Claude Code 未提供對應的本機可讀 API），此範圍留待未來需求出現再評估。
 
+## Source-side export gate
+
+在任何摘要離開來源電腦之前，`scripts/usage-export-run.ps1` 套用確定性的欄位
+allowlist、跨事件彙總與政策閘門，將 `.local/usage/*.jsonl` 裡已驗證的事件轉成一份
+可匯出的 de-identified 批次；無法通過任一道檢查的批次一律進 quarantine，不得匯出。
+
+- 政策檔 `.local/governance/usage-export-policy.json`（Git-ignored）必須明確
+  `export_allowed: true` 才允許產生可匯出批次；缺檔或 `false` 都視為 local-only，
+  這是預設值，不是例外狀況。
+- 匯出批次（`evals/schemas/usage-export-batch.schema.json`）只允許
+  `alias`、`provider`、`model`、token 加總、`estimated_cost_usd`、`run_count`、
+  `period` 與 `schema_version`／`policy_version`／`redaction_version`／
+  `source_version`；`additionalProperties: false` 逐層鎖死，account_id、
+  device_id、email、session_id、turn_id 一律不得出現。
+- 彙總以 `alias + provider + model` 為分組鍵，同一分組內只加總「有值」的
+  metric；整組都沒有值才標記 `unavailable`，不得填 0。
+- 進入批次前逐筆事件必須是 `verification_status: verified`（`Read-ProjectDUsageLedgerEvents`
+  在讀取階段已強制），否則整批次 fail closed 並寫入 quarantine 紀錄
+  （只含 `quarantined_at` 與不可回推原始值的 `reason`，不含被拒內容本身）。
+- 最終序列化的批次文字還會過一次 `Get-ProjectDUsageExportCanaryPatterns`
+  內容掃描（email、憑證樣式字串、本機路徑、`github.com`／`.git` 等 repository
+  URL 樣式）。這一層存在的理由是：`model` 欄位的字元集刻意允許 `.`、`/`、`:`
+  以支援真實模型版本字串，這代表理論上可以塞入形似 repository URL 的值並仍通過
+  schema pattern；content canary 掃描能在這種情況下攔下來。
+
 ## Verification
 
 ```powershell
 pwsh -NoProfile -File scripts/tests/usage-contract.contract.ps1
 pwsh -NoProfile -File scripts/tests/codex-usage-ledger.contract.ps1
 pwsh -NoProfile -File scripts/tests/claude-usage-ledger.contract.ps1
+pwsh -NoProfile -File scripts/tests/usage-export-gate.contract.ps1
 pwsh -NoProfile -File scripts/tests/claude-switch-account.contract.ps1
 pwsh -NoProfile -File scripts/projectd-check.ps1 -SkipFleet -SkipGlobal -SkipWiring
 ```
@@ -200,11 +230,13 @@ pwsh -NoProfile -File scripts/claude-account.ps1 -Action Status
 
 ## Current boundary
 
-目前已建立 contract、Codex completed-turn 本機 ingestion seam，與 Claude Code
-completed-turn 本機 ingestion seam，但尚不修改使用者層級的 Codex OTel 設定、不自動從
-Claude transcript 萃取 projection、也不啟動 Codex App Server、collector、跨裝置同步或
-報表。Live capture（含自動萃取 Claude projection 的步驟）與 rollout 留在 #44；後續
-tickets 必須沿用本契約，且所有 raw ledger 仍只保存在 Git-ignored 的本機資料區。
+目前已建立 contract、Codex／Claude completed-turn 本機 ingestion seam，與來源端
+export gate，但尚不修改使用者層級的 Codex OTel 設定、不自動從 Claude transcript 萃取
+projection、不啟動 Codex App Server、collector、跨裝置同步或報表，也不會自動排程執行
+`usage-export-run.ps1`（一律由操作者手動觸發）。Live capture（含自動萃取 Claude
+projection 的步驟）、跨裝置合併與 rollout 留在 #42／#44；後續 tickets 必須沿用本契約，
+且所有 raw ledger 與匯出批次／quarantine 紀錄仍只保存在 Git-ignored 的本機資料區，
+直到操作者明確將批次移出。
 
 ## References
 

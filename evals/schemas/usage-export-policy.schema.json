@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://projectd.local/schemas/usage-export-policy.schema.json",
+  "title": "projectD source-side usage export policy",
+  "description": "Local, git-ignored policy that must explicitly opt a device into producing an exportable, de-identified usage-export batch. Its absence, or export_allowed=false, means local-only: no batch may be produced.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "export_allowed", "policy_version"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "export_allowed": { "type": "boolean" },
+    "policy_version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+    }
+  }
+}
