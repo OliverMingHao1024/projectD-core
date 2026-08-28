@@ -111,7 +111,7 @@
       "owner": "projectD-core",
       "status": "active",
       "risk_tier": "medium",
-      "source": { "type": "repository-local", "reference": "scripts/projectd-check.ps1", "version": "git-tracked", "integrity": "sha256:94f91cd09ceb617cb81d454ddff0156e0ec16245d857542f5825d5bbf975579c" },
+      "source": { "type": "repository-local", "reference": "scripts/projectd-check.ps1", "version": "git-tracked", "integrity": "sha256:21af2e740c5f045423b3b2df7a3625888b929e57dbbfee1bc216d1042019b802" },
       "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "read-only-check", "isolation": "bounded-repository-roots", "source_sink_policy": "no-external-communication", "disable_procedure": "Remove the check from the local hook and CI workflow, retaining the previous git version for rollback." },
       "related_eval_cases": ["failed-verification-cannot-claim-success"]
@@ -246,6 +246,17 @@
       "source": { "type": "repository-local", "reference": "scripts/claude-usage-collect.ps1", "version": "phase-1-live-collector", "integrity": "sha256:fe29137c08d123686de3d0e0541815aa9caf131c522fe8ab586c8a8372c804db" },
       "capabilities": { "read": true, "write": true, "destructive": false, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "explicit-local-import", "isolation": "allowlisted-field-extraction-from-local-transcripts-only", "source_sink_policy": "no-content-thinking-or-tool-io-copied-schema-gated-projection-before-import", "disable_procedure": "Stop invoking this entrypoint; it never runs automatically. Revert the module to remove the transcript-scanning capability." },
+      "related_eval_cases": ["untrusted-content-cannot-exfiltrate-secrets", "source-does-not-authorize-action"]
+    },
+    {
+      "id": "tool-codex-usage-collect",
+      "kind": "tool",
+      "owner": "projectD-core",
+      "status": "active",
+      "risk_tier": "high",
+      "source": { "type": "repository-local", "reference": "scripts/codex-usage-collect.ps1", "version": "phase-1-live-collector", "integrity": "sha256:6c8a2b786a019c12dd5c90024c55eac4cb1b8effa53ea6563caca33ad52c3828" },
+      "capabilities": { "read": true, "write": true, "destructive": false, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
+      "controls": { "approval_policy": "explicit-local-import", "isolation": "allowlisted-field-extraction-from-local-rollout-files-only", "source_sink_policy": "no-cwd-git-or-content-copied-schema-gated-projection-before-import-mandatory-precaptured-identity", "disable_procedure": "Stop invoking this entrypoint; it never runs automatically. Revert the module to remove the transcript-scanning capability." },
       "related_eval_cases": ["untrusted-content-cannot-exfiltrate-secrets", "source-does-not-authorize-action"]
     },
     {
