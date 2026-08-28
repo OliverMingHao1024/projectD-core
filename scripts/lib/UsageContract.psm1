@@ -1,5 +1,7 @@
 Set-StrictMode -Version Latest
 
+Import-Module (Join-Path $PSScriptRoot 'GovernanceCommon.psm1') -Force
+
 function Test-UsageExactProperties {
     param(
         [Parameter(Mandatory)]$Value,
@@ -409,6 +411,99 @@ function Resolve-ProjectDUsageIdentity {
     }
 }
 
+function Write-ProjectDUsageIdentityDiagnostic {
+    <#
+    Called after Resolve-ProjectDUsageIdentity whenever the caller is
+    about to fail closed on a non-verified identity. Persists a
+    non-identifying record (no email, account_id, or alias -- those
+    are already forced to null for unknown/mismatch identities) so a
+    later report (#43) can surface unknown-identity and
+    account-mismatch counts without the caller needing its own
+    logging path. A verified identity is a silent no-op.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]$Identity,
+        [Parameter(Mandatory)][string]$ProjectRoot,
+        [string]$Path
+    )
+
+    if ([string]$Identity.verification_status -ceq 'verified') {
+        return $null
+    }
+    if ([string]$Identity.verification_status -cnotin @('unknown', 'mismatch')) {
+        throw 'Identity has an unsupported verification_status.'
+    }
+    $root = [IO.Path]::GetFullPath($ProjectRoot).TrimEnd(
+        [IO.Path]::DirectorySeparatorChar,
+        [IO.Path]::AltDirectorySeparatorChar
+    )
+    if ([string]::IsNullOrWhiteSpace($Path)) {
+        $Path = Join-Path $root '.local\usage\diagnostics\identity-events.jsonl'
+    }
+    $resolved = if ([IO.Path]::IsPathRooted($Path)) {
+        [IO.Path]::GetFullPath($Path)
+    } else {
+        [IO.Path]::GetFullPath((Join-Path $root $Path))
+    }
+    $localRoot = [IO.Path]::GetFullPath((Join-Path $root '.local'))
+    if (-not $resolved.StartsWith(
+        $localRoot + [IO.Path]::DirectorySeparatorChar,
+        [StringComparison]::OrdinalIgnoreCase
+    )) {
+        throw 'Identity diagnostic path must stay inside ProjectRoot/.local.'
+    }
+    New-Item -ItemType Directory -Path (
+        Split-Path -Parent $resolved
+    ) -Force | Out-Null
+    if (Test-PathHasReparsePoint -Root $root -ResolvedPath $resolved) {
+        throw 'Identity diagnostic path must not cross a reparse point.'
+    }
+    $record = [pscustomobject][ordered]@{
+        schema_version = 1
+        occurred_at = ([DateTimeOffset]$Identity.captured_at).ToUniversalTime().ToString('o')
+        provider = [string]$Identity.provider
+        verification_status = [string]$Identity.verification_status
+        device_id = [string]$Identity.device_id
+        environment = [string]$Identity.environment
+    }
+    $schemaPath = Join-Path $PSScriptRoot (
+        '..\..\evals\schemas\usage-identity-diagnostic.schema.json'
+    )
+    $json = $record | ConvertTo-Json -Depth 8
+    if (-not (Test-Json -Json $json -SchemaFile $schemaPath -ErrorAction Stop)) {
+        throw 'Identity diagnostic does not conform to its canonical schema.'
+    }
+    $lockPath = "$resolved.lock"
+    $lock = $null
+    $stopwatch = [Diagnostics.Stopwatch]::StartNew()
+    do {
+        try {
+            $lock = [IO.FileStream]::new(
+                $lockPath, [IO.FileMode]::OpenOrCreate,
+                [IO.FileAccess]::ReadWrite, [IO.FileShare]::None
+            )
+        } catch [IO.IOException] {
+            if ($stopwatch.Elapsed -ge [TimeSpan]::FromSeconds(10)) {
+                throw 'Timed out waiting for the identity diagnostic writer.'
+            }
+            Start-Sleep -Milliseconds 50
+        }
+    } while ($null -eq $lock)
+    try {
+        $line = ($record | ConvertTo-Json -Depth 8 -Compress) + "`n"
+        $bytes = [Text.UTF8Encoding]::new($false).GetBytes($line)
+        $stream = [IO.FileStream]::new(
+            $resolved, [IO.FileMode]::Append,
+            [IO.FileAccess]::Write, [IO.FileShare]::Read
+        )
+        try { $stream.Write($bytes, 0, $bytes.Length) } finally { $stream.Dispose() }
+    } finally {
+        $lock.Dispose()
+    }
+    return $resolved
+}
+
 function New-UsageMetricValue {
     param(
         [Parameter(Mandatory)][string]$Name,
@@ -587,5 +682,6 @@ Export-ModuleMember -Function @(
     'ConvertTo-ProjectDCodexAccountObservation',
     'ConvertTo-ProjectDClaudeAccountObservation',
     'Resolve-ProjectDUsageIdentity',
+    'Write-ProjectDUsageIdentityDiagnostic',
     'New-ProjectDUsageEvent'
 )

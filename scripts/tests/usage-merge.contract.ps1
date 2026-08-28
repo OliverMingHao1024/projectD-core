@@ -35,7 +35,9 @@ function New-BatchFixture {
         [int]$InputTokens = 100,
         [int]$OutputTokens = 20,
         [string]$Model = 'gpt-5.6',
-        [string]$GeneratedAt = '2026-08-28T03:00:00Z'
+        [string]$GeneratedAt = '2026-08-28T03:00:00Z',
+        [string]$PeriodStart = '2026-08-01T00:00:00Z',
+        [string]$PeriodEnd = '2026-08-02T00:00:00Z'
     )
     return [ordered]@{
         schema_version = 1
@@ -44,8 +46,8 @@ function New-BatchFixture {
         source_version = 'test-v1'
         generated_at = $GeneratedAt
         period = [ordered]@{
-            start = '2026-08-01T00:00:00Z'
-            end = '2026-09-01T00:00:00Z'
+            start = $PeriodStart
+            end = $PeriodEnd
         }
         rows = @(
             [ordered]@{
@@ -168,6 +170,41 @@ try {
         [int]$workRowAfterThird.run_count -eq 2
     ) 'A genuinely new batch must accumulate on top of prior totals.'
 
+    # --- a batch from a different reporting period must stay a distinct row ---
+    $nextDayBatchPath = Join-Path $projectA (
+        '.local\usage\import\work-batch-next-day.json'
+    )
+    Write-JsonFixture -Path $nextDayBatchPath -Value (New-BatchFixture `
+        -Alias 'personal-codex' `
+        -DeviceId 'dev_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' `
+        -Environment 'work' -InputTokens 40 -OutputTokens 8 `
+        -GeneratedAt '2026-08-29T03:00:00Z' `
+        -PeriodStart '2026-08-02T00:00:00Z' -PeriodEnd '2026-08-03T00:00:00Z')
+    & $runPath `
+        -ProjectRoot $projectA `
+        -BatchPath @($nextDayBatchPath) `
+        -StatePath $statePathA | Out-Null
+    $stateAfterNextDay = (
+        Get-Content -Raw -LiteralPath $statePathA | ConvertFrom-Json
+    )
+    $workRowsAfterNextDay = @(
+        $stateAfterNextDay.totals | Where-Object environment -ceq 'work'
+    )
+    Assert-True (
+        $workRowsAfterNextDay.Count -eq 2 -and
+        [long](
+            $workRowsAfterNextDay |
+                Where-Object { $_.period.start -ceq '2026-08-01T00:00:00Z' }
+        ).input_tokens.value -eq 125 -and
+        [long](
+            $workRowsAfterNextDay |
+                Where-Object { $_.period.start -ceq '2026-08-02T00:00:00Z' }
+        ).input_tokens.value -eq 40
+    ) (
+        'A batch from a different reporting period must stay a separate, ' +
+        'date-distinguishable row instead of merging into another day.'
+    )
+
     # --- rejecting a malformed batch must not corrupt existing totals ---
     $malformedPath = Join-Path $projectA '.local\usage\import\malformed.json'
     Set-Content -LiteralPath $malformedPath -Value '{ "not": "a batch" }' `
@@ -178,7 +215,7 @@ try {
         -StatePath $statePathA | ConvertFrom-Json
     Assert-True (
         [string]$rejected.results[0].status -ceq 'rejected' -and
-        [int]$rejected.rows -eq 2
+        [int]$rejected.rows -eq 3
     ) 'A malformed batch must be rejected without altering existing totals.'
 
     # --- determinism: merge order must not change the final totals ---

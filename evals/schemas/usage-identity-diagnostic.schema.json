@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://projectd.local/schemas/usage-identity-diagnostic.schema.json",
+  "title": "projectD non-identifying identity-resolution diagnostic record",
+  "description": "Written locally whenever an import attempt resolves to an unverified (unknown or mismatch) identity, so a report can surface it later. Never contains an observed email, account_id, or alias -- Resolve-ProjectDUsageIdentity already forces those to null for non-verified identities.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "occurred_at",
+    "provider",
+    "verification_status",
+    "device_id",
+    "environment"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "provider": { "enum": ["codex", "claude"] },
+    "verification_status": { "enum": ["unknown", "mismatch"] },
+    "device_id": { "type": "string", "pattern": "^dev_[a-f0-9]{32}$" },
+    "environment": { "enum": ["work", "home", "other"] }
+  }
+}
