@@ -680,6 +680,7 @@ if($null -eq $pwsh){
     Add-Result 'usage-merge-contract' $false 'pwsh executable not found'
     Add-Result 'usage-report-contract' $false 'pwsh executable not found'
     Add-Result 'usage-monitoring-rollout-contract' $false 'pwsh executable not found'
+    Add-Result 'claude-usage-collect-contract' $false 'pwsh executable not found'
 }else{
     Child 'fleet-inspect-contract' {
         & $pwsh.Source -NoProfile -File (
@@ -737,6 +738,11 @@ if($null -eq $pwsh){
     Child 'usage-monitoring-rollout-contract' {
         & $pwsh.Source -NoProfile -File (
             Join-Path $core 'scripts\tests\usage-monitoring-rollout.contract.ps1'
+        )
+    }
+    Child 'claude-usage-collect-contract' {
+        & $pwsh.Source -NoProfile -File (
+            Join-Path $core 'scripts\tests\claude-usage-collect.contract.ps1'
         )
     }
 }

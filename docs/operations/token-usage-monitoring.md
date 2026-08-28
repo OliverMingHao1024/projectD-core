@@ -34,7 +34,13 @@ pwsh -File scripts/usage-monitoring-rollout.ps1 -Mode Check
 # 3. 手動編輯 .local/governance/usage-account-profiles.json，填入真實 account_id／alias／email
 #    （account_id 用 New-ProjectDUsageIdentifier -Kind Account 產生一次即可，之後每台電腦沿用同一筆）
 
-# 4. 匯入一次 Codex completed-turn（需要先有 .local/capture/codex-turn.json 與 codex-account-read.json）
+# 4a. Claude：自動掃描本機 session transcript 並匯入（不需要手動準備 capture 檔）
+pwsh -File scripts/claude-usage-collect.ps1
+#     只想抓最近的，避免第一次全量掃描太慢：
+pwsh -File scripts/claude-usage-collect.ps1 -Since (Get-Date).AddHours(-2).ToString('o')
+
+# 4b. Codex：目前仍需先手動準備 .local/capture/codex-turn.json 與 codex-account-read.json，
+#     再匯入（Codex 本機用量資料的自動擷取方式尚待研究，見 #52 的後續票）
 pwsh -File scripts/codex-usage-import.ps1 `
   -ProjectionPath .local/capture/codex-turn.json `
   -AccountReadPath .local/capture/codex-account-read.json
@@ -97,10 +103,12 @@ per-turn cost 欄位，因此這個欄位在 Phase 1 一律是 `unavailable`，�
 | 報表出現 `data_gap` 警告 | 該天／週在請求的期間內完全沒有任何一列資料 | 確認當天有沒有真的呼叫過 Codex／Claude、有沒有忘記跑 import |
 | 報表出現 `unknown_identity`／`account_mismatch` 警告 | 對應期間有 import 因 identity 解析失敗而被拒絕 | 對照 `identity-events.jsonl` 的時間與 provider，處理帳號設定問題 |
 | 想知道跨裝置彙整後某個帳號在兩台電腦各花多少 | 報表的 `rows` 本來就依 `device_id`／`environment` 分開列，不會悄悄合成一個數字 | 直接依 `device_id`／`environment` 篩選 `rows` |
+| `claude-usage-collect.ps1` 第一次跑很慢 | 每次匯入都會重新驗證整份既有 ledger（跟 `claude-usage-import.ps1` 單筆匯入同樣的成本），歷史 transcript 累積的訊息一多，第一次全量掃描就是 O(n²) | 用 `-Since` 限定只掃最近的訊息；之後固定週期（例如每次 session 結束）跑一次，每次只有少量新訊息，就不會再慢 |
 
 ## 驗證
 
 ```powershell
 pwsh -File scripts/tests/usage-monitoring-rollout.contract.ps1
+pwsh -File scripts/tests/claude-usage-collect.contract.ps1
 pwsh -File scripts/projectd-check.ps1 -SkipFleet -SkipGlobal -SkipWiring
 ```
