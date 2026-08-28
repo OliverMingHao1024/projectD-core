@@ -139,12 +139,22 @@ function ConvertTo-ProjectDUsageExportBatch {
         if ($model -cnotmatch '^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$') {
             throw 'A record has a model value outside the exportable pattern.'
         }
-        $key = "$alias`0$provider`0$model"
+        $deviceId = [string]$event.identity.device_id
+        if ($deviceId -cnotmatch '^dev_[a-f0-9]{32}$') {
+            throw 'A record has a device_id outside the exportable pattern.'
+        }
+        $environment = [string]$event.identity.environment
+        if ($environment -cnotin @('work', 'home', 'other')) {
+            throw 'A record has an unsupported environment.'
+        }
+        $key = "$alias`0$provider`0$model`0$deviceId"
         if (-not $groups.Contains($key)) {
             $groups[$key] = [pscustomobject][ordered]@{
                 alias = $alias
                 provider = $provider
                 model = $model
+                device_id = $deviceId
+                environment = $environment
                 run_count = 0
                 sums = [ordered]@{
                     input_tokens = $null
@@ -179,6 +189,8 @@ function ConvertTo-ProjectDUsageExportBatch {
                 alias = $bucket.alias
                 provider = $bucket.provider
                 model = $bucket.model
+                device_id = $bucket.device_id
+                environment = $bucket.environment
                 run_count = $bucket.run_count
             }
             foreach ($name in @(

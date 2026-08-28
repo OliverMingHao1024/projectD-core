@@ -1,7 +1,7 @@
 # Codex／Claude Token 用量監控
 
 - 狀態：approved / Phase 1 contract + Codex and Claude local ledger ingestion +
-  source-side export gate implemented
+  source-side export gate + cross-device merge implemented
 - Parent tickets：[#38](https://github.com/OliverMingHao1024/projectD-core/issues/38)–[#44](https://github.com/OliverMingHao1024/projectD-core/issues/44)
 - 實作順序：identity/event contract → Codex ledger → Claude ledger → source-side export gate → cross-device merge → reports → rollout
 
@@ -108,6 +108,7 @@ Canonical schema：
 - `evals/schemas/claude-usage-projection.schema.json`
 - `evals/schemas/usage-export-policy.schema.json`
 - `evals/schemas/usage-export-batch.schema.json`
+- `evals/schemas/usage-merge-state.schema.json`
 
 Canonical module：`scripts/lib/UsageContract.psm1`。
 
@@ -209,6 +210,30 @@ allowlist、跨事件彙總與政策閘門，將 `.local/usage/*.jsonl` 裡已�
   以支援真實模型版本字串，這代表理論上可以塞入形似 repository URL 的值並仍通過
   schema pattern；content canary 掃描能在這種情況下攔下來。
 
+## Cross-device merge
+
+`scripts/usage-merge-run.ps1` 把來自不同裝置、已通過 export gate 的批次
+（`.local/usage/export/usage-export-*.json`，由操作者手動搬運到目標裝置，例如
+複製到 `.local/usage/import/`）合併成單一 `.local/usage/merge/merge-state.json`
+累加狀態，供後續報表（#43）讀取。工作與家用電腦**不會**共用或同步原始 ledger
+或這份合併狀態檔本身——每台裝置各自的 raw ledger 永遠留在原地，只有已經過 #41
+去識別化與 allowlist 過濾的批次會被搬動。
+
+- **重播安全**：每個批次以其正規化 JSON 內容算出 `sha256` digest；同一 digest
+  出現第二次時回報 `replayed`，累計數字不變。
+- **device 可分辨**：延續 #41 新增的 `device_id`／`environment` 欄位，合併時以
+  `alias + provider + model + device_id + environment` 為分組鍵——同一帳號
+  （`alias` 相同）在工作與家用電腦的用量可以放進同一份報表查詢，但不會被悄悄
+  相加成單一裝置的數字。
+- **政策已在來源端擋過**：合併工具只接受能通過 `usage-export-batch.schema.json`
+  驗證的批次；未過 #41 政策閘門的批次一開始就不會被匯出，這裡只是再次驗證
+  schema 作為第二道防線，不合規的輸入會回報 `rejected` 且不影響既有累計值。
+- **離線與亂序安全**：累加只做加法且以 digest 去重，不論輸入順序或分批到達
+  順序為何，最終 totals 都一樣（見 contract test 的 order-independence 案例）；
+  程序中斷重啟只需要重新指向同一份 `merge-state.json`，不會遺失或重算已合併批次。
+- **UTC**：批次與合併狀態全程使用 UTC ISO 8601 時間戳；報表時區轉換與 Provider
+  官方 quota reset 邊界的對應留待 #43 處理，本層不假設任何特定時區。
+
 ## Verification
 
 ```powershell
@@ -216,6 +241,7 @@ pwsh -NoProfile -File scripts/tests/usage-contract.contract.ps1
 pwsh -NoProfile -File scripts/tests/codex-usage-ledger.contract.ps1
 pwsh -NoProfile -File scripts/tests/claude-usage-ledger.contract.ps1
 pwsh -NoProfile -File scripts/tests/usage-export-gate.contract.ps1
+pwsh -NoProfile -File scripts/tests/usage-merge.contract.ps1
 pwsh -NoProfile -File scripts/tests/claude-switch-account.contract.ps1
 pwsh -NoProfile -File scripts/projectd-check.ps1 -SkipFleet -SkipGlobal -SkipWiring
 ```
@@ -230,13 +256,14 @@ pwsh -NoProfile -File scripts/claude-account.ps1 -Action Status
 
 ## Current boundary
 
-目前已建立 contract、Codex／Claude completed-turn 本機 ingestion seam，與來源端
-export gate，但尚不修改使用者層級的 Codex OTel 設定、不自動從 Claude transcript 萃取
-projection、不啟動 Codex App Server、collector、跨裝置同步或報表，也不會自動排程執行
-`usage-export-run.ps1`（一律由操作者手動觸發）。Live capture（含自動萃取 Claude
-projection 的步驟）、跨裝置合併與 rollout 留在 #42／#44；後續 tickets 必須沿用本契約，
-且所有 raw ledger 與匯出批次／quarantine 紀錄仍只保存在 Git-ignored 的本機資料區，
-直到操作者明確將批次移出。
+目前已建立 contract、Codex／Claude completed-turn 本機 ingestion seam、來源端
+export gate，與跨裝置合併累加器，但尚不修改使用者層級的 Codex OTel 設定、不自動從
+Claude transcript 萃取 projection、不啟動 Codex App Server、collector 或報表，也不會
+自動排程執行 `usage-export-run.ps1`／`usage-merge-run.ps1`（一律由操作者手動觸發，且
+批次從來源裝置搬到合併裝置這一步也由操作者手動完成，工具本身不做任何跨裝置傳輸）。
+Live capture（含自動萃取 Claude projection 的步驟）與 rollout 留在 #44；後續 tickets
+必須沿用本契約，且所有 raw ledger、匯出批次／quarantine 紀錄與合併狀態仍只保存在
+Git-ignored 的本機資料區。
 
 ## References
 
