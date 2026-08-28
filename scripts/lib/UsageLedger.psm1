@@ -76,6 +76,15 @@ function ConvertTo-UsageLedgerUtcTimestamp {
     }
 }
 
+function Get-UsageLedgerProjectionLocalContextLabel {
+    param([Parameter(Mandatory)]$Projection)
+    if ($Projection.PSObject.Properties.Name -cnotcontains 'local_context') {
+        return $null
+    }
+    if ($null -eq $Projection.local_context) { return $null }
+    return [string]$Projection.local_context.label
+}
+
 function ConvertTo-ProjectDCodexUsageEvent {
     [CmdletBinding()]
     param(
@@ -128,7 +137,8 @@ function ConvertTo-ProjectDCodexUsageEvent {
         -OccurredAt $occurred.ToString('o') `
         -Identity $Identity `
         -Model ([string]$Projection.model) `
-        -Metrics $metrics
+        -Metrics $metrics `
+        -LocalContextLabel (Get-UsageLedgerProjectionLocalContextLabel $Projection)
 }
 
 function ConvertTo-ProjectDClaudeUsageEvent {
@@ -183,7 +193,8 @@ function ConvertTo-ProjectDClaudeUsageEvent {
         -OccurredAt $occurred.ToString('o') `
         -Identity $Identity `
         -Model ([string]$Projection.model) `
-        -Metrics $metrics
+        -Metrics $metrics `
+        -LocalContextLabel (Get-UsageLedgerProjectionLocalContextLabel $Projection)
 }
 
 function ConvertTo-ProjectDCodexQuotaSnapshot {

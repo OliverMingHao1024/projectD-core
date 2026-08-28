@@ -44,13 +44,14 @@ function New-TurnContextLine {
     param(
         [Parameter(Mandatory)][string]$TurnId,
         [string]$Model = 'gpt-5.6',
-        [string]$Timestamp = '2026-08-26T10:00:01.000Z'
+        [string]$Timestamp = '2026-08-26T10:00:01.000Z',
+        [string]$Cwd = 'D:\workspaces\some-private-repo'
     )
     return (
         [ordered]@{
             timestamp = $Timestamp
             type = 'turn_context'
-            payload = [ordered]@{ turn_id = $TurnId; model = $Model }
+            payload = [ordered]@{ turn_id = $TurnId; model = $Model; cwd = $Cwd }
         } | ConvertTo-Json -Depth 10 -Compress
     )
 }
@@ -186,10 +187,16 @@ try {
     $ledgerText = Get-Content -Raw -LiteralPath $ledgerPath
     Assert-True (
         $ledgerText -notmatch (
-            '(?i)secret-project|some-private-repo|codex-collector@example\.test|' +
-            'secret/repo'
+            '(?i)codex-collector@example\.test|secret/repo'
         )
-    ) 'The ledger must never contain cwd, git remote URL, or email.'
+    ) 'The ledger must never contain the git remote URL or email.'
+    Assert-True (
+        @($events | Where-Object { [string]$_.local_context.label -ceq 'some-private-repo' }).Count -eq 2
+    ) (
+        'Every event must carry local_context.label derived from the ' +
+        'turn''s cwd folder basename when no session_index thread_name ' +
+        'is available, for local-mode task attribution.'
+    )
 
     $quotaPath = Join-Path $projectRoot '.local\usage\codex-quota-snapshot.json'
     Assert-True (
@@ -224,6 +231,51 @@ try {
         [int]$sinceResult.scanned -eq 2
     ) '-Since must bound collection to token_count events at or after the cutoff.'
 
+    # --- session_index.jsonl thread_name takes priority over cwd ---
+    $sessionIndexPath = Join-Path $tempRoot 'session_index.jsonl'
+    $namedSessionId = 'bbbbbbbb-2222-3333-4444-555555555555'
+    $namedTurn = 'turn-cccc-0003'
+    Set-Content -LiteralPath $sessionIndexPath -Encoding utf8 -NoNewline -Value (
+        @(
+            # An earlier, stale entry for the same id must be overridden by
+            # the later one -- later lines win on duplicate ids.
+            ([ordered]@{ id = $namedSessionId; thread_name = 'stale title' } |
+                ConvertTo-Json -Depth 5 -Compress),
+            ([ordered]@{ id = $namedSessionId; thread_name = '優化 projectD Token 用量' } |
+                ConvertTo-Json -Depth 5 -Compress)
+        ) -join "`n"
+    )
+    $namedLines = @(
+        (New-SessionMetaLine -SessionId $namedSessionId),
+        (New-TurnContextLine -TurnId $namedTurn -Timestamp '2026-08-26T11:00:01.000Z'),
+        (New-TokenCountLine -Timestamp '2026-08-26T11:00:05.000Z' `
+            -InputTokens 8 -OutputTokens 2 -NoRateLimits)
+    )
+    $namedSessionPath = Join-Path $sessionRoot "rollout-2026-08-26T11-00-00-$namedSessionId.jsonl"
+    Set-Content -LiteralPath $namedSessionPath -Value ($namedLines -join "`n") `
+        -Encoding utf8 -NoNewline
+
+    $namedResult = & $collectPath `
+        -ProjectRoot $projectRoot `
+        -TranscriptRoot (Join-Path $tempRoot 'sessions') `
+        -AccountReadPath $accountReadPath `
+        -SessionIndexPath $sessionIndexPath | ConvertFrom-Json
+    Assert-True (
+        [int]$namedResult.inserted -eq 1 -and [int]$namedResult.failed -eq 0
+    ) 'The session_index-labelled turn must import cleanly.'
+    $namedEvents = @(
+        Get-Content -LiteralPath $ledgerPath | ForEach-Object { $_ | ConvertFrom-Json } |
+            Where-Object turn_id -ceq $namedTurn
+    )
+    Assert-True (
+        $namedEvents.Count -eq 1 -and
+        [string]$namedEvents[0].local_context.label -ceq '優化 projectD Token 用量'
+    ) (
+        'When session_index.jsonl has a thread_name for the session, it ' +
+        'must be preferred over the cwd folder basename, and the LATEST ' +
+        'entry must win when an id repeats.'
+    )
+
     # --- no scratch files left behind ---
     Assert-True (
         @(Get-ChildItem -LiteralPath (Join-Path $projectRoot '.local\capture') `
@@ -241,8 +293,12 @@ try {
         )
     ) 'The collector must not call the Claude CLI or make a network request.'
     Assert-True (
-        $implementationText -notmatch '\.cwd\b|\.git\b|message\.content|reasoning\.text'
-    ) 'The collector''s executable code must never reference cwd, git, or message content fields.'
+        $implementationText -notmatch '\.git\b|message\.content|reasoning\.text'
+    ) (
+        'The collector''s executable code must never reference git or ' +
+        'message content fields (reading cwd is intentional -- it feeds ' +
+        'the local-only local_context label, see usage-events.schema.json).'
+    )
     Assert-True (
         $implementationText -notmatch '(?i)Get-Random'
     ) 'Collection must not depend on non-deterministic values.'

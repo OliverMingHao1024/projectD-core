@@ -42,6 +42,9 @@ pwsh -File scripts/claude-usage-collect.ps1 -Since (Get-Date).AddHours(-2).ToStr
 # 4b. Codex：自動掃描本機 session rollout 檔並匯入用量與官方 quota（identity 仍需
 #     手動準備一次 codex-account-read.json，因為 account/read 只能透過啟動 Codex
 #     App Server 的 JSON-RPC 取得，Phase 1 刻意不啟動 App Server）
+#     每筆事件會自動帶上 ~/.codex/session_index.jsonl 裡的 thread 標題（沒有的話
+#     退回 cwd 資料夾名稱）當作本機限定的 local_context 標籤；要用別的索引檔路徑
+#     可加 -SessionIndexPath。
 pwsh -File scripts/codex-usage-collect.ps1 -AccountReadPath .local/capture/codex-account-read.json
 #     同樣建議搭配 -Since 避免第一次全量掃描太慢：
 pwsh -File scripts/codex-usage-collect.ps1 `
@@ -84,6 +87,12 @@ pwsh -File scripts/usage-monitoring-rollout.ps1 -Mode Remove -Confirm
   fail closed 並進 quarantine，不會產生可外傳檔案。
 - **家用電腦才選擇性開啟跨裝置彙整**：`-Mode Apply -AllowExport`（或手動把
   `usage-export-policy.json` 的 `export_allowed` 設成 `true`）。
+- **唯一的刻意例外：`local_context`**——本機 ledger 的每筆事件可以帶一個
+  `local_context.label`（Codex 用 `session_index.jsonl` 的 thread 標題或
+  cwd 資料夾名稱；Claude 用 cwd 資料夾名稱），只為了讓 `-Mode local` 報表能
+  回答「這筆用量是在做哪個專案／任務」。這個欄位在 export gate 與 cross-device
+  merge 的程式碼裡完全沒有被讀取的路徑，所以無論如何都不會離開這台機器；
+  `-Mode merged` 報表的每一列固定是 `null`。
 
 ## Estimated cost 限制
 
@@ -106,6 +115,7 @@ per-turn cost 欄位，因此這個欄位在 Phase 1 一律是 `unavailable`，�
 | 報表出現 `data_gap` 警告 | 該天／週在請求的期間內完全沒有任何一列資料 | 確認當天有沒有真的呼叫過 Codex／Claude、有沒有忘記跑 import |
 | 報表出現 `unknown_identity`／`account_mismatch` 警告 | 對應期間有 import 因 identity 解析失敗而被拒絕 | 對照 `identity-events.jsonl` 的時間與 provider，處理帳號設定問題 |
 | 想知道跨裝置彙整後某個帳號在兩台電腦各花多少 | 報表的 `rows` 本來就依 `device_id`／`environment` 分開列，不會悄悄合成一個數字 | 直接依 `device_id`／`environment` 篩選 `rows` |
+| 想知道某筆用量是花在哪個專案／任務上 | `-Mode local` 報表的每個 `row.local_context` 就是這個用途；`-Mode merged` 報表固定是 `null`（設計上就不會跨裝置傳遞） | 用 `-Mode local` 產生報表，依 `local_context` 篩選或分組 `rows`；Codex 想要更好讀的標籤，就先在 `~/.codex/session_index.jsonl` 幫該次 session 取個 thread 標題 |
 | `claude-usage-collect.ps1`／`codex-usage-collect.ps1` 第一次跑很慢 | 每次匯入都會重新驗證整份既有 ledger（跟單筆手動匯入同樣的成本），歷史紀錄一多，第一次全量掃描就是 O(n²) | 用 `-Since` 限定只掃最近的訊息；之後固定週期（例如每次 session 結束）跑一次，每次只有少量新訊息，就不會再慢 |
 | `codex-usage-collect.ps1` 的 `quota_failed` 數字很高 | 多數是「這筆 quota 快照比目前存的還舊」被正常拒絕（掃描多個 session 檔案的順序不保證跟時間順序一致），不是真的失敗 | 只要 `.local/usage/codex-quota-snapshot.json` 的內容是最新的就沒問題，不用特別處理 |
 

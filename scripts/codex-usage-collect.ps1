@@ -8,7 +8,8 @@ param(
     [string]$ExpectedAccountId,
     [string]$LedgerPath,
     [string]$QuotaSnapshotPath,
-    [string]$Since
+    [string]$Since,
+    [string]$SessionIndexPath
 )
 
 <#
@@ -120,6 +121,40 @@ if (-not (Test-Path -LiteralPath $AccountReadPath -PathType Leaf)) {
 
 $capturePath = Join-Path $root '.local\capture'
 New-Item -ItemType Directory -Path $capturePath -Force | Out-Null
+
+# Local-only diagnostic hint: session_index.jsonl maps a Codex session_id
+# to the operator's own thread title (e.g. "掃描專案資安風險"). Reading
+# this is safe -- it is itself already local, operator-authored, never
+# transmitted anywhere -- and the resulting local_context is dropped by
+# construction the moment a ledger event crosses the export or merge
+# boundary (see local_context in usage-events.schema.json).
+$threadNameBySessionId = @{}
+if ([string]::IsNullOrWhiteSpace($SessionIndexPath)) {
+    $SessionIndexPath = Join-Path (Split-Path -Parent $TranscriptRoot) (
+        'session_index.jsonl'
+    )
+}
+if (Test-Path -LiteralPath $SessionIndexPath -PathType Leaf) {
+    try {
+        $indexText = Read-SharedTranscriptText -Path $SessionIndexPath
+        foreach ($indexLine in @((($indexText -replace "`r", '') -split "`n"))) {
+            if ([string]::IsNullOrWhiteSpace($indexLine)) { continue }
+            $indexRecord = try {
+                $indexLine | ConvertFrom-Json -ErrorAction Stop
+            } catch { $null }
+            if ($null -eq $indexRecord) { continue }
+            if (
+                [string]::IsNullOrWhiteSpace([string]$indexRecord.id) -or
+                [string]::IsNullOrWhiteSpace([string]$indexRecord.thread_name)
+            ) { continue }
+            $threadNameBySessionId[[string]$indexRecord.id] = (
+                [string]$indexRecord.thread_name
+            )
+        }
+    } catch {
+        $threadNameBySessionId = @{}
+    }
+}
 
 $sinceUtc = $null
 if (-not [string]::IsNullOrWhiteSpace($Since)) {
@@ -235,6 +270,7 @@ foreach ($file in $sessionFiles) {
     $sessionId = $null
     $currentTurnId = $null
     $currentModel = $null
+    $currentCwd = $null
     # Codex can emit several token_count snapshots while a single turn is
     # still running; only the last one seen for a given turn_id reflects
     # that turn's final usage, so imports are deferred until the turn
@@ -262,6 +298,7 @@ foreach ($file in $sessionFiles) {
             }
             $currentTurnId = [string]$record.payload.turn_id
             $currentModel = [string]$record.payload.model
+            $currentCwd = [string]$record.payload.cwd
             continue
         }
         if (
@@ -309,6 +346,23 @@ foreach ($file in $sessionFiles) {
                     $null -eq $usage.cache_write_input_tokens
                 ) { 0 } else { [long]$usage.cache_write_input_tokens }
             }
+        }
+        # Local-only diagnostic hint, never carried through the export gate
+        # or cross-device merge -- see local_context in
+        # usage-events.schema.json / codex-usage-projection.schema.json.
+        # Prefer the operator's own thread title (session_index.jsonl);
+        # fall back to the turn's working-directory folder name.
+        $localContextLabel = $null
+        if (
+            -not [string]::IsNullOrWhiteSpace($sessionId) -and
+            $threadNameBySessionId.ContainsKey($sessionId)
+        ) {
+            $localContextLabel = $threadNameBySessionId[$sessionId]
+        } elseif (-not [string]::IsNullOrWhiteSpace($currentCwd)) {
+            $localContextLabel = Split-Path -Leaf $currentCwd
+        }
+        if (-not [string]::IsNullOrWhiteSpace($localContextLabel)) {
+            $pendingUsage.local_context = [ordered]@{ label = $localContextLabel }
         }
         $counts.scanned++
 

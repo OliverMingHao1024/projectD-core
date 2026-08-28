@@ -41,7 +41,8 @@
         "reasoning_tokens": { "$ref": "#/$defs/tokenCount" },
         "cache_creation_tokens": { "$ref": "#/$defs/tokenCount" }
       }
-    }
+    },
+    "local_context": { "$ref": "#/$defs/localContext" }
   },
   "$defs": {
     "providerId": {
@@ -51,6 +52,15 @@
     "tokenCount": {
       "type": "integer",
       "minimum": 0
+    },
+    "localContext": {
+      "description": "Local-only diagnostic hint, never carried through the export gate or cross-device merge.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label"],
+      "properties": {
+        "label": { "type": "string", "minLength": 1, "maxLength": 128 }
+      }
     }
   }
 }
