@@ -111,7 +111,7 @@
       "owner": "projectD-core",
       "status": "active",
       "risk_tier": "medium",
-      "source": { "type": "repository-local", "reference": "scripts/projectd-check.ps1", "version": "git-tracked", "integrity": "sha256:8138b56b06fee3764ce02e64f3c71699ebeb783cf0c12a79e736c6f8d0edcfb5" },
+      "source": { "type": "repository-local", "reference": "scripts/projectd-check.ps1", "version": "git-tracked", "integrity": "sha256:abd62e917021992c147eee70b3c446c946ae5cd47c1c975371638ae4396df7bf" },
       "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "read-only-check", "isolation": "bounded-repository-roots", "source_sink_policy": "no-external-communication", "disable_procedure": "Remove the check from the local hook and CI workflow, retaining the previous git version for rollback." },
       "related_eval_cases": ["failed-verification-cannot-claim-success"]
@@ -225,6 +225,17 @@
       "capabilities": { "read": true, "write": true, "destructive": false, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "explicit-local-import", "isolation": "bounded-local-input-and-gitignored-output", "source_sink_policy": "no-model-or-network-call", "disable_procedure": "Stop invoking this entrypoint and retain or remove .local/usage/reports/ according to the operator retention policy." },
       "related_eval_cases": ["source-does-not-authorize-action", "failed-verification-cannot-claim-success"]
+    },
+    {
+      "id": "tool-usage-monitoring-rollout",
+      "kind": "tool",
+      "owner": "projectD-core",
+      "status": "active",
+      "risk_tier": "medium",
+      "source": { "type": "repository-local", "reference": "scripts/usage-monitoring-rollout.ps1", "version": "phase-1-rollout", "integrity": "sha256:6886487a0654146adc081a999ac678227910562c5d0d7fdad360f6bd334a1753" },
+      "capabilities": { "read": true, "write": true, "destructive": true, "open_world": false, "private_data": true, "untrusted_content": false, "external_communication": false },
+      "controls": { "approval_policy": "check-apply-disable-remove-with-explicit-confirm", "isolation": "bounded-to-local-usage-and-local-governance-config-only", "source_sink_policy": "never-writes-agents-claude-or-vault-no-model-or-network-call", "disable_procedure": "Run -Mode Disable to turn off export without deleting data, or -Mode Remove -Confirm to delete all local usage-monitoring state." },
+      "related_eval_cases": ["authorized-workspace-change-stays-in-scope", "failed-verification-cannot-claim-success"]
     },
     {
       "id": "tool-governance-common",

@@ -1,7 +1,8 @@
 # Codex／Claude Token 用量監控
 
-- 狀態：approved / Phase 1 contract + Codex and Claude local ledger ingestion +
-  source-side export gate + cross-device merge + account-aware reports implemented
+- 狀態：approved / Phase 1 全部完成（contract、Codex／Claude local ledger、
+  source-side export gate、cross-device merge、account-aware reports、opt-in
+  rollout）
 - Parent tickets：[#38](https://github.com/OliverMingHao1024/projectD-core/issues/38)–[#44](https://github.com/OliverMingHao1024/projectD-core/issues/44)
 - 實作順序：identity/event contract → Codex ledger → Claude ledger → source-side export gate → cross-device merge → reports → rollout
 
@@ -284,6 +285,7 @@ pwsh -NoProfile -File scripts/tests/claude-usage-ledger.contract.ps1
 pwsh -NoProfile -File scripts/tests/usage-export-gate.contract.ps1
 pwsh -NoProfile -File scripts/tests/usage-merge.contract.ps1
 pwsh -NoProfile -File scripts/tests/usage-report.contract.ps1
+pwsh -NoProfile -File scripts/tests/usage-monitoring-rollout.contract.ps1
 pwsh -NoProfile -File scripts/tests/claude-switch-account.contract.ps1
 pwsh -NoProfile -File scripts/projectd-check.ps1 -SkipFleet -SkipGlobal -SkipWiring
 ```
@@ -299,13 +301,16 @@ pwsh -NoProfile -File scripts/claude-account.ps1 -Action Status
 ## Current boundary
 
 目前已建立 contract、Codex／Claude completed-turn 本機 ingestion seam、來源端
-export gate，與跨裝置合併累加器，但尚不修改使用者層級的 Codex OTel 設定、不自動從
-Claude transcript 萃取 projection、不啟動 Codex App Server、collector 或報表，也不會
-自動排程執行 `usage-export-run.ps1`／`usage-merge-run.ps1`（一律由操作者手動觸發，且
-批次從來源裝置搬到合併裝置這一步也由操作者手動完成，工具本身不做任何跨裝置傳輸）。
-Live capture（含自動萃取 Claude projection 的步驟）與 rollout 留在 #44；後續 tickets
-必須沿用本契約，且所有 raw ledger、匯出批次／quarantine 紀錄與合併狀態仍只保存在
-Git-ignored 的本機資料區。
+export gate、跨裝置合併累加器、帳號感知報表，與 opt-in rollout 工具
+（`scripts/usage-monitoring-rollout.ps1`，Check／Apply／Disable／Remove），操作手冊見
+[`docs/operations/token-usage-monitoring.md`](../operations/token-usage-monitoring.md)。
+但尚不修改使用者層級的 Codex OTel 設定、不自動從 Claude transcript 萃取 projection、
+不啟動 Codex App Server、collector 或排程，也不會自動排程執行
+`usage-export-run.ps1`／`usage-merge-run.ps1`／`usage-report-run.ps1`（一律由操作者
+手動觸發，且批次從來源裝置搬到合併裝置這一步也由操作者手動完成，工具本身不做任何
+跨裝置傳輸）。Live capture（含自動萃取 Claude projection 的步驟）留給未來需求出現時
+再開新 ticket；本契約已完整覆蓋 #38–#44，所有 raw ledger、匯出批次／quarantine 紀錄、
+合併狀態與報表仍只保存在 Git-ignored 的本機資料區。
 
 ## References
 
