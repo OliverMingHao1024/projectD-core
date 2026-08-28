@@ -617,7 +617,8 @@ function New-ProjectDUsageEvent {
         [Parameter(Mandatory)][string]$OccurredAt,
         [Parameter(Mandatory)]$Identity,
         [string]$Model,
-        [Collections.IDictionary]$Metrics = @{}
+        [Collections.IDictionary]$Metrics = @{},
+        [string]$LocalContextLabel
     )
 
     $idPattern = '^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$'
@@ -649,7 +650,7 @@ function New-ProjectDUsageEvent {
         $usage[$name] = New-UsageMetricValue -Name $name -Value $value
     }
 
-    $event = [pscustomobject][ordered]@{
+    $eventFields = [ordered]@{
         schema_version = 1
         event_id = $EventId
         source_event_id = $SourceEventId
@@ -668,6 +669,12 @@ function New-ProjectDUsageEvent {
         }
         usage = [pscustomobject]$usage
     }
+    if (-not [string]::IsNullOrWhiteSpace($LocalContextLabel)) {
+        $eventFields.local_context = [pscustomobject][ordered]@{
+            label = $LocalContextLabel.Trim()
+        }
+    }
+    $event = [pscustomobject]$eventFields
     Assert-UsageSchemaValue `
         -Value $event `
         -SchemaFileName 'usage-events.schema.json' `

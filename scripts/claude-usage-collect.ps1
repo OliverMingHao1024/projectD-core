@@ -115,7 +115,7 @@ function ConvertTo-ClaudeUsageProjection {
     # be stable across repeated runs for the same turn to be recognized
     # as a replay instead of a spurious "conflicting content" mismatch.
     $occurredAt = ConvertTo-ClaudeCollectUtcTimestamp $Record.timestamp
-    return [pscustomobject][ordered]@{
+    $fields = [ordered]@{
         schema_version = 1
         source = 'claude-code-transcript'
         captured_at = $occurredAt
@@ -131,6 +131,19 @@ function ConvertTo-ClaudeUsageProjection {
             cache_creation_tokens = $cacheCreation
         }
     }
+    # Local-only diagnostic hint (a project folder name), never carried
+    # through the export gate or cross-device merge -- see local_context
+    # in usage-events.schema.json / claude-usage-projection.schema.json.
+    if (
+        $Record.PSObject.Properties.Name -ccontains 'cwd' -and
+        -not [string]::IsNullOrWhiteSpace([string]$Record.cwd)
+    ) {
+        $projectLabel = Split-Path -Leaf ([string]$Record.cwd)
+        if (-not [string]::IsNullOrWhiteSpace($projectLabel)) {
+            $fields.local_context = [ordered]@{ label = $projectLabel }
+        }
+    }
+    return [pscustomobject]$fields
 }
 
 $root = [IO.Path]::GetFullPath($ProjectRoot).TrimEnd(

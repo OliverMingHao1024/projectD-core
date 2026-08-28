@@ -72,8 +72,17 @@ function Get-UsageReportRowKey {
         [string]$Row.period.start + "`0" + [string]$Row.period.end + "`0" +
         [string]$Row.provider + "`0" + [string]$Row.alias + "`0" +
         [string]$Row.device_id + "`0" + [string]$Row.environment + "`0" +
-        [string]$Row.model
+        [string]$Row.model + "`0" + [string]$Row.local_context
     )
+}
+
+function Get-UsageReportLedgerLocalContextLabel {
+    param([Parameter(Mandatory)]$Event)
+    if ($Event.PSObject.Properties.Name -cnotcontains 'local_context') {
+        return $null
+    }
+    if ($null -eq $Event.local_context) { return $null }
+    return [string]$Event.local_context.label
 }
 
 function New-ProjectDUsageReportRowsFromLedger {
@@ -104,6 +113,7 @@ function New-ProjectDUsageReportRowsFromLedger {
             device_id = [string]$event.identity.device_id
             environment = [string]$event.identity.environment
             model = $model
+            local_context = Get-UsageReportLedgerLocalContextLabel $event
         }
         $key = Get-UsageReportRowKey $row
         if (-not $buckets.Contains($key)) {
@@ -147,6 +157,11 @@ function New-ProjectDUsageReportRowsFromMergeState {
             device_id = [string]$total.device_id
             environment = [string]$total.environment
             model = [string]$total.model
+            # Merge-state totals never carry local_context: it is dropped
+            # by construction before an event crosses the export gate
+            # (see ConvertTo-ProjectDUsageExportBatch), so no merged row
+            # can ever legitimately have one.
+            local_context = $null
         }
         $key = Get-UsageReportRowKey $row
         if ($buckets.Contains($key)) {
@@ -190,6 +205,7 @@ function Complete-ProjectDUsageReportRows {
                     device_id = $entry.row.device_id
                     environment = $entry.row.environment
                     model = $entry.row.model
+                    local_context = $entry.row.local_context
                     run_count = $entry.run_count
                 }
                 foreach ($name in $script:metricNames) {
@@ -376,7 +392,33 @@ function New-ProjectDUsageReport {
         -Value $report `
         -SchemaFileName 'usage-report.schema.json' `
         -Label 'Usage report'
-    $serialized = $report | ConvertTo-Json -Depth 32
+
+    # The content canary exists to catch export-unsafe values (emails,
+    # filesystem paths, repo URLs) reaching an artifact meant to leave
+    # this machine. local_context.label is the one field explicitly
+    # exempt from that: it is designed to carry exactly this kind of
+    # local project/task text (see localContext in
+    # usage-events.schema.json), and it never appears outside a
+    # local-mode report -- New-ProjectDUsageReportRowsFromMergeState
+    # always sets it to $null. Redact it before the scan so a legitimate
+    # local label (a folder name containing "workspace", an "@" in a
+    # thread title, etc.) cannot make report generation fail closed.
+    $canaryRows = @($Rows | ForEach-Object {
+        $clone = $_.PSObject.Copy()
+        if ($null -ne $clone.local_context) { $clone.local_context = 'redacted' }
+        $clone
+    })
+    $canaryReport = [pscustomobject][ordered]@{
+        schema_version = $report.schema_version
+        mode = $report.mode
+        generated_at = $report.generated_at
+        period = $report.period
+        group_by = $report.group_by
+        rows = $canaryRows
+        quota_snapshots = $report.quota_snapshots
+        warnings = $report.warnings
+    }
+    $serialized = $canaryReport | ConvertTo-Json -Depth 32
     if (-not (Test-ProjectDUsageExportContentSafe -Text $serialized)) {
         throw (
             'Usage report failed the content canary scan; refusing to ' +

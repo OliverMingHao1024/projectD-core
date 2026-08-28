@@ -115,6 +115,31 @@ Canonical schema：
 
 Canonical module：`scripts/lib/UsageContract.psm1`。
 
+## Local-only task attribution（`local_context`）
+
+事件與 projection 都額外允許一個選填的 `local_context: { label }` 欄位
+（`localContext` 定義於 `usage-events.schema.json`／`codex-usage-projection.schema.json`／
+`claude-usage-projection.schema.json`），用來回答「這筆用量是在做哪件事」——這是
+opt-in rollout 實跑後使用者提出的實際需求：帳號／裝置層級的彙總無法回答這個問題，
+而 email、路徑、repository 這類資訊依現有隱私邊界永遠不能進入 export 或 merge。
+
+- **Codex**：優先取 `~/.codex/session_index.jsonl`（可用 `-SessionIndexPath`
+  覆寫）裡 `session_id` 對應的 `thread_name`（操作者自己命名的任務標題）；
+  沒有對應項目時退回 `turn_context.payload.cwd` 的資料夾名稱。同一 `id`
+  重複出現時，以檔案中較晚的那筆 `thread_name` 為準。
+- **Claude**：取 transcript 記錄的 `cwd` 欄位資料夾名稱。
+- 這個欄位**只存在於本機 ledger**：`ConvertTo-ProjectDUsageExportBatch`
+  （export gate）與 `Merge-ProjectDUsageExportBatch`（cross-device merge）都是
+  用明確欄位清單組出輸出物件，從不透傳來源事件的任意欄位，因此 `local_context`
+  在設計上就不會被這兩層讀到、更不可能離開這台機器——不是靠事後過濾掉，而是
+  這兩層的程式碼裡根本沒有讀它的路徑。
+- 只有 `-Mode local` 報表會在 row 裡帶出 `local_context`（見下方 Account-aware
+  reports）；`-Mode merged` 報表的每一列固定是 `null`。
+- 內容 canary 掃描（`Test-ProjectDUsageExportContentSafe`）套用在報表全文時，
+  會先把 `local_context.label` 的值遮蔽掉再掃——這個欄位本來就設計成可以合法
+  包含資料夾名稱或任務標題這類文字，若不遮蔽，掃描規則裡的
+  `(?i)\bworkspaces?\b` 等樣式反而會誤傷合法的本機標籤，讓報表產生失敗。
+
 ## Codex local ledger
 
 Codex importer 接受 collector 在來源端合併後的 completed-turn metadata projection。其欄位對應
@@ -174,8 +199,10 @@ collector 會延後到「換下一個 `turn_id`」或「檔案結尾」才真正
 跟 Claude collector 不同，這裡**沒有**對等的免密身份檢查指令——`codex login status` 沒有
 機器可讀、含 email 的輸出——所以 `-AccountReadPath` 是必填參數，identity 仍由操作者手動準備
 一次（同 #39 原始設計）。掃描邏輯只讀取 `session_id`、`turn_id`、`model`、
-`timestamp`／`last_token_usage`／`rate_limits`；同一事件記錄裡的 `cwd`、git remote、訊息
-內容一律不讀取。
+`timestamp`／`last_token_usage`／`rate_limits`，以及 `turn_context.payload.cwd`
+與 `~/.codex/session_index.jsonl`（可用 `-SessionIndexPath` 覆寫）——後兩者只用來
+產生本機限定的 `local_context` 標籤（見上方 Local-only task attribution），
+不進入 export 或 merge；git remote、訊息內容一律不讀取。
 
 ## Claude local ledger
 
@@ -283,7 +310,8 @@ in one of two modes:
 
 - `-Mode local`：直接讀本機 ledger（`.local/usage/codex-ledger.jsonl`／
   `claude-ledger.jsonl`），依 `day`／`week` 切 bucket，再依
-  provider／`alias`（帳號）／`device_id`／`environment`／`model` 分組。
+  provider／`alias`（帳號）／`device_id`／`environment`／`model`／
+  `local_context`（見上方 Local-only task attribution）分組。
 - `-Mode merged`：讀 `.local/usage/merge/merge-state.json` 的累加結果——
   由於 #42 的 totals 已經保留每個匯出批次的 `period`，只要操作者固定用同一種
   granularity（例如每天跑一次 export）產生批次，合併後仍能維持日期切分。

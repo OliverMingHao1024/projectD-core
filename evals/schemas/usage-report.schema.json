@@ -53,6 +53,7 @@
         "device_id",
         "environment",
         "model",
+        "local_context",
         "run_count",
         "input_tokens",
         "cached_input_tokens",
@@ -81,6 +82,13 @@
         "model": {
           "type": "string",
           "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$"
+        },
+        "local_context": {
+          "description": "Local-only diagnostic label (e.g. a project folder name or Codex thread title), present only in local-mode reports. Always null in merged-mode reports -- this field is dropped by construction before an event ever crosses the export gate or cross-device merge, so no merged row can carry it.",
+          "oneOf": [
+            { "type": "string", "minLength": 1, "maxLength": 128 },
+            { "type": "null" }
+          ]
         },
         "run_count": { "type": "integer", "minimum": 1 },
         "input_tokens": { "$ref": "#/$defs/metric" },

@@ -26,6 +26,7 @@
     "provider": { "$ref": "#/$defs/provider" },
     "identity": { "$ref": "#/$defs/identity" },
     "model": { "$ref": "#/$defs/modelObservation" },
+    "local_context": { "$ref": "#/$defs/localContext" },
     "usage": {
       "type": "object",
       "additionalProperties": false,
@@ -71,6 +72,19 @@
   ],
   "$defs": {
     "provider": { "enum": ["codex", "claude"] },
+    "localContext": {
+      "description": "Local-only diagnostic hint (e.g. a project folder name or the operator's own session title) so a local-mode report can group usage by task. This field is intentionally outside the source-side export allowlist (usage-export-batch.schema.json) and outside usage-merge-state.schema.json's row shape -- ConvertTo-ProjectDUsageExportBatch and Merge-ProjectDUsageExportBatch build their output objects from an explicit list of named fields, so this property is dropped by construction the moment a ledger event crosses either boundary, never carried through.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label"],
+      "properties": {
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
     "eventId": {
       "type": "string",
       "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"

@@ -166,12 +166,18 @@ try {
     $ledgerText = Get-Content -Raw -LiteralPath $ledgerPath
     Assert-True (
         $ledgerText -notmatch (
-            '(?i)this text must never|secret-project|some-private-repo|' +
-            'collector@example\.test'
+            '(?i)this text must never|secret-project|collector@example\.test'
         )
     ) (
-        'The ledger must never contain message content, cwd, git branch, ' +
-        'or email -- only the allowlisted usage metadata fields.'
+        'The ledger must never contain message content, git branch, or ' +
+        'email -- only the allowlisted usage metadata fields (the cwd ' +
+        'folder basename is intentionally allowed, as local_context.label).'
+    )
+    Assert-True (
+        @($events | Where-Object { [string]$_.local_context.label -ceq 'some-private-repo' }).Count -eq 2
+    ) (
+        'Every event must carry local_context.label derived from the cwd ' +
+        'folder basename, for local-mode task attribution.'
     )
 
     # No projection scratch files should be left behind.

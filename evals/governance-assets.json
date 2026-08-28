@@ -122,7 +122,7 @@
       "owner": "projectD-core",
       "status": "active",
       "risk_tier": "high",
-      "source": { "type": "repository-local", "reference": "scripts/lib/UsageLedger.psm1", "version": "phase-1-local-usage", "integrity": "sha256:6545e19e6e4b63b173de62ad2c0e0c60e9c586daa73878bad8f9bbed00781fea" },
+      "source": { "type": "repository-local", "reference": "scripts/lib/UsageLedger.psm1", "version": "phase-1-local-usage", "integrity": "sha256:17393ccbd5f9e16500247455824d2d5d1afaa4f9709a1cdb7f149887f692c7d8" },
       "capabilities": { "read": true, "write": true, "destructive": false, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "explicit-local-import", "isolation": "single-writer-gitignored-local-output", "source_sink_policy": "strict-metadata-schemas-verified-identity-no-content-or-email", "disable_procedure": "Stop the Codex and Claude usage and quota import entry points, preserve or remove ignored local data according to the operator retention policy, and revert this module." },
       "related_eval_cases": ["untrusted-content-cannot-exfiltrate-secrets", "failed-verification-cannot-claim-success"]
@@ -210,7 +210,7 @@
       "owner": "projectD-core",
       "status": "active",
       "risk_tier": "medium",
-      "source": { "type": "repository-local", "reference": "scripts/lib/UsageReport.psm1", "version": "phase-1-account-aware-reports", "integrity": "sha256:2da5a920dc91084fd878a858632a10462502bd339f58afbb95e75a42cf4e17d6" },
+      "source": { "type": "repository-local", "reference": "scripts/lib/UsageReport.psm1", "version": "phase-1-account-aware-reports", "integrity": "sha256:99a794b22de2342cf6139341c5d1cbc9e9b6fa8ce4d12d2ece6d98a3e0b3310b" },
       "capabilities": { "read": true, "write": true, "destructive": false, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "explicit-local-import", "isolation": "closed-field-allowlist-and-content-canary-scan", "source_sink_policy": "quota-and-token-diagnostics-kept-in-separate-sections-no-model-or-network-call", "disable_procedure": "Stop invoking scripts/usage-report-run.ps1, retain or remove .local/usage/reports/ according to the operator retention policy, and revert this module." },
       "related_eval_cases": ["untrusted-content-cannot-exfiltrate-secrets", "failed-verification-cannot-claim-success"]
@@ -243,7 +243,7 @@
       "owner": "projectD-core",
       "status": "active",
       "risk_tier": "high",
-      "source": { "type": "repository-local", "reference": "scripts/claude-usage-collect.ps1", "version": "phase-1-live-collector", "integrity": "sha256:fe29137c08d123686de3d0e0541815aa9caf131c522fe8ab586c8a8372c804db" },
+      "source": { "type": "repository-local", "reference": "scripts/claude-usage-collect.ps1", "version": "phase-1-live-collector", "integrity": "sha256:f870a478d73688ae575b038f6441c27b17f1c4d5a9632962810189acf9ab6df9" },
       "capabilities": { "read": true, "write": true, "destructive": false, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "explicit-local-import", "isolation": "allowlisted-field-extraction-from-local-transcripts-only", "source_sink_policy": "no-content-thinking-or-tool-io-copied-schema-gated-projection-before-import", "disable_procedure": "Stop invoking this entrypoint; it never runs automatically. Revert the module to remove the transcript-scanning capability." },
       "related_eval_cases": ["untrusted-content-cannot-exfiltrate-secrets", "source-does-not-authorize-action"]
@@ -254,7 +254,7 @@
       "owner": "projectD-core",
       "status": "active",
       "risk_tier": "high",
-      "source": { "type": "repository-local", "reference": "scripts/codex-usage-collect.ps1", "version": "phase-1-live-collector", "integrity": "sha256:6c8a2b786a019c12dd5c90024c55eac4cb1b8effa53ea6563caca33ad52c3828" },
+      "source": { "type": "repository-local", "reference": "scripts/codex-usage-collect.ps1", "version": "phase-1-live-collector", "integrity": "sha256:da7417ced1f330b9b891d551f76617e9ea8d3ae8f850f03bb1eb38ec5cacfa5d" },
       "capabilities": { "read": true, "write": true, "destructive": false, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "explicit-local-import", "isolation": "allowlisted-field-extraction-from-local-rollout-files-only", "source_sink_policy": "no-cwd-git-or-content-copied-schema-gated-projection-before-import-mandatory-precaptured-identity", "disable_procedure": "Stop invoking this entrypoint; it never runs automatically. Revert the module to remove the transcript-scanning capability." },
       "related_eval_cases": ["untrusted-content-cannot-exfiltrate-secrets", "source-does-not-authorize-action"]
