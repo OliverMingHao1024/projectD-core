@@ -610,6 +610,8 @@ Export-ModuleMember -Function @(
     'ConvertTo-ProjectDCodexUsageEvent',
     'ConvertTo-ProjectDClaudeUsageEvent',
     'ConvertTo-ProjectDCodexQuotaSnapshot',
+    'Read-ProjectDUsageLedgerEvents',
+    'Resolve-ProjectDUsageLedgerPath',
     'Write-ProjectDUsageLedgerEvent',
     'Write-ProjectDCodexQuotaSnapshot'
 )

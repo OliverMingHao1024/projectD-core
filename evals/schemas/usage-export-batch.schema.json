@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://projectd.local/schemas/usage-export-batch.schema.json",
+  "title": "projectD de-identified, source-side aggregated usage export batch",
+  "description": "The only shape allowed to leave a source device. Rows are aggregated by alias/provider/model over one period; no email, organization, project, repository, branch, path, remote URL, prompt, or session/turn identifier may appear anywhere in this document.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "policy_version",
+    "redaction_version",
+    "source_version",
+    "generated_at",
+    "period",
+    "rows"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "policy_version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+    },
+    "redaction_version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+    },
+    "source_version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+    },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "period": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start", "end"],
+      "properties": {
+        "start": { "type": "string", "format": "date-time" },
+        "end": { "type": "string", "format": "date-time" }
+      }
+    },
+    "rows": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/row" }
+    }
+  },
+  "$defs": {
+    "row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "alias",
+        "provider",
+        "model",
+        "input_tokens",
+        "cached_input_tokens",
+        "output_tokens",
+        "reasoning_tokens",
+        "cache_creation_tokens",
+        "estimated_cost_usd",
+        "run_count"
+      ],
+      "properties": {
+        "alias": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "provider": { "enum": ["codex", "claude"] },
+        "model": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$"
+        },
+        "run_count": { "type": "integer", "minimum": 1 },
+        "input_tokens": { "$ref": "#/$defs/metric" },
+        "cached_input_tokens": { "$ref": "#/$defs/metric" },
+        "output_tokens": { "$ref": "#/$defs/metric" },
+        "reasoning_tokens": { "$ref": "#/$defs/metric" },
+        "cache_creation_tokens": { "$ref": "#/$defs/metric" },
+        "estimated_cost_usd": { "$ref": "#/$defs/metric" }
+      }
+    },
+    "metric": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "value"],
+          "properties": {
+            "status": { "const": "observed" },
+            "value": { "type": "number", "minimum": 0 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "value"],
+          "properties": {
+            "status": { "const": "unavailable" },
+            "value": { "type": "null" }
+          }
+        }
+      ]
+    }
+  }
+}
