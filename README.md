@@ -57,6 +57,7 @@ pwsh -File scripts/uninstall.ps1
 - [Skill catalog](docs/operations/skill-catalog.md)
 - [Governance Evals v2](docs/specs/governance-evals-v2.md)
 - [Governance Evals v2 Phase 3](docs/specs/governance-evals-v2-phase-3.md)
+- [Token 用量監控操作手冊](docs/operations/token-usage-monitoring.md)
 - [外部 Skill 定向引入 ADR](docs/adr/0016-targeted-skill-intake.md)
 - [外部知識 Wiki 規格](docs/specs/external-knowledge-wiki.md)
 - [可選專案歷程搜尋移機說明](core/skills/query-project-history/references/portable-setup.md)
