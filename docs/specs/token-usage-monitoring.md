@@ -188,6 +188,25 @@ environmentState: { apiBilling, thirdParty } }`；identity 規則與判定與現
 `verified` 時才會寫入。目前沒有 Claude 官方 quota/rate-limit window 的對等本機
 snapshot（Claude Code 未提供對應的本機可讀 API），此範圍留待未來需求出現再評估。
 
+### Live collector（`scripts/claude-usage-collect.ps1`）
+
+補上 Phase 1 原本刻意排除的「Live capture」缺口：自動掃描
+`~/.claude/projects/**/*.jsonl` 底下的 session transcript，對每筆帶
+`message.usage` 的 assistant 訊息（排除 `isSidechain` 與沒有 usage 的訊息）萃取出
+上述 projection，再呼叫既有的 `claude-usage-import.ps1`——萃取邏輯與 import 邏輯
+分離，不重新實作 identity／dedup／schema 驗證。identity 來源預設呼叫既有
+`claude auth status --json`（唯讀身份檢查，非模型呼叫），也可用 `-AccountReadPath`
+指定既有檔案（測試與離線情境使用）。
+
+`captured_at` 刻意取自該筆訊息自己的 `timestamp`，而不是「現在」的 wall-clock
+時間：因為 collector 是重複掃描同一份已固定的歷史 transcript，若 `captured_at`
+每次執行都不同，會讓同一筆訊息在第二次掃描時被誤判成「內容變了」而 fail closed，
+而不是被辨識成合法重播。
+
+因為每次 import 都會重新驗證整份既有 ledger（跟單筆 `claude-usage-import.ps1`
+成本相同），對很長的歷史 transcript 做第一次全量掃描是 O(n²)；用 `-Since` 把掃描
+範圍限定在最近訊息，搭配定期（例如每次 session 結束）執行，可以避免這個成本。
+
 ## Source-side export gate
 
 在任何摘要離開來源電腦之前，`scripts/usage-export-run.ps1` 套用確定性的欄位
@@ -286,6 +305,7 @@ pwsh -NoProfile -File scripts/tests/usage-export-gate.contract.ps1
 pwsh -NoProfile -File scripts/tests/usage-merge.contract.ps1
 pwsh -NoProfile -File scripts/tests/usage-report.contract.ps1
 pwsh -NoProfile -File scripts/tests/usage-monitoring-rollout.contract.ps1
+pwsh -NoProfile -File scripts/tests/claude-usage-collect.contract.ps1
 pwsh -NoProfile -File scripts/tests/claude-switch-account.contract.ps1
 pwsh -NoProfile -File scripts/projectd-check.ps1 -SkipFleet -SkipGlobal -SkipWiring
 ```
@@ -300,17 +320,17 @@ pwsh -NoProfile -File scripts/claude-account.ps1 -Action Status
 
 ## Current boundary
 
-目前已建立 contract、Codex／Claude completed-turn 本機 ingestion seam、來源端
-export gate、跨裝置合併累加器、帳號感知報表，與 opt-in rollout 工具
+目前已建立 contract、Codex／Claude completed-turn 本機 ingestion seam（含 Claude
+的 live transcript collector，見 [#52](https://github.com/OliverMingHao1024/projectD-core/issues/52)）、
+來源端 export gate、跨裝置合併累加器、帳號感知報表，與 opt-in rollout 工具
 （`scripts/usage-monitoring-rollout.ps1`，Check／Apply／Disable／Remove），操作手冊見
 [`docs/operations/token-usage-monitoring.md`](../operations/token-usage-monitoring.md)。
-但尚不修改使用者層級的 Codex OTel 設定、不自動從 Claude transcript 萃取 projection、
-不啟動 Codex App Server、collector 或排程，也不會自動排程執行
-`usage-export-run.ps1`／`usage-merge-run.ps1`／`usage-report-run.ps1`（一律由操作者
-手動觸發，且批次從來源裝置搬到合併裝置這一步也由操作者手動完成，工具本身不做任何
-跨裝置傳輸）。Live capture（含自動萃取 Claude projection 的步驟）留給未來需求出現時
-再開新 ticket；本契約已完整覆蓋 #38–#44，所有 raw ledger、匯出批次／quarantine 紀錄、
-合併狀態與報表仍只保存在 Git-ignored 的本機資料區。
+但尚不修改使用者層級的 Codex OTel 設定、不啟動 Codex App Server 或其對等的 live
+collector（Codex 本機用量資料實際存放位置尚待研究，留在 #52 的後續票處理）、也不會
+自動排程執行任何一支 `usage-*.ps1`（一律由操作者手動或用系統排程器觸發，且批次從
+來源裝置搬到合併裝置這一步也由操作者手動完成，工具本身不做任何跨裝置傳輸）。
+本契約已完整覆蓋 #38–#44，所有 raw ledger、匯出批次／quarantine 紀錄、合併狀態與
+報表仍只保存在 Git-ignored 的本機資料區。
 
 ## References
 
