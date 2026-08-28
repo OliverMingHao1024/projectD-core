@@ -1,44 +1,52 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://projectd.local/schemas/usage-export-batch.schema.json",
-  "title": "projectD de-identified, source-side aggregated usage export batch",
-  "description": "The only shape allowed to leave a source device. Rows are aggregated by alias/provider/model/device_id over one period; no email, organization, project, repository, branch, path, remote URL, prompt, or session/turn identifier may appear anywhere in this document. device_id and environment are random, non-identifying local labels (see usage-account-profiles.schema.json / usage-device-profile.schema.json) kept distinguishable so a cross-device merge (see #42) can tell devices and environments apart without ever learning which physical machine, email, or organization they belong to.",
+  "$id": "https://projectd.local/schemas/usage-merge-state.schema.json",
+  "title": "projectD durable cross-device usage merge state",
+  "description": "Local, git-ignored accumulator that merges already-gated usage-export-batch documents from multiple devices. Never shared or synced between devices directly; each device produces its own export batches (see usage-export-batch.schema.json), and this state is built by replaying those batches through the merge tool. Replaying the same batch (identified by its content digest) more than once must not change totals.",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "schema_version",
-    "policy_version",
-    "redaction_version",
-    "source_version",
-    "generated_at",
-    "period",
-    "rows"
-  ],
+  "required": ["schema_version", "updated_at", "consumed_batches", "totals"],
   "properties": {
     "schema_version": { "const": 1 },
-    "policy_version": {
-      "type": "string",
-      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
-    },
-    "redaction_version": {
-      "type": "string",
-      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
-    },
-    "source_version": {
-      "type": "string",
-      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
-    },
-    "generated_at": { "type": "string", "format": "date-time" },
-    "period": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["start", "end"],
-      "properties": {
-        "start": { "type": "string", "format": "date-time" },
-        "end": { "type": "string", "format": "date-time" }
+    "updated_at": { "type": "string", "format": "date-time" },
+    "consumed_batches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "batch_digest",
+          "device_id",
+          "environment",
+          "period",
+          "source_version",
+          "merged_at"
+        ],
+        "properties": {
+          "batch_digest": {
+            "type": "string",
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          },
+          "device_id": { "type": "string", "pattern": "^dev_[a-f0-9]{32}$" },
+          "environment": { "enum": ["work", "home", "other"] },
+          "period": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["start", "end"],
+            "properties": {
+              "start": { "type": "string", "format": "date-time" },
+              "end": { "type": "string", "format": "date-time" }
+            }
+          },
+          "source_version": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+          },
+          "merged_at": { "type": "string", "format": "date-time" }
+        }
       }
     },
-    "rows": {
+    "totals": {
       "type": "array",
       "items": { "$ref": "#/$defs/row" }
     }
@@ -71,10 +79,7 @@
           "type": "string",
           "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$"
         },
-        "device_id": {
-          "type": "string",
-          "pattern": "^dev_[a-f0-9]{32}$"
-        },
+        "device_id": { "type": "string", "pattern": "^dev_[a-f0-9]{32}$" },
         "environment": { "enum": ["work", "home", "other"] },
         "run_count": { "type": "integer", "minimum": 1 },
         "input_tokens": { "$ref": "#/$defs/metric" },

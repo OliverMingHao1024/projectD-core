@@ -256,18 +256,23 @@ try {
         [string]$row.alias -ceq 'personal-codex' -and
         [string]$row.provider -ceq 'codex' -and
         [string]$row.model -ceq 'gpt-5.6' -and
+        [string]$row.device_id -ceq 'dev_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' -and
+        [string]$row.environment -ceq 'work' -and
         [int]$row.run_count -eq 2 -and
         [long]$row.input_tokens.value -eq 150 -and
         [long]$row.output_tokens.value -eq 30 -and
         [string]$row.cached_input_tokens.status -ceq 'unavailable'
-    ) 'The aggregated row must sum observed metrics and preserve unavailable status.'
+    ) (
+        'The aggregated row must sum observed metrics, preserve unavailable ' +
+        'status, and keep device_id/environment distinguishable.'
+    )
     Assert-True (
         $batchJson -notmatch (
-            '(?i)acct_1111|thread_a1|turn_a1|turn_a2|dev_aaaa|@example|C:\\\\|/home/'
+            '(?i)acct_1111|thread_a1|turn_a1|turn_a2|@example|C:\\\\|/home/'
         )
     ) (
-        'The exported batch must exclude account_id, session/turn identifiers, ' +
-        'device_id, email, and local paths.'
+        'The exported batch must exclude account_id, session/turn ' +
+        'identifiers, email, and local paths.'
     )
 
     # --- fail-closed: an unverified identity in the ledger must be rejected ---
