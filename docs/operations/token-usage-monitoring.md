@@ -39,11 +39,14 @@ pwsh -File scripts/claude-usage-collect.ps1
 #     只想抓最近的，避免第一次全量掃描太慢：
 pwsh -File scripts/claude-usage-collect.ps1 -Since (Get-Date).AddHours(-2).ToString('o')
 
-# 4b. Codex：目前仍需先手動準備 .local/capture/codex-turn.json 與 codex-account-read.json，
-#     再匯入（Codex 本機用量資料的自動擷取方式尚待研究，見 #52 的後續票）
-pwsh -File scripts/codex-usage-import.ps1 `
-  -ProjectionPath .local/capture/codex-turn.json `
-  -AccountReadPath .local/capture/codex-account-read.json
+# 4b. Codex：自動掃描本機 session rollout 檔並匯入用量與官方 quota（identity 仍需
+#     手動準備一次 codex-account-read.json，因為 account/read 只能透過啟動 Codex
+#     App Server 的 JSON-RPC 取得，Phase 1 刻意不啟動 App Server）
+pwsh -File scripts/codex-usage-collect.ps1 -AccountReadPath .local/capture/codex-account-read.json
+#     同樣建議搭配 -Since 避免第一次全量掃描太慢：
+pwsh -File scripts/codex-usage-collect.ps1 `
+  -AccountReadPath .local/capture/codex-account-read.json `
+  -Since (Get-Date).AddHours(-2).ToString('o')
 
 # 5. 只在明確允許匯出的電腦上，把本機 ledger 收斂成去識別化批次
 pwsh -File scripts/usage-export-run.ps1 -PeriodStart 2026-08-01T00:00:00Z -PeriodEnd 2026-08-02T00:00:00Z
@@ -103,12 +106,14 @@ per-turn cost 欄位，因此這個欄位在 Phase 1 一律是 `unavailable`，�
 | 報表出現 `data_gap` 警告 | 該天／週在請求的期間內完全沒有任何一列資料 | 確認當天有沒有真的呼叫過 Codex／Claude、有沒有忘記跑 import |
 | 報表出現 `unknown_identity`／`account_mismatch` 警告 | 對應期間有 import 因 identity 解析失敗而被拒絕 | 對照 `identity-events.jsonl` 的時間與 provider，處理帳號設定問題 |
 | 想知道跨裝置彙整後某個帳號在兩台電腦各花多少 | 報表的 `rows` 本來就依 `device_id`／`environment` 分開列，不會悄悄合成一個數字 | 直接依 `device_id`／`environment` 篩選 `rows` |
-| `claude-usage-collect.ps1` 第一次跑很慢 | 每次匯入都會重新驗證整份既有 ledger（跟 `claude-usage-import.ps1` 單筆匯入同樣的成本），歷史 transcript 累積的訊息一多，第一次全量掃描就是 O(n²) | 用 `-Since` 限定只掃最近的訊息；之後固定週期（例如每次 session 結束）跑一次，每次只有少量新訊息，就不會再慢 |
+| `claude-usage-collect.ps1`／`codex-usage-collect.ps1` 第一次跑很慢 | 每次匯入都會重新驗證整份既有 ledger（跟單筆手動匯入同樣的成本），歷史紀錄一多，第一次全量掃描就是 O(n²) | 用 `-Since` 限定只掃最近的訊息；之後固定週期（例如每次 session 結束）跑一次，每次只有少量新訊息，就不會再慢 |
+| `codex-usage-collect.ps1` 的 `quota_failed` 數字很高 | 多數是「這筆 quota 快照比目前存的還舊」被正常拒絕（掃描多個 session 檔案的順序不保證跟時間順序一致），不是真的失敗 | 只要 `.local/usage/codex-quota-snapshot.json` 的內容是最新的就沒問題，不用特別處理 |
 
 ## 驗證
 
 ```powershell
 pwsh -File scripts/tests/usage-monitoring-rollout.contract.ps1
 pwsh -File scripts/tests/claude-usage-collect.contract.ps1
+pwsh -File scripts/tests/codex-usage-collect.contract.ps1
 pwsh -File scripts/projectd-check.ps1 -SkipFleet -SkipGlobal -SkipWiring
 ```

@@ -157,6 +157,26 @@ Quota snapshot 只保存 limit/window ID、使用百分比、window 長度與 re
 描述、方案訊息、email 或 per-turn token 欄位；命令輸出也只回報 `inserted`、`updated` 或
 `replayed` 狀態，與 token ledger 分開呈現。
 
+### Live collector（`scripts/codex-usage-collect.ps1`）
+
+原本設想的 `account/rateLimits/read`／`account/usage/read` 官方端點只能透過啟動 Codex App
+Server 的 JSON-RPC 通道取得；Phase 1 刻意不啟動 App Server。研究本機 session rollout 檔
+（`~/.codex/sessions/YYYY/MM/DD/rollout-*.jsonl`）後發現一個更直接的來源：`session_meta`
+（帶 `session_id`）、`turn_context`（帶 `turn_id`、`model`）與 `event_msg` 型別
+`token_count`（帶 `info.last_token_usage` 逐回合用量**與** `rate_limits` 官方 quota window，
+形狀幾乎與 `codex-quota-projection.schema.json` 一致）三種事件循序出現，足以在完全離線、
+不啟動 App Server 的前提下重建同樣的 projection。
+
+Codex 在同一個 turn 執行期間可能連續發出多筆 `token_count` 快照（例如中途進度更新）；
+collector 會延後到「換下一個 `turn_id`」或「檔案結尾」才真正匯入，只送出該 turn 最後一筆
+快照，避免同一個 `turn_id` 因為快照內容不同而被 ledger 的重播/衝突檢查誤判為 fail closed。
+
+跟 Claude collector 不同，這裡**沒有**對等的免密身份檢查指令——`codex login status` 沒有
+機器可讀、含 email 的輸出——所以 `-AccountReadPath` 是必填參數，identity 仍由操作者手動準備
+一次（同 #39 原始設計）。掃描邏輯只讀取 `session_id`、`turn_id`、`model`、
+`timestamp`／`last_token_usage`／`rate_limits`；同一事件記錄裡的 `cwd`、git remote、訊息
+內容一律不讀取。
+
 ## Claude local ledger
 
 Claude importer 接受一份已從本機 Claude Code session transcript
@@ -306,6 +326,7 @@ pwsh -NoProfile -File scripts/tests/usage-merge.contract.ps1
 pwsh -NoProfile -File scripts/tests/usage-report.contract.ps1
 pwsh -NoProfile -File scripts/tests/usage-monitoring-rollout.contract.ps1
 pwsh -NoProfile -File scripts/tests/claude-usage-collect.contract.ps1
+pwsh -NoProfile -File scripts/tests/codex-usage-collect.contract.ps1
 pwsh -NoProfile -File scripts/tests/claude-switch-account.contract.ps1
 pwsh -NoProfile -File scripts/projectd-check.ps1 -SkipFleet -SkipGlobal -SkipWiring
 ```
@@ -320,16 +341,16 @@ pwsh -NoProfile -File scripts/claude-account.ps1 -Action Status
 
 ## Current boundary
 
-目前已建立 contract、Codex／Claude completed-turn 本機 ingestion seam（含 Claude
-的 live transcript collector，見 [#52](https://github.com/OliverMingHao1024/projectD-core/issues/52)）、
+目前已建立 contract、Codex／Claude completed-turn 本機 ingestion seam（含 Codex 與 Claude
+兩邊的 live 本機 collector，見 [#52](https://github.com/OliverMingHao1024/projectD-core/issues/52)）、
 來源端 export gate、跨裝置合併累加器、帳號感知報表，與 opt-in rollout 工具
 （`scripts/usage-monitoring-rollout.ps1`，Check／Apply／Disable／Remove），操作手冊見
 [`docs/operations/token-usage-monitoring.md`](../operations/token-usage-monitoring.md)。
-但尚不修改使用者層級的 Codex OTel 設定、不啟動 Codex App Server 或其對等的 live
-collector（Codex 本機用量資料實際存放位置尚待研究，留在 #52 的後續票處理）、也不會
-自動排程執行任何一支 `usage-*.ps1`（一律由操作者手動或用系統排程器觸發，且批次從
-來源裝置搬到合併裝置這一步也由操作者手動完成，工具本身不做任何跨裝置傳輸）。
-本契約已完整覆蓋 #38–#44，所有 raw ledger、匯出批次／quarantine 紀錄、合併狀態與
+但仍不修改使用者層級的 Codex OTel 設定、不啟動 Codex App Server（Codex identity 因此仍
+需操作者手動準備一次 `account/read` 結果，見上方 Codex live collector 說明）、也不會自動
+排程執行任何一支 `usage-*.ps1`（一律由操作者手動或用系統排程器觸發，且批次從來源裝置
+搬到合併裝置這一步也由操作者手動完成，工具本身不做任何跨裝置傳輸）。
+本契約已完整覆蓋 #38–#44 與 #52，所有 raw ledger、匯出批次／quarantine 紀錄、合併狀態與
 報表仍只保存在 Git-ignored 的本機資料區。
 
 ## References
