@@ -17,36 +17,54 @@ real Windows account.
 
 ## Network topology
 
+Two independent instances now exist -- this one (projectD-core) and
+`containers/chouten-court-isolation/` -- sharing a single devtunnel with one
+forwarded port each. Each instance's `devspace-internal` network is its own
+Docker-`internal: true` network (no route to the Internet, and no route to
+the *other* instance's network either -- confirmed by testing, see that
+instance's README):
+
 ```mermaid
 flowchart LR
-    client["ChatGPT / MCP client<br/>(Internet)"]
-    tunnel["devtunnel host<br/>(Windows host, OAuth)"]
-    pf["port-forward (socat)<br/>127.0.0.1:7676 published"]
-    ds["devspace container<br/>non-root · cap_drop ALL<br/>one repo bind-mount"]
-    egress["egress-proxy (squid)<br/>deny-by-default allowlist"]
-    inet["Internet<br/>(allowlisted domains only)"]
+    client["ChatGPT / MCP client(s)<br/>(Internet)"]
+    tunnel["devtunnel host: devspace-projectd<br/>(Windows host, OAuth)<br/>port 7676 -> projectD-core<br/>port 7677 -> chouten-court"]
+
+    subgraph pd ["projectD-core instance (containers/devspace-isolation/)"]
+        pf1["port-forward (socat)<br/>127.0.0.1:7676 published"]
+        subgraph pd_internal ["devspace-isolation_devspace-internal (internal: true)"]
+            ds1["devspace container<br/>non-root · cap_drop ALL<br/>bind-mount: projectD-core"]
+            eg1["egress-proxy (squid)<br/>deny-by-default allowlist"]
+        end
+        pf1 -->|TCP :7676| ds1
+        ds1 -.->|HTTP_PROXY, unused by default| eg1
+    end
+
+    subgraph cc ["chouten-court instance (containers/chouten-court-isolation/)"]
+        pf2["port-forward (socat)<br/>127.0.0.1:7677 published"]
+        subgraph cc_internal ["chouten-court-isolation_devspace-internal (internal: true)"]
+            ds2["devspace container<br/>non-root · cap_drop ALL<br/>bind-mount: chouten-court"]
+            eg2["egress-proxy (squid)<br/>deny-by-default allowlist"]
+        end
+        pf2 -->|TCP :7676| ds2
+        ds2 -.->|HTTP_PROXY, unused by default| eg2
+    end
+
+    inet["Internet<br/>(each instance's own allowlisted domains only)"]
 
     client -->|HTTPS + OAuth| tunnel
-    tunnel --> pf
-    pf -->|TCP :7676| ds
-    ds -.->|HTTP_PROXY, unused by default| egress
-    egress -->|allowed domains only| inet
-
-    subgraph internal_net ["devspace-internal network (internal: true -- no route to Internet at all)"]
-        ds
-        egress
-    end
-    subgraph egress_net ["devspace-egress network (bridge -- has a route out)"]
-        egress
-        pf
-    end
+    tunnel -->|port 7676| pf1
+    tunnel -->|port 7677| pf2
+    eg1 -->|allowed domains only| inet
+    eg2 -->|allowed domains only| inet
 ```
 
-`devspace` has no edge to `inet` in this diagram on purpose: its only network
-is `devspace-internal`, which is Docker-`internal: true` and therefore has no
-gateway to anything outside it. `egress-proxy` and `port-forward` are the only
-two services that also join `devspace-egress`, which is what makes either of
-them reachable from (or able to reach) the outside world at all -- see
+Neither `devspace` container has an edge to `inet` in this diagram on
+purpose: each one's only network is its own `devspace-internal`, which is
+Docker-`internal: true` and therefore has no gateway to anything outside
+it -- including the other instance. Each instance's `egress-proxy` and
+`port-forward` are the only services that also join that instance's
+non-internal `*-devspace-egress` network, which is what makes either of them
+reachable from (or able to reach) the outside world at all -- see
 "Architecture note" below for why `port-forward` has to exist for that reason
 alone, and "Squid allowlist" for why `egress-proxy`'s side of that route is
 still policy-enforced, not just topology.
@@ -255,6 +273,20 @@ schtasks /Create /TN "DevSpace Dev Tunnel" /TR "`"$devtunnel`" host devspace-pro
 
 A successful connection shows `已使用授權: OAuth` and a connection date in the
 connector's detail page.
+
+**Gotcha: recreating the container's volume invalidates the existing
+connector, and "reconnect" won't fix it.** DevSpace stores its OAuth client
+registrations under `$HOME` (the `devspace-config` named volume, not the
+bind-mounted repo). If that volume is ever recreated -- `docker compose
+down -v`, or deleting the volume directly -- the `client_id` ChatGPT
+remembers for this connector no longer exists on the DevSpace side.
+Confirmed by testing: ChatGPT's own "重新連線" (reconnect) option reuses the
+old `client_id` and fails with `{"error":"invalid_client","error_description":
+"Invalid client_id"}` -- it does not re-register. The fix is to delete the
+connector entirely (`...` menu → 刪除) and go through "Connecting ChatGPT"
+again from step 3, which registers a fresh `client_id` against the current
+DevSpace instance. This applies to any DevSpace-backed connector, including
+`containers/chouten-court-isolation/`'s.
 
 ## Cross-reference
 

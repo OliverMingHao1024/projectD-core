@@ -66,11 +66,17 @@ devtunnel port create devspace-projectd -p 7677 --protocol http
 devtunnel access create devspace-projectd -p 7677 --anonymous
 ```
 
-No change to the `devtunnel host devspace-projectd` process or its
-scheduled task (`containers/devspace-isolation/README.md`'s "Exposing
-DevSpace publicly" section) -- it already forwards every port configured on
-that tunnel ID once a `port create`/`access create` pair exists for it. The
-resulting public URL is `https://<same-id>-7677.<region>.devtunnels.ms`;
+No new tunnel process or scheduled task needed, but the **already-running**
+`devtunnel host devspace-projectd` process does NOT pick up a newly added
+port on its own -- confirmed by testing: after `port create`/`access
+create` above, the existing host process kept only forwarding `7676` until
+it was killed and restarted (`devtunnel host devspace-projectd` again, same
+tunnel ID). If that process runs via the scheduled task
+(`containers/devspace-isolation/README.md`'s "Exposing DevSpace publicly"
+section), stop and restart the task (or kill the `devtunnel.exe` process and
+let the task's `ONLOGON` trigger relaunch it, or just rerun the `host`
+command manually) any time a port is added to or removed from the tunnel.
+The resulting public URL is `https://<same-id>-7677.<region>.devtunnels.ms`;
 put that in this instance's own `.env`'s `DEVSPACE_PUBLIC_BASE_URL`
 (**not** the projectD-core instance's `.env`) and restart this stack.
 
