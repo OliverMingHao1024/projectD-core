@@ -246,3 +246,38 @@ loopback/link-local 位址範圍（`10.0.0.0/8`、`172.16.0.0/12`、`192.168.0.0
 
 這條規則之後加入真實網域時不需要額外維護——它擋的是目的位址範圍，跟允許清單
 裡有哪些網域無關。
+
+## Addendum: 多專案並存——`containers/chouten-court-isolation/`（post-implementation）
+
+ADR 0015 的「單一 bind-mount」邊界是**每個容器實例**的邊界，不是「整台機器只能
+跑一個 DevSpace 實例」；要同時開放第二個 repo（`D:/workspaces/chouten-court`）
+給 DevSpace，且不能讓兩個專案互相看到彼此，做法是整組隔離骨架**複製一份獨立
+實例**（`containers/chouten-court-isolation/`），而不是讓單一容器實例切換
+`DEVSPACE_REPO_PATH`（那樣同時間只能有一個專案可連）。
+
+兩個實例之間唯一必須不同的地方：
+
+- `container_name`（Docker daemon 全域唯一，不像 compose network 名稱會自動加
+  專案前綴）：`chouten-court-*` 系列。
+- `port-forward` 對外發布的 host port：`127.0.0.1:7677`，projectD-core 那組
+  维持 `127.0.0.1:7676`。
+- 各自獨立的 `.env`（獨立的 `DEVSPACE_REPO_PATH`、獨立產生的
+  `DEVSPACE_OAUTH_OWNER_TOKEN`——兩個實例絕不共用同一組 token）。
+
+其餘安全設定（非 root、`cap_drop: [ALL]`——含 egress-proxy 的 `user: "13:13"`
+修法、`read_only`、`no-new-privileges`、squid deny-by-default 允許清單、
+`private_destinations` 內網阻擋、`pinger_enable off`）完全比照 projectD-core
+那組複製，不因為是第二個實例就降低標準。
+
+已用真實同時執行驗證：兩組堆疊 `docker compose up -d --build` 同時跑，
+`docker inspect` 確認各自的 network 是 `devspace-isolation_devspace-internal`
+與 `chouten-court-isolation_devspace-internal`（compose 依目錄名自動加前綴，
+未特意改名也不會撞名）；`chouten-court-isolated` 容器內對
+`devspace-egress-proxy`（另一組的內部 hostname）發出請求得到 DNS 解析失敗
+（`curl` exit code 6），確認兩個 `devspace-internal` 網路彼此不通;兩邊
+`/workspace` 內容分別對應各自的 repo，沒有互相看到對方的檔案。`.gitignore`
+的 `.env` 規則已從單一路徑改成 `containers/*/.env`，涵蓋所有未來新增的實例。
+
+對外曝露沿用同一個 `devspace-projectd` devtunnel、多加一個 port（7677）轉發，
+不另外開一條 tunnel、也不用多維護一個排程工作；細節見
+`containers/chouten-court-isolation/README.md`。
