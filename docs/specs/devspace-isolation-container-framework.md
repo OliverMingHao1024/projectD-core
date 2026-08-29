@@ -180,6 +180,17 @@ Tunnel 選用 Microsoft Dev Tunnel（放棄 Cloudflare Tunnel——named tunnel 
 
 ## References
 
+## Addendum: git `safe.directory` required for the bind-mounted repo（post-implementation）
+
+實際接上 ChatGPT 後,第一個真實 `bash` 工具呼叫就在 `/workspace` 裡執行 git 指令
+失敗:`fatal: detected dubious ownership in repository at '/workspace'`——這是
+Docker Desktop 在 Windows/WSL2 上做 bind-mount 路徑轉換時,回報的目錄擁有者跟
+容器內執行的 UID 10001 對不上,觸發 git 自己的安全機制。修法：
+`docker-entrypoint.sh` 每次啟動時執行
+`git config --global --add safe.directory /workspace`——只信任這一個容器本來就
+被明確授權的路徑,不放寬到其他任何目錄，不影響隔離態勢本身。已用真實 ChatGPT
+連線重現問題、驗證修法有效（`git status` 恢復正常）。
+
 - `docs/adr/0015-isolate-ai-agent-mcp-server-execution.md`
 - `docs/adr/0017-allow-anonymous-devtunnel-for-isolated-devspace-on-personal-registrations.md`
 - `scripts/governance-command-policy-hook.ps1`、

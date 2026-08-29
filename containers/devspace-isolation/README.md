@@ -123,6 +123,27 @@ both networks. Add an explicit deny rule for private ranges before the
 `allow allowed_domains` line if the real domain list ever includes anything
 you don't fully trust the DNS of.
 
+## Known gotcha: git operations inside `/workspace`
+
+`docker-entrypoint.sh` runs `git config --global --add safe.directory
+/workspace` on every start. Without it, every git command inside the
+container fails with `fatal: detected dubious ownership in repository at
+'/workspace'` -- confirmed live: ChatGPT's first real `bash` tool call
+after connecting hit exactly this. The bind-mounted repo's reported
+ownership (via Docker Desktop's Windows/WSL2 bind-mount translation)
+essentially never matches the container's UID 10001; this tells git to
+trust the one path this container was already explicitly given, nothing
+broader.
+
+Also worth knowing: `/workspace` is always exactly the one folder
+`DEVSPACE_REPO_PATH` points at (`D:/workspaces/projectD-core` in this
+deployment) -- not its parent `D:/workspaces`, and not switchable per
+ChatGPT session. Seeing more than one project from ChatGPT would mean
+either mounting a broader host directory (giving up the single-repo
+boundary ADR 0015 requires) or changing `DEVSPACE_REPO_PATH` and
+restarting the container to point at a different project one at a time.
+This deployment deliberately keeps the narrower, single-project scope.
+
 ## Config
 
 The installed version, `@waishnav/devspace@1.0.8`, is configured through

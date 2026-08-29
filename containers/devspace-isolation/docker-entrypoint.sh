@@ -15,6 +15,17 @@ export HOST="0.0.0.0"
 export PORT="7676"
 export DEVSPACE_ALLOWED_ROOTS="/workspace"
 
+# The bind-mounted repo is owned by whatever UID/GID the host filesystem
+# reports (via Docker Desktop's Windows/WSL2 bind-mount translation), which
+# essentially never matches this container's UID 10001. git's dubious-
+# ownership protection then refuses every git operation inside /workspace
+# with "detected dubious ownership" -- confirmed by testing (ChatGPT's own
+# `bash` tool call failed with exactly this error on a fresh
+# open_workspace). This does not weaken the isolation posture: it only
+# tells git to trust the one bind-mounted path this container was already
+# explicitly given, not any other directory.
+git config --global --add safe.directory /workspace
+
 # Only set DEVSPACE_PUBLIC_BASE_URL when a real value is provided.
 # devspace 1.0.8 crashes with "Invalid URL" if this variable is merely
 # PRESENT with an empty string value -- confirmed by testing. Reading from
