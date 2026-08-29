@@ -1,0 +1,8 @@
+# Scripts that run inside Linux containers (via a #! shebang) must always
+# check out with LF line endings, even on a Windows checkout with
+# core.autocrlf=true -- a CRLF shebang line makes the kernel's exec() fail
+# with "no such file or directory", which has no useful stack trace and is
+# easy to mistake for a missing file. Found while testing
+# containers/devspace-isolation/docker-entrypoint.sh.
+*.sh text eol=lf
+.gitattributes text eol=lf
