@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "repositories": {},
+  "machines": {
+    "sha256:e37afeb8b126796a3e1eaef0beba1a16043690d14e0c035121c0c58a17f437e1": "personal"
+  },
+  "default": "work"
+}

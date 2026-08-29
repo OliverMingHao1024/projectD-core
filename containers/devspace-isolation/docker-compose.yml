@@ -1,0 +1,148 @@
+# See docs/specs/devspace-isolation-container-framework.md and
+# docs/adr/0015-isolate-ai-agent-mcp-server-execution.md for the requirements
+# this topology exists to satisfy.
+
+services:
+  devspace:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: devspace-isolated
+    user: "10001:10001"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+    environment:
+      # The installed version (@waishnav/devspace@1.0.8) is configured via
+      # plain env vars, not the config.jsonc system described in the
+      # project's main-branch docs (that's a newer, unreleased-as-of-1.0.8
+      # config model -- confirmed by testing: a config.jsonc had zero
+      # effect). HOST, PORT, and DEVSPACE_ALLOWED_ROOTS are set directly in
+      # docker-entrypoint.sh since they're fixed by this framework's design
+      # (0.0.0.0:7676, single workspace root); only the secret and the
+      # optional public URL come from .env here.
+      DEVSPACE_OAUTH_OWNER_TOKEN: "${DEVSPACE_OAUTH_OWNER_TOKEN}"
+      # Deliberately NOT named DEVSPACE_PUBLIC_BASE_URL: 1.0.8 crashes with
+      # "Invalid URL" if that variable is merely PRESENT with an empty
+      # string value (confirmed by testing). docker-entrypoint.sh reads this
+      # var and only exports the real DEVSPACE_PUBLIC_BASE_URL when it's
+      # non-empty. Leave the .env value blank for local-only testing (no
+      # tunnel wired up yet).
+      DEVSPACE_ISOLATION_PUBLIC_BASE_URL: "${DEVSPACE_PUBLIC_BASE_URL:-}"
+      # DevSpace itself does not need outbound network access for its core
+      # file/shell/MCP-serving duties (the MCP client connects inbound; the
+      # package itself was installed at build time, not at runtime). These
+      # are here so that IF something inside ever does need to phone out, it
+      # has a documented path through the allowlisted proxy rather than
+      # silently trying (and failing) to reach the internet directly.
+      HTTP_PROXY: "http://egress-proxy:3128"
+      HTTPS_PROXY: "http://egress-proxy:3128"
+      NO_PROXY: "egress-proxy"
+    volumes:
+      # The single explicit repo bind-mount ADR 0015 requires. Path comes
+      # from .env (see .env.example); never hardcode a host path here.
+      - ${DEVSPACE_REPO_PATH}:/workspace:rw
+      # DevSpace's own $HOME (config, auth, worktrees, state, and anything
+      # else it writes under $HOME by default). This is a named
+      # Docker-managed volume, not a host bind-mount -- it exposes no host
+      # filesystem path, so it does not count against the "single bind-mount"
+      # requirement, which is specifically about not exposing arbitrary host
+      # paths.
+      - devspace-config:/home/devspace
+    # No `ports:` here -- Docker does not wire up published-port DNAT for a
+    # container whose only network is `internal: true` (found by testing:
+    # `docker port` came back empty and the host could not connect at all).
+    # `port-forward` below is what host callers actually reach.
+    networks:
+      - devspace-internal
+    depends_on:
+      - egress-proxy
+    restart: "no"
+
+  # This is the ONE component bridged onto both devspace-internal and
+  # devspace-egress -- it is the actual pivot point between the isolated
+  # network and the internet, so it gets the same least-privilege posture
+  # as devspace and port-forward, not less. squid needs a writable
+  # /var/spool/squid, /var/log/squid, and /var/run for its pid file even
+  # with no disk cache configured (see squid.conf); those are tmpfs so the
+  # rest of the rootfs can stay read-only.
+  egress-proxy:
+    image: ubuntu/squid:latest
+    container_name: devspace-egress-proxy
+    security_opt:
+      - no-new-privileges:true
+    # NOT cap_drop: [ALL] here, unlike devspace/port-forward -- tried and
+    # confirmed broken by testing. This image's entrypoint starts as root
+    # and drops to its "proxy" user via setuid/setgid, which needs
+    # CAP_SETUID/CAP_SETGID; restoring just those two isn't enough either,
+    # because Linux clears a process's capability set on setuid() by
+    # default (no ambient/file capabilities set on this image's bundled
+    # ICMP pinger helper), so the pinger child process still can't open a
+    # raw socket after the drop and squid treats that as fatal rather than
+    # a soft warning. Fixing this properly needs a custom image (setcap on
+    # the pinger binary, or disabling it entirely) -- tracked as a known
+    # gap, not silently worked around by leaving this container unhardened
+    # without saying so. no-new-privileges alone still applies below.
+    read_only: true
+    tmpfs:
+      # mode 1777 (world-writable + sticky, same as /tmp): squid's own
+      # entrypoint drops from root to its "proxy" user internally, and a
+      # default-mode tmpfs mount (root-owned, 0755) left it unable to write
+      # its own log/spool files after that drop -- confirmed by testing
+      # ("Cannot open cache_log ... Permission denied").
+      - /var/spool/squid:mode=1777
+      - /var/log/squid:mode=1777
+      - /var/run:mode=1777
+    volumes:
+      - ./squid/squid.conf:/etc/squid/squid.conf:ro
+      - ./squid/allowed-domains.txt:/etc/squid/allowed-domains.txt:ro
+    networks:
+      devspace-internal:
+      devspace-egress:
+    restart: "no"
+
+  # A single-purpose, content-blind TCP relay: host:7676 -> devspace:7676.
+  # It exists only because a published port cannot be wired up directly on
+  # `devspace-internal` (see above). It carries none of `devspace`'s
+  # capability -- no filesystem access, no shell, nothing to exfiltrate --
+  # so its presence on a normal (non-internal) bridge network for publishing
+  # purposes does not weaken devspace's own isolation; it can only ever
+  # forward bytes between this one fixed pair of endpoints.
+  port-forward:
+    image: alpine/socat:latest
+    container_name: devspace-port-forward
+    user: "10001:10001"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    command: ["tcp-listen:7676,fork,reuseaddr", "tcp-connect:devspace-isolated:7676"]
+    ports:
+      # Bound to host loopback only, never 0.0.0.0 -- nothing on the LAN (or
+      # beyond) should reach this. A tunnel client running on the host (out
+      # of scope here; see README) is expected to be the only thing that
+      # connects to it besides local testing.
+      - "127.0.0.1:7676:7676"
+    networks:
+      - devspace-internal
+      - devspace-egress
+    depends_on:
+      - devspace
+    restart: "no"
+
+networks:
+  # devspace has no route to the internet on this network by design --
+  # egress-proxy is the only reachable peer, and egress-proxy is the only
+  # service that also joins devspace-egress (below).
+  devspace-internal:
+    internal: true
+  devspace-egress:
+    driver: bridge
+
+volumes:
+  devspace-config:
