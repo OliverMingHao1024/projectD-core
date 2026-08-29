@@ -222,6 +222,85 @@ function Get-CommandText {
     return $null
 }
 
+function Get-TargetFilePath {
+    <#
+    Extracts a target file path from a structured file-editing tool's
+    input (Edit's/Write's file_path, NotebookEdit's notebook_path). Returns
+    $null for tools that don't shape their input this way.
+    #>
+    param($ToolInput)
+    if ($null -eq $ToolInput) { return $null }
+    foreach ($key in @('file_path', 'notebook_path', 'path')) {
+        if ($ToolInput.PSObject.Properties.Name -contains $key) {
+            $value = $ToolInput.$key
+            if ($value -is [string] -and -not [string]::IsNullOrWhiteSpace($value)) {
+                return $value
+            }
+        }
+    }
+    return $null
+}
+
+function Test-RegistryTamperViolation {
+    <#
+    Security review finding: project-classification.json had no integrity
+    protection at all -- anything with filesystem write access could edit
+    it directly to grant itself "personal" and bypass rule 3 and the
+    anonymous-tunnel exception entirely, without ever going through
+    Register-Classification's now-required interactive terminal. This
+    closes the two most direct paths:
+    - a structured file-editing tool (Edit/Write/NotebookEdit) targeting
+      the resolved registry file path exactly;
+    - a Bash/PowerShell command whose text names the registry file
+      alongside a recognizable write/redirect indicator.
+    This is NOT a complete defense (see docs/specs/governance-command-
+    policy-hook.md addendum for what remains open): a sufficiently
+    obfuscated write (a variable holding the filename, byte-by-byte
+    writes, a wrapper script) can still evade text/parameter matching, the
+    same limitation every rule in this file already has. Fails CLOSED
+    (blocks) when uncertain, matching rule 3's severity, not rules 1/2's.
+    #>
+    param(
+        [string]$ToolName,
+        $ToolInput,
+        [string]$CommandText,
+        [Parameter(Mandatory)][string]$RepoRoot,
+        [string]$RegistryPathOverride
+    )
+    try {
+        $registryPath = Get-ClassificationRegistryPath `
+            -FallbackRoot $RepoRoot -OverridePath $RegistryPathOverride
+        if (-not $registryPath) { return $false }
+        $resolvedRegistry = [IO.Path]::GetFullPath($registryPath)
+
+        if ($ToolName -match '(?i)^(edit|write|notebookedit)$') {
+            $targetPath = Get-TargetFilePath -ToolInput $ToolInput
+            if ($targetPath) {
+                $resolvedTarget = [IO.Path]::GetFullPath($targetPath)
+                if ($resolvedTarget.Equals(
+                    $resolvedRegistry, [StringComparison]::OrdinalIgnoreCase
+                )) {
+                    return $true
+                }
+            }
+            return $false
+        }
+
+        if (-not $CommandText) { return $false }
+        $registryFileName = Split-Path -Leaf $resolvedRegistry
+        $mentionsRegistry = $CommandText.Contains($registryFileName)
+        $looksLikeWrite = [bool](
+            $CommandText -match
+                '(?i)(>>?|\bSet-Content\b|\bAdd-Content\b|\bOut-File\b|' +
+                '\bcp\b|\bcopy\b|\bmv\b|\bmove\b|\bsed\s+-i\b|' +
+                '\bConvertTo-Json\b.*\|)'
+        )
+        return ($mentionsRegistry -and $looksLikeWrite)
+    } catch {
+        return $true
+    }
+}
+
 function Test-AnonymousTunnelViolation {
     <#
     Blocks devtunnel --allow-anonymous, EXCEPT when the current repo/machine
@@ -293,9 +372,17 @@ function Test-TfsWorkflowViolation {
     )
     if (-not $CommandText) { return $false }
     try {
+        <#
+        \b (not an anchored ^/;/&/| prefix) so a fully-qualified invocation
+        like "C:\tools\tf.exe checkin" is still caught -- confirmed by
+        testing that the original anchored version missed it entirely. \b
+        alone is enough to avoid matching "tf" as a substring of an
+        unrelated word, since it still requires "tf"/"tf.exe" to be
+        followed by whitespace and one of the known subcommands.
+        #>
         $looksLikeTfs = (
             $CommandText -match
-                '(?i)(^|[;&|]\s*)tf(\.exe)?\s+(checkin|checkout|get|merge|shelve)\b'
+                '(?i)\btf(\.exe)?\s+(checkin|checkout|get|merge|shelve)\b'
         ) -or (
             $CommandText -match '(?i)\baz\s+(repos|boards)\b'
         ) -or (
@@ -470,7 +557,8 @@ try {
     if ([string]$payload.hook_event_name -cne 'PreToolUse') { exit 0 }
 
     $toolName = [string]$payload.tool_name
-    $commandText = Get-CommandText -ToolInput $payload.tool_input
+    $toolInput = $payload.tool_input
+    $commandText = Get-CommandText -ToolInput $toolInput
     $root = [IO.Path]::GetFullPath($ProjectRoot)
 
     if (Test-AnonymousTunnelViolation -CommandText $commandText `
@@ -490,6 +578,18 @@ try {
             'projectD 規則：此 repository 的 remote 為 GitHub，不得使用 ' +
                 'TFS/Azure DevOps 工作流程指令（tf/az repos/az boards）。' +
                 '請先用「git remote -v」確認，改用 GitHub 工作流程。'
+        )
+        exit 2
+    }
+
+    if (Test-RegistryTamperViolation -ToolName $toolName -ToolInput $toolInput `
+        -CommandText $commandText -RepoRoot $root `
+        -RegistryPathOverride $RegistryPath) {
+        [Console]::Error.WriteLine(
+            'projectD 規則：不得直接編輯或寫入 personal/work 登記檔 ' +
+                '（project-classification.json）。請用 ' +
+                'governance-command-policy-hook.ps1 -RegisterCurrentRepo ' +
+                '或 -RegisterCurrentMachine 在真正的互動式終端機登記。'
         )
         exit 2
     }

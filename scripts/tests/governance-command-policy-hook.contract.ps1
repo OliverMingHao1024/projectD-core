@@ -236,6 +236,17 @@ try {
         'An ordinary command must be allowed.'
     )
 
+    # Regression: a fully-qualified tf.exe invocation must still be caught,
+    # not just one anchored at the start of the command or after ;/&&/||/|.
+    $tfsFullPathPayload = New-Payload -ToolName 'Bash' -ToolInput (
+        [pscustomobject]@{ command = 'C:\tools\tf.exe checkin /comment:test' }
+    )
+    $tfsFullPathResult = Invoke-PolicyHook -Payload $tfsFullPathPayload
+    Assert-True ($tfsFullPathResult.ExitCode -eq 2) (
+        "A fully-qualified tf.exe path must still be detected: " +
+            $tfsFullPathResult.Stderr
+    )
+
     # Rule 3: DevSpace MCP is denied by default (registry missing).
     $devspacePayload = New-Payload -ToolName 'mcp__devspace__run_shell' `
         -ToolInput ([pscustomobject]@{ command = 'echo hi' })
@@ -467,6 +478,63 @@ try {
         $nonInteractiveRegisterResult.Stderr
     )) 'A refused non-interactive registration must explain why.'
 
+    # Security review follow-up: project-classification.json had no
+    # integrity protection at all -- anything with filesystem write access
+    # could edit it directly to grant "personal" and bypass rule 3 and the
+    # anonymous-tunnel exception, without ever going through the now-
+    # interactive-only registration commands. An Edit/Write/NotebookEdit
+    # call whose target path resolves to the registry file must be blocked.
+    $editRegistryPayload = New-Payload -ToolName 'Edit' -ToolInput (
+        [pscustomobject]@{
+            file_path   = $registryPath
+            old_string  = 'work'
+            new_string  = 'personal'
+        }
+    )
+    $editRegistryResult = Invoke-PolicyHook -Payload $editRegistryPayload
+    Assert-True ($editRegistryResult.ExitCode -eq 2) (
+        "Editing the registry file directly must be blocked: " +
+            $editRegistryResult.Stderr
+    )
+
+    # A Bash/PowerShell command that names the registry file alongside a
+    # recognizable write/redirect indicator must also be blocked.
+    $bashWriteRegistryPayload = New-Payload -ToolName 'Bash' -ToolInput (
+        [pscustomobject]@{
+            command = "echo '{}' > `"$registryPath`""
+        }
+    )
+    $bashWriteRegistryResult = Invoke-PolicyHook `
+        -Payload $bashWriteRegistryPayload
+    Assert-True ($bashWriteRegistryResult.ExitCode -eq 2) (
+        "A shell command writing to the registry file must be blocked: " +
+            $bashWriteRegistryResult.Stderr
+    )
+
+    # Regression: a plain read of the registry file must still be allowed.
+    $readRegistryPayload = New-Payload -ToolName 'Bash' -ToolInput (
+        [pscustomobject]@{ command = "cat `"$registryPath`"" }
+    )
+    $readRegistryResult = Invoke-PolicyHook -Payload $readRegistryPayload
+    Assert-True ($readRegistryResult.ExitCode -eq 0) (
+        "A plain read of the registry file must remain allowed: " +
+            $readRegistryResult.Stderr
+    )
+
+    # Regression: editing an unrelated file must still be allowed.
+    $editUnrelatedPayload = New-Payload -ToolName 'Edit' -ToolInput (
+        [pscustomobject]@{
+            file_path  = (Join-Path $tempRoot 'unrelated.md')
+            old_string = 'a'
+            new_string = 'b'
+        }
+    )
+    $editUnrelatedResult = Invoke-PolicyHook -Payload $editUnrelatedPayload
+    Assert-True ($editUnrelatedResult.ExitCode -eq 0) (
+        "Editing an unrelated file must remain allowed: " +
+            $editUnrelatedResult.Stderr
+    )
+
     Assert-True (Test-Path -LiteralPath $codexConfig -PathType Leaf) (
         'Codex repository hook configuration must exist.'
     )
@@ -506,6 +574,11 @@ try {
     '[PASS] anonymous-tunnel detection covers -a and access-create --anonymous too'
     '[PASS] devtunnel lifecycle commands (not just cloudflared) are gated too'
     '[PASS] registry never stores plaintext remote identifiers or hostnames'
+    '[PASS] a fully-qualified tf.exe path is still detected'
+    '[PASS] editing the registry file directly is blocked'
+    '[PASS] a shell command writing to the registry file is blocked'
+    '[PASS] a plain read of the registry file remains allowed'
+    '[PASS] editing an unrelated file remains allowed'
     '[PASS] non-shell/non-DevSpace tools and PostToolUse are unaffected'
     '[PASS] malformed stdin fails open'
     '[PASS] registration requires a real interactive terminal, not a redirected-stdin call'
