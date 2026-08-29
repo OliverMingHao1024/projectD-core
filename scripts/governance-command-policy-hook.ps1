@@ -243,9 +243,32 @@ function Test-AnonymousTunnelViolation {
     )
     if (-not $CommandText) { return $false }
     try {
-        $looksAnonymous = [bool](
-            $CommandText -match '(?i)devtunnel(\.exe)?\b.*(--|-)allow-anonymous'
-        )
+        <#
+        Matches three distinct ways devtunnel actually grants anonymous
+        access, confirmed against `devtunnel host --help` /
+        `devtunnel access create --help`: the long flag, the short flag
+        (`-a`), and `access create ... --anonymous` (no "allow-" prefix at
+        all). A regex matching only "--allow-anonymous" verifiably missed
+        all three of the actual commands this repo's own README instructs
+        users to run.
+
+        Checked per shell segment (split on ;, &&, ||, |, newlines), not
+        against the whole command text at once -- matching "devtunnel"
+        anywhere in the line and "-a" anywhere later in the line (even in
+        an unrelated chained command, or inside an echoed string) produced
+        a confirmed false positive; requiring both within the same segment
+        keeps the -a/--anonymous short forms detectable without that.
+        #>
+        $looksAnonymous = $false
+        foreach ($segment in ($CommandText -split '&&|\|\||[;|\n]')) {
+            if (
+                $segment -match '(?i)devtunnel(\.exe)?\b' -and
+                $segment -match '(?i)(--allow-anonymous|--anonymous|(?<!\S)-a(?!\S))'
+            ) {
+                $looksAnonymous = $true
+                break
+            }
+        }
         if (-not $looksAnonymous) { return $false }
         if (Test-DevSpaceToolAllowed -RepoRoot $RepoRoot `
             -RegistryPathOverride $RegistryPathOverride) {
@@ -293,12 +316,19 @@ function Test-DevSpaceLifecycleCommand {
     <#
     Rule 3 originally only matched tool names like mcp__devspace__* -- but
     DevSpace is actually bootstrapped via plain Bash/PowerShell commands
-    (docker compose up against containers/devspace-isolation, cloudflared
-    tunnel pointed at its fixed port 7676), which never go through an
+    (docker compose up against containers/devspace-isolation, a tunnel
+    client pointed at its fixed port 7676), which never go through an
     mcp__devspace__* tool call at all. Matching on identifiers unique to this
     framework closes that gap: starting or managing the container stack, or
-    starting a tunnel aimed at its fixed port, is gated the same as calling
-    the MCP tools directly.
+    starting a tunnel aimed at its fixed port/tunnel name, is gated the same
+    as calling the MCP tools directly.
+
+    The devtunnel and cloudflared patterns are both needed: this repo's own
+    README documents Microsoft Dev Tunnel (devtunnel create/port create/
+    access create/host, all against the fixed tunnel name
+    "devspace-projectd") as the actual deployment, not Cloudflare -- a
+    pattern list naming only "cloudflared tunnel" verifiably missed every
+    real devtunnel command in that README.
     #>
     param([string]$CommandText)
     if (-not $CommandText) { return $false }
@@ -308,8 +338,13 @@ function Test-DevSpaceLifecycleCommand {
             $CommandText -match '(?i)devspace-isolated' -or
             $CommandText -match '(?i)devspace-port-forward' -or
             $CommandText -match '(?i)devspace-egress-proxy' -or
+            $CommandText -match '(?i)devspace-projectd' -or
             (
                 $CommandText -match '(?i)cloudflared(\.exe)?\s+tunnel' -and
+                $CommandText -match '7676'
+            ) -or
+            (
+                $CommandText -match '(?i)devtunnel(\.exe)?\b' -and
                 $CommandText -match '7676'
             )
         )

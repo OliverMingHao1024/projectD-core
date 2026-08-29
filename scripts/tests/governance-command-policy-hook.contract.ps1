@@ -103,6 +103,38 @@ try {
         'A blocked call must explain why on stderr.'
     )
 
+    # Regression cases: devtunnel grants anonymous access via more than one
+    # spelling, all of which must be caught, not just the long
+    # --allow-anonymous flag on `host`.
+    $shortFlagPayload = New-Payload -ToolName 'Bash' -ToolInput ([pscustomobject]@{
+        command = 'devtunnel host devspace-projectd -p 7676 -a'
+    })
+    $shortFlagResult = Invoke-PolicyHook -Payload $shortFlagPayload
+    Assert-True ($shortFlagResult.ExitCode -eq 2) (
+        "The -a short flag must be treated the same as --allow-anonymous: " +
+            $shortFlagResult.Stderr
+    )
+
+    $accessCreatePayload = New-Payload -ToolName 'Bash' -ToolInput ([pscustomobject]@{
+        command = 'devtunnel access create devspace-projectd -p 7676 --anonymous'
+    })
+    $accessCreateResult = Invoke-PolicyHook -Payload $accessCreatePayload
+    Assert-True ($accessCreateResult.ExitCode -eq 2) (
+        "'access create ... --anonymous' (no allow- prefix) must be " +
+            "treated the same as --allow-anonymous: " +
+            $accessCreateResult.Stderr
+    )
+
+    # A stray "-a" on some unrelated command must not false-positive just
+    # because the word "devtunnel" also appears somewhere in the line.
+    $strayFlagPayload = New-Payload -ToolName 'Bash' -ToolInput ([pscustomobject]@{
+        command = 'echo "devtunnel notes" && ls -a'
+    })
+    $strayFlagResult = Invoke-PolicyHook -Payload $strayFlagPayload
+    Assert-True ($strayFlagResult.ExitCode -eq 0) (
+        'An unrelated -a flag must not be treated as --allow-anonymous.'
+    )
+
     $safeTunnelPayload = New-Payload -ToolName 'Bash' -ToolInput ([pscustomobject]@{
         command = 'devtunnel host -p 3000'
     })
@@ -260,6 +292,27 @@ try {
             'treated as a DevSpace lifecycle command.'
     )
 
+    # Regression: the actual devtunnel commands this repo's README
+    # documents (not cloudflared) must also be recognized as DevSpace
+    # lifecycle commands, on a work-registered repo.
+    foreach ($devtunnelCommand in @(
+        'devtunnel create devspace-projectd',
+        'devtunnel port create devspace-projectd -p 7676 --protocol http',
+        'devtunnel access create devspace-projectd -p 7676 --anonymous',
+        'devtunnel host devspace-projectd'
+    )) {
+        $devtunnelPayload = New-Payload -ToolName 'Bash' -ToolInput (
+            [pscustomobject]@{ command = $devtunnelCommand }
+        )
+        $devtunnelResult = Invoke-PolicyHook -Payload $devtunnelPayload `
+            -RepoRoot $workRepoRoot
+        Assert-True ($devtunnelResult.ExitCode -eq 2) (
+            "devtunnel lifecycle command must be denied on a work-" +
+                "registered repo: '$devtunnelCommand' -- " +
+                $devtunnelResult.Stderr
+        )
+    }
+
     # ADR 0017: devtunnel --allow-anonymous is exempted only for a
     # personal-registered repo/machine; a work-registered one stays blocked.
     $anonTunnelPayload = New-Payload -ToolName 'Bash' -ToolInput ([pscustomobject]@{
@@ -384,6 +437,8 @@ try {
     '[PASS] machine-level registration is a fallback that repo-level overrides'
     '[PASS] DevSpace lifecycle Bash commands (compose/cloudflared) are gated too'
     '[PASS] anonymous devtunnel is exempted only on a personal-registered repo/machine'
+    '[PASS] anonymous-tunnel detection covers -a and access-create --anonymous too'
+    '[PASS] devtunnel lifecycle commands (not just cloudflared) are gated too'
     '[PASS] registry never stores plaintext remote identifiers or hostnames'
     '[PASS] non-shell/non-DevSpace tools and PostToolUse are unaffected'
     '[PASS] malformed stdin fails open'

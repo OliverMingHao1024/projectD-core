@@ -33,6 +33,8 @@ def test_governance_command_policy_hook_contract() -> None:
         "[PASS] machine-level registration is a fallback that repo-level overrides",
         "[PASS] DevSpace lifecycle Bash commands (compose/cloudflared) are gated too",
         "[PASS] anonymous devtunnel is exempted only on a personal-registered repo/machine",
+        "[PASS] anonymous-tunnel detection covers -a and access-create --anonymous too",
+        "[PASS] devtunnel lifecycle commands (not just cloudflared) are gated too",
         "[PASS] registry never stores plaintext remote identifiers or hostnames",
         "[PASS] non-shell/non-DevSpace tools and PostToolUse are unaffected",
         "[PASS] malformed stdin fails open",

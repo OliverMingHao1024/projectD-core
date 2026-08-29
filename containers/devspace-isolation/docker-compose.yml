@@ -63,9 +63,40 @@ services:
       - egress-proxy
     restart: "no"
 
+  # This is the ONE component bridged onto both devspace-internal and
+  # devspace-egress -- it is the actual pivot point between the isolated
+  # network and the internet, so it gets the same least-privilege posture
+  # as devspace and port-forward, not less. squid needs a writable
+  # /var/spool/squid, /var/log/squid, and /var/run for its pid file even
+  # with no disk cache configured (see squid.conf); those are tmpfs so the
+  # rest of the rootfs can stay read-only.
   egress-proxy:
     image: ubuntu/squid:latest
     container_name: devspace-egress-proxy
+    security_opt:
+      - no-new-privileges:true
+    # NOT cap_drop: [ALL] here, unlike devspace/port-forward -- tried and
+    # confirmed broken by testing. This image's entrypoint starts as root
+    # and drops to its "proxy" user via setuid/setgid, which needs
+    # CAP_SETUID/CAP_SETGID; restoring just those two isn't enough either,
+    # because Linux clears a process's capability set on setuid() by
+    # default (no ambient/file capabilities set on this image's bundled
+    # ICMP pinger helper), so the pinger child process still can't open a
+    # raw socket after the drop and squid treats that as fatal rather than
+    # a soft warning. Fixing this properly needs a custom image (setcap on
+    # the pinger binary, or disabling it entirely) -- tracked as a known
+    # gap, not silently worked around by leaving this container unhardened
+    # without saying so. no-new-privileges alone still applies below.
+    read_only: true
+    tmpfs:
+      # mode 1777 (world-writable + sticky, same as /tmp): squid's own
+      # entrypoint drops from root to its "proxy" user internally, and a
+      # default-mode tmpfs mount (root-owned, 0755) left it unable to write
+      # its own log/spool files after that drop -- confirmed by testing
+      # ("Cannot open cache_log ... Permission denied").
+      - /var/spool/squid:mode=1777
+      - /var/log/squid:mode=1777
+      - /var/run:mode=1777
     volumes:
       - ./squid/squid.conf:/etc/squid/squid.conf:ro
       - ./squid/allowed-domains.txt:/etc/squid/allowed-domains.txt:ro
