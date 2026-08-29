@@ -15,6 +15,42 @@ commands and can do what your user account can do" -- the isolation here
 bounds "your user account" down to a locked-down container instead of your
 real Windows account.
 
+## Network topology
+
+```mermaid
+flowchart LR
+    client["ChatGPT / MCP client<br/>(Internet)"]
+    tunnel["devtunnel host<br/>(Windows host, OAuth)"]
+    pf["port-forward (socat)<br/>127.0.0.1:7676 published"]
+    ds["devspace container<br/>non-root · cap_drop ALL<br/>one repo bind-mount"]
+    egress["egress-proxy (squid)<br/>deny-by-default allowlist"]
+    inet["Internet<br/>(allowlisted domains only)"]
+
+    client -->|HTTPS + OAuth| tunnel
+    tunnel --> pf
+    pf -->|TCP :7676| ds
+    ds -.->|HTTP_PROXY, unused by default| egress
+    egress -->|allowed domains only| inet
+
+    subgraph internal_net ["devspace-internal network (internal: true -- no route to Internet at all)"]
+        ds
+        egress
+    end
+    subgraph egress_net ["devspace-egress network (bridge -- has a route out)"]
+        egress
+        pf
+    end
+```
+
+`devspace` has no edge to `inet` in this diagram on purpose: its only network
+is `devspace-internal`, which is Docker-`internal: true` and therefore has no
+gateway to anything outside it. `egress-proxy` and `port-forward` are the only
+two services that also join `devspace-egress`, which is what makes either of
+them reachable from (or able to reach) the outside world at all -- see
+"Architecture note" below for why `port-forward` has to exist for that reason
+alone, and "Squid allowlist" for why `egress-proxy`'s side of that route is
+still policy-enforced, not just topology.
+
 ## What "rootless" means here
 
 This runs under Docker Desktop for Windows (WSL2 backend), not a native Linux
@@ -77,6 +113,15 @@ runtime egress for DevSpace's core file/shell/MCP duties -- the allowlist can
 stay this narrow unless something inside genuinely needs to phone out (an
 update check, a package script a workspace runs, etc.). Add domains only when
 something actually needs them, not speculatively.
+
+**Before adding a real domain here later:** `squid.conf` has no explicit rule
+denying RFC1918/loopback/docker-internal address ranges. Today's single
+external placeholder domain poses no risk, but a future domain that resolves
+(now or via DNS rebinding later) to an internal address would let traffic
+through this proxy reach further than intended, since `egress-proxy` sits on
+both networks. Add an explicit deny rule for private ranges before the
+`allow allowed_domains` line if the real domain list ever includes anything
+you don't fully trust the DNS of.
 
 ## Config
 

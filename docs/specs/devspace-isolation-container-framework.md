@@ -161,6 +161,23 @@ Tunnel 選用 Microsoft Dev Tunnel（放棄 Cloudflare Tunnel——named tunnel 
 
 驗證：ChatGPT 連接器頁面顯示「已使用授權：OAuth」與連線日期，代表端到端可用。
 
+## Addendum: `egress-proxy` 最小權限強化與已知限制（post-implementation）
+
+資安複查指出 `egress-proxy`（squid）是唯一同時橋接 `devspace-internal` 與
+`devspace-egress` 兩個網路的元件，卻沒有比照 `devspace`/`port-forward` 做
+`cap_drop`/`read_only`/非 root 強化。實測結果：
+
+- `no-new-privileges: true`、`read_only: true` + 三個必要目錄改 tmpfs
+  （`mode=1777`，因為 squid 自己降權後需要能寫）——**可行，已套用**。
+- `cap_drop: [ALL]` **不可行**：`ubuntu/squid` 官方 image 的 entrypoint 會先以
+  root 啟動，內部用 `setuid`/`setgid` 降到 `proxy` 使用者，需要
+  `CAP_SETUID`/`CAP_SETGID`；就算補回這兩個 capability，squid 內建的 ICMP
+  pinger 子程序在降權後一樣拿不到 `CAP_NET_RAW`（Linux 預設 `setuid()` 會清空
+  capability，這個 image 的 pinger binary 沒有設定 file capability 讓它繞過這個
+  限制），導致 pinger FATAL、squid 整個中止。要真正解決需要客製化 image
+  （對 pinger binary 做 `setcap`，或直接移除 pinger），這次不做，留為已知限制
+  記錄，不是默默跳過不提。
+
 ## References
 
 - `docs/adr/0015-isolate-ai-agent-mcp-server-execution.md`

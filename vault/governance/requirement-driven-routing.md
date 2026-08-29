@@ -11,6 +11,34 @@ priority: medium
 > 搭配常見例外狀況的對照。角色與 Skill 定義本身不重複列在此檔；不清楚時回
 > `operating-model.md` L3 或 `INDEX.md`。
 
+## 三條主線總覽
+
+```mermaid
+flowchart TD
+    A["A. 客戶需求書（DOC/DOCX）"] --> RK1["manage-requirement-knowledge<br/>mode: new"]
+    RK1 --> PM["pm（需求模糊時）"]
+    PM --> SPEC["to-spec"]
+    RK1 -.需求已夠明確.-> SPEC
+    SPEC --> SASUXSD["sa / ux / sd（視需要）"]
+    SASUXSD --> TICKETS["to-tickets"]
+    TICKETS --> PG["pg（implement, TDD）"]
+
+    B["B. 功能維護需求"] --> HIST["query-project-history"]
+    HIST --> RK2["manage-requirement-knowledge<br/>mode: amend"]
+    RK2 --> PG
+
+    C["C. Bug 回報"] --> DIAG["diagnosing-bugs"]
+    DIAG -->|純實作錯誤| PG
+    DIAG -->|spec 本身有誤| RK3["manage-requirement-knowledge<br/>mode: debug"]
+    RK3 -.可能觸發 SpecAmendment.-> SPEC
+
+    PG --> QA["qa（複雜／高風險／使用者可見變更才需要）"]
+```
+
+三條線共用同一組角色與 Skill，差別只在起點（需求書 vs 既有系統 vs bug）跟要不要
+動正式 spec；`manage-requirement-knowledge` 的 `new`/`amend`/`debug` 三個 mode
+是同一支 Skill，不是三套機制。
+
 ## 三條主線
 
 ### A. 客戶提出需求書 → 開發新功能

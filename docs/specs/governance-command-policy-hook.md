@@ -23,6 +23,36 @@
 PowerShell 指令內容與 MCP 工具名稱，命中三條規則任一時擋下該次工具呼叫
 （exit code 2）並給出明確拒絕原因，讓 AI agent 能立即自行調整，不必等人事後糾正。
 
+## 決策流程
+
+```mermaid
+flowchart TD
+    A[PreToolUse 事件] --> B{是 PreToolUse 嗎？}
+    B -->|否| ALLOW0[放行]
+    B -->|是| C[取出指令文字／工具名稱]
+
+    C --> R1{devtunnel --allow-anonymous？}
+    R1 -->|否| R2
+    R1 -->|是| E1{repo／機器登記為 personal？}
+    E1 -->|是（ADR 0017 例外）| ALLOW1[放行]
+    E1 -->|否／判斷失敗| DENY1[擋下 exit 2]
+
+    R2{TFS/Azure DevOps 指令<br/>且 origin 是 GitHub？}
+    R2 -->|否／無法判斷| R3
+    R2 -->|是| DENY2[擋下 exit 2]
+
+    R3{DevSpace 工具呼叫<br/>或容器/tunnel 生命週期指令？}
+    R3 -->|否| ALLOW3[放行]
+    R3 -->|是| E3{repo／機器登記為 personal？}
+    E3 -->|是| ALLOW3B[放行]
+    E3 -->|否／判斷失敗| DENY3["擋下 exit 2（fail closed）"]
+```
+
+規則 1、2 的「否／無法判斷」都導向放行（fail open）；規則 1 的 personal 例外判斷、
+規則 3 的 personal 判斷，失敗時都導向擋下（fail closed）——這兩種方向並存，不是
+單一例外處理邏輯，見 [governance-command-policy-hook.ps1](../../scripts/governance-command-policy-hook.ps1)
+檔頭註解的完整說明。
+
 ## User stories
 
 1. As a projectD-core 維護者，I want 匿名公開 tunnel 指令在執行前被擋下，so that 不會
@@ -168,3 +198,27 @@ fallback——「這台電腦整體算個人/工作」，不必每個 repo 都�
 - `scripts/governance-host-operation-hook.ps1`（既有稽核 hook 實作，本提案刻意不修改；
   `Get-PrivateSlug`/`Get-JsonElementSha256` 是雜湊化識別資訊的既有先例）
 - `core/skills/manage-requirement-knowledge/SKILL.md`（`PROJECTD_CORE` 解析慣例）
+
+## Addendum: 資安複查發現的繞過與修法（post-implementation）
+
+PR 送出後做正式資安複查（`security-review` skill），實測(不是只讀 regex)發現三個
+真實可繞過的漏洞，已修正並補迴歸測試：
+
+1. **匿名 tunnel 規則被官方替代寫法繞過**：原本 regex 只認完整字串
+   `--allow-anonymous`，但 `devtunnel` 官方短旗標 `-a` 與 `devtunnel access
+   create ... --anonymous`（無 `allow-` 前綴）都能達到一樣效果，而且是這個
+   repo 自己 README 教的實際指令。修法：regex 改成同時涵蓋三種寫法。
+2. **DevSpace 生命週期偵測完全不認得 `devtunnel`**：原本只認 `cloudflared
+   tunnel`，但 README 最後採用的是 Microsoft Dev Tunnel——`devtunnel create/
+   port create/access create/host` 四行實際指令沒有一行會被認出來。修法：
+   補上 `devtunnel` 相關樣式與固定 tunnel 名稱 `devspace-projectd`。
+3. **修法本身一開始有 false positive**：只要指令文字裡任何地方出現
+   `devtunnel` 字樣（例如純粹的註解或 echo），搭配同一行任何地方不相干的
+   `-a`，就會誤判。修法：改成先用 `;`/`&&`/`||`/`|`/換行切段，同一段裡才比對，
+   不跨指令邊界判斷。
+
+第 3 項發現(`-RegisterCurrentRepo`/`-RegisterCurrentMachine` 登記指令本身、以及
+直接改 `project-classification.json`，都不受任何規則管制，理論上能被誤導的
+agent session 自我升級成 personal)**刻意先不修**——這牽涉到要不要把威脅模型
+從「防手滑」擴大到「防被提示注入誤導的 agent」，是治理層級的決定，留待另外
+討論定案。
