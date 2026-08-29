@@ -7,3 +7,4 @@ __pycache__/
 .ruff_cache/
 .claude/output-styles/
 .claude/settings.local.json
+containers/devspace-isolation/.env

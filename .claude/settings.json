@@ -16,6 +16,16 @@
               "claude"
             ],
             "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "pwsh",
+            "args": [
+              "-NoProfile",
+              "-File",
+              "${CLAUDE_PROJECT_DIR}/scripts/governance-command-policy-hook.ps1"
+            ],
+            "timeout": 30
           }
         ]
       }
