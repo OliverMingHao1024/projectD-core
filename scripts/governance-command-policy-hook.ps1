@@ -420,6 +420,31 @@ function Register-Classification {
 }
 
 if ($PSCmdlet.ParameterSetName -eq 'Register') {
+    <#
+    Security review finding: nothing previously stopped an agent session
+    from self-elevating by invoking -RegisterCurrentRepo/
+    -RegisterCurrentMachine via the same Bash/PowerShell tool this whole
+    hook exists to police, or by editing project-classification.json
+    directly (the latter is still unaddressed -- there is no general
+    defense against direct file edits). This closes the former: registration
+    now requires a real interactive terminal. Tool-driven invocations
+    (Claude Code's Bash tool, Codex, or any other non-interactive runner)
+    have stdin redirected rather than attached to a console, so
+    [Console]::IsInputRedirected is $true for them and $false for a human
+    typing this command directly into their own terminal window. This is a
+    deliberate deployment-specific answer to a threat-model question raised
+    during review (accidental misclassification vs. an adversarial/
+    prompt-injected agent) -- see docs/specs/governance-command-policy-hook.md
+    addendum.
+    #>
+    if ([Console]::IsInputRedirected) {
+        [Console]::Error.WriteLine(
+            '登記只能在真正的互動式終端機裡執行，不能透過非互動的工具呼叫' +
+                '（例如 AI agent 的 Bash 工具）完成。請直接在你自己開的終端機' +
+                '視窗貼上同一行指令執行。'
+        )
+        exit 1
+    }
     if ($RegisterCurrentRepo -and $RegisterCurrentMachine) {
         [Console]::Error.WriteLine(
             '-RegisterCurrentRepo 與 -RegisterCurrentMachine 不能同時使用。'

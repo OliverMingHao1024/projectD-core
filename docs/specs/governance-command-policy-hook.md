@@ -217,8 +217,21 @@ PR 送出後做正式資安複查（`security-review` skill），實測(不是�
    `-a`，就會誤判。修法：改成先用 `;`/`&&`/`||`/`|`/換行切段，同一段裡才比對，
    不跨指令邊界判斷。
 
-第 3 項發現(`-RegisterCurrentRepo`/`-RegisterCurrentMachine` 登記指令本身、以及
-直接改 `project-classification.json`，都不受任何規則管制，理論上能被誤導的
-agent session 自我升級成 personal)**刻意先不修**——這牽涉到要不要把威脅模型
-從「防手滑」擴大到「防被提示注入誤導的 agent」，是治理層級的決定，留待另外
-討論定案。
+## Addendum: 登記指令要求真正互動式終端機（post-implementation，威脅模型決定）
+
+第 3 項發現（`-RegisterCurrentRepo`/`-RegisterCurrentMachine` 登記指令本身不受
+任何規則管制，理論上能被誤導的 agent session 自我升級成 personal）原本標記
+「刻意先不修」，待威脅模型範圍定案——後續確認：這整套 hook 存在的理由本來就是
+「agent 可能被誤導去做不該做的事」，不是單純防手滑，登記指令這個入口不管，跟
+rule 1、rule 3 的設計精神不一致，因此決定修。
+
+修法：登記動作要求真正互動式終端機才能執行，用 `[Console]::IsInputRedirected`
+判斷——AI agent 透過 Bash/PowerShell 工具呼叫的指令一律是 stdin 被重新導向
+（非互動），會被拒絕；使用者自己在真正的終端機視窗貼上同一行指令則不受影響。
+已用真實環境驗證：透過 Bash 呼叫 `-RegisterCurrentMachine` 正確回報「登記只能
+在真正的互動式終端機裡執行」並以 exit code 1 結束。
+
+**仍未解決的部分**：直接編輯 `vault/governance/project-classification.json`
+本身沒有任何完整性保護（不是唯讀、沒有雜湊釘選），這個修法沒有處理——任何有
+檔案寫入權限的操作都還是能直接改登記檔內容。這是不同層面的問題（檔案完整性
+vs. 指令執行管道），留待另外評估是否需要處理。

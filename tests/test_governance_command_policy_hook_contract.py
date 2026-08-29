@@ -38,6 +38,7 @@ def test_governance_command_policy_hook_contract() -> None:
         "[PASS] registry never stores plaintext remote identifiers or hostnames",
         "[PASS] non-shell/non-DevSpace tools and PostToolUse are unaffected",
         "[PASS] malformed stdin fails open",
+        "[PASS] registration requires a real interactive terminal, not a redirected-stdin call",
         "[PASS] Codex and Claude hook configs both wire the command policy hook",
     ):
         assert marker in result.stdout

@@ -20,6 +20,72 @@ function Assert-True {
     if (-not $Condition) { throw "Assertion failed: $Message" }
 }
 
+<#
+Registration via the hook's own -RegisterCurrentRepo/-RegisterCurrentMachine
+now requires a real interactive terminal (a deliberate fix -- see
+docs/specs/governance-command-policy-hook.md addendum), which no automated
+test harness has: this test file itself runs under pytest/CI with stdin
+redirected, same as any tool-driven invocation. These two helpers replicate
+the hook's own hashing (Get-NormalizedOriginHash/Get-NormalizedMachineHash)
+to seed fixtures directly, so the interactive gate itself can be verified
+(see the dedicated test below) without that gate blocking test setup.
+#>
+function Get-TestHash {
+    param([Parameter(Mandatory)][AllowEmptyString()][string]$Normalized)
+    $bytes = [Text.UTF8Encoding]::new($false).GetBytes($Normalized)
+    $hash = [Security.Cryptography.SHA256]::HashData($bytes)
+    return 'sha256:' + [Convert]::ToHexString($hash).ToLowerInvariant()
+}
+
+function Get-TestOriginHash {
+    param([Parameter(Mandatory)][string]$RepoRoot)
+    $url = (& git -C $RepoRoot remote get-url origin 2>$null)
+    $normalized = $url.Trim().ToLowerInvariant()
+    $normalized = $normalized -replace '^(https?://)[^@/]+@', '$1'
+    $normalized = $normalized -replace '\.git/?$', ''
+    $normalized = $normalized.TrimEnd('/')
+    return Get-TestHash -Normalized $normalized
+}
+
+function Get-TestMachineHash {
+    $name = [Environment]::MachineName
+    return Get-TestHash -Normalized $name.Trim().ToLowerInvariant()
+}
+
+function Set-RegistryEntry {
+    param(
+        [Parameter(Mandatory)][ValidateSet('repositories', 'machines')][string]$Bucket,
+        [Parameter(Mandatory)][string]$Hash,
+        [Parameter(Mandatory)][string]$Classification,
+        [Parameter(Mandatory)][string]$RegistryPath
+    )
+    $document = if (Test-Path -LiteralPath $RegistryPath -PathType Leaf) {
+        Get-Content -Raw -LiteralPath $RegistryPath | ConvertFrom-Json
+    } else {
+        [pscustomobject]@{
+            schema_version = 1
+            repositories = [pscustomobject]@{}
+            machines = [pscustomobject]@{}
+            default = 'work'
+        }
+    }
+    if ($document.PSObject.Properties.Name -notcontains $Bucket) {
+        $document | Add-Member `
+            -NotePropertyName $Bucket -NotePropertyValue ([pscustomobject]@{})
+    }
+    $bucketObject = $document.$Bucket
+    if ($bucketObject.PSObject.Properties.Name -contains $Hash) {
+        $bucketObject.$Hash = $Classification
+    } else {
+        $bucketObject | Add-Member `
+            -NotePropertyName $Hash -NotePropertyValue $Classification
+    }
+    New-Item -ItemType Directory -Force `
+        -Path (Split-Path -Parent $RegistryPath) | Out-Null
+    $document | ConvertTo-Json -Depth 8 |
+        Set-Content -LiteralPath $RegistryPath -Encoding utf8 -NoNewline
+}
+
 function Invoke-ScriptProcess {
     param(
         [Parameter(Mandatory)][string]$ScriptPath,
@@ -200,16 +266,12 @@ try {
         'DevSpace must be denied when the registry cannot be parsed.'
     )
 
-    # Register the fixture repo as personal, then confirm DevSpace is allowed.
-    $registerResult = Invoke-ScriptProcess -ScriptPath $hook -Arguments @(
-        '-RegisterCurrentRepo',
-        '-Classification', 'personal',
-        '-ProjectRoot', $repoRoot,
-        '-RegistryPath', $registryPath
-    )
-    Assert-True ($registerResult.ExitCode -eq 0) (
-        "Registration must succeed: $($registerResult.Stderr)"
-    )
+    # Register the fixture repo as personal (directly -- see Set-RegistryEntry
+    # above for why this no longer goes through the CLI), then confirm
+    # DevSpace is allowed.
+    Set-RegistryEntry -Bucket 'repositories' `
+        -Hash (Get-TestOriginHash -RepoRoot $repoRoot) `
+        -Classification 'personal' -RegistryPath $registryPath
     $allowedResult = Invoke-PolicyHook -Payload $devspacePayload
     Assert-True ($allowedResult.ExitCode -eq 0) (
         "DevSpace must be allowed once the repository is registered personal: " +
@@ -235,16 +297,9 @@ try {
     & git -C $workRepoRoot init --quiet | Out-Null
     & git -C $workRepoRoot remote add origin `
         'https://github.com/example-owner/work-repo.git' | Out-Null
-    $registerWorkResult = Invoke-ScriptProcess -ScriptPath $hook -Arguments @(
-        '-RegisterCurrentRepo',
-        '-Classification', 'work',
-        '-ProjectRoot', $workRepoRoot,
-        '-RegistryPath', $registryPath
-    )
-    Assert-True ($registerWorkResult.ExitCode -eq 0) (
-        "Registering a work repository must succeed: " +
-            $registerWorkResult.Stderr
-    )
+    Set-RegistryEntry -Bucket 'repositories' `
+        -Hash (Get-TestOriginHash -RepoRoot $workRepoRoot) `
+        -Classification 'work' -RegistryPath $registryPath
     $workDeniedResult = Invoke-PolicyHook -Payload $devspacePayload `
         -RepoRoot $workRepoRoot
     Assert-True ($workDeniedResult.ExitCode -eq 2) (
@@ -344,16 +399,8 @@ try {
             'is registered.'
     )
 
-    $registerMachineResult = Invoke-ScriptProcess -ScriptPath $hook -Arguments @(
-        '-RegisterCurrentMachine',
-        '-Classification', 'personal',
-        '-ProjectRoot', $machineRepoRoot,
-        '-RegistryPath', $registryPath
-    )
-    Assert-True ($registerMachineResult.ExitCode -eq 0) (
-        "Registering the current machine must succeed: " +
-            $registerMachineResult.Stderr
-    )
+    Set-RegistryEntry -Bucket 'machines' -Hash (Get-TestMachineHash) `
+        -Classification 'personal' -RegistryPath $registryPath
     $machineAllowedResult = Invoke-PolicyHook -Payload $devspacePayload `
         -RepoRoot $machineRepoRoot
     Assert-True ($machineAllowedResult.ExitCode -eq 0) (
@@ -401,6 +448,25 @@ try {
         'Malformed stdin must fail open rather than block the tool call.'
     )
 
+    # Registration must require a real interactive terminal -- confirmed by
+    # invoking it the same way this whole test file invokes everything else
+    # (a redirected-stdin child process), which is also how any tool-driven
+    # invocation (Claude Code's Bash tool, Codex, etc.) looks. This test
+    # cannot exercise the "allowed" path: no automated harness has a real
+    # console to attach, by design -- that's the point of the check.
+    $nonInteractiveRegisterResult = Invoke-ScriptProcess -ScriptPath $hook `
+        -Arguments @(
+            '-RegisterCurrentMachine', '-Classification', 'personal',
+            '-ProjectRoot', $repoRoot, '-RegistryPath', $registryPath
+        ) -StandardInput ''
+    Assert-True ($nonInteractiveRegisterResult.ExitCode -eq 1) (
+        "Registration via a non-interactive (redirected-stdin) invocation " +
+            "must be refused: " + $nonInteractiveRegisterResult.Stderr
+    )
+    Assert-True (-not [string]::IsNullOrWhiteSpace(
+        $nonInteractiveRegisterResult.Stderr
+    )) 'A refused non-interactive registration must explain why.'
+
     Assert-True (Test-Path -LiteralPath $codexConfig -PathType Leaf) (
         'Codex repository hook configuration must exist.'
     )
@@ -442,6 +508,7 @@ try {
     '[PASS] registry never stores plaintext remote identifiers or hostnames'
     '[PASS] non-shell/non-DevSpace tools and PostToolUse are unaffected'
     '[PASS] malformed stdin fails open'
+    '[PASS] registration requires a real interactive terminal, not a redirected-stdin call'
     '[PASS] Codex and Claude hook configs both wire the command policy hook'
 } finally {
     $tempBase = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd(
