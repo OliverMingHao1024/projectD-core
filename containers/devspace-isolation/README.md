@@ -71,6 +71,18 @@ native rootless daemon or a VM boundary, both of which ADR 0015 considered and
 rejected for this personal, single-user context. Don't oversell it as more
 than it is.
 
+All three services (`devspace`, `egress-proxy`, `port-forward`) run
+`cap_drop: [ALL]` -- `egress-proxy` (squid) initially could not, because the
+official `ubuntu/squid` image's squid.conf default (`cache_effective_user
+proxy`) makes squid call `setgid`/`initgroups` on itself internally, which
+needs `CAP_SETGID`. Fixed by starting that one container already as uid/gid
+13 (`user: "13:13"` in docker-compose.yml, matching squid's own target
+`proxy` user) so squid has nothing left to drop -- confirmed via
+`/proc/1/status` showing an all-zero capability set with the proxy still
+enforcing its allowlist correctly. See
+`docs/specs/devspace-isolation-container-framework.md`'s "egress-proxy 最小
+權限強化" addendum for the full diagnosis.
+
 ## Usage
 
 ```bash

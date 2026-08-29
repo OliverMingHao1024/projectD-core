@@ -272,3 +272,14 @@ vs. 指令執行管道），留待另外評估是否需要處理。
 
 以上三項均已用真實執行結果驗證（不只是讀 regex/程式碼），並重跑完整 pytest
 套件（8 個測試）確認無回歸。
+
+## Addendum: 第四項（`egress-proxy` 完整 `cap_drop: ALL`）事後補上
+
+上一輪明確標記為使用者確認暫緩的第四項，之後重新研究並解決——詳細診斷、修法
+與實測結果記在 `docs/specs/devspace-isolation-container-framework.md` 的
+「`egress-proxy` 最小權限強化與已知限制」段落，不在此重複；重點結論是問題不是
+最初以為的 ICMP pinger 拿不到 capability，而是 squid 自己的
+`cache_effective_user proxy` 內部降權呼叫，改成容器一開始就以 `proxy`
+使用者身份啟動（`user: "13:13"`）即可讓 squid 不需要任何 capability，
+`cap_drop: [ALL]` 因此可以套用，且已用 `/proc/1/status` 與功能性測試（允許/
+拒絕網域、內網位址阻擋）雙重驗證無迴歸。

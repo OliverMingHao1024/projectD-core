@@ -4,7 +4,7 @@ docs/adr/0015-isolate-ai-agent-mcp-server-execution.md and
 docs/specs/devspace-isolation-container-framework.md.
 
 Runs on the host; drives the containers via `docker compose exec` rather than
-requiring a second in-container script. Brings the stack up, checks five
+requiring a second in-container script. Brings the stack up, checks seven
 things, tears the stack back down (including the scratch repo directory it
 creates for the bind-mount), and reports PASS/FAIL per check with a non-zero
 exit code if anything failed.
@@ -119,6 +119,18 @@ try {
         }
     }
     Add-Result 'devspace-mcp-endpoint-responds' $mcpReachable $mcpDetail
+
+    # 7. egress-proxy runs with the full capability drop too, same as
+    #    devspace/port-forward -- it starts as uid/gid 13 (squid's own
+    #    "proxy" user) instead of relying on squid to setgid/initgroups
+    #    itself internally, which cap_drop: ALL would otherwise block.
+    $capOutput = (docker compose exec -T egress-proxy sh -c `
+        'cat /proc/1/status' 2>&1) -join "`n"
+    $capLines = $capOutput -split "`n" | Where-Object { $_ -match '^Cap\w+:' }
+    $nonZeroCaps = $capLines | Where-Object { $_ -notmatch ':\s*0+$' }
+    Add-Result 'egress-proxy-has-no-capabilities' (
+        $capLines.Count -gt 0 -and $nonZeroCaps.Count -eq 0
+    ) ($capLines -join ' | ')
 } finally {
     docker compose down -v 2>&1 | Out-Null
     Pop-Location
