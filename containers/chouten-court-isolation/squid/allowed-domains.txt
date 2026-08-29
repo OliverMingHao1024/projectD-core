@@ -1,0 +1,7 @@
+# VERIFICATION-ONLY placeholder. Replace with the actual domains a chosen
+# DevSpace implementation needs once one is selected -- see
+# docs/specs/devspace-isolation-container-framework.md, Out of scope.
+#
+# One domain per line, matched by Squid's dstdomain acl (a leading "." means
+# "this domain and all its subdomains").
+example.com
