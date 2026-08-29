@@ -199,3 +199,32 @@ Docker Desktop 在 Windows/WSL2 上做 bind-mount 路徑轉換時,回報的目�
   本次不採用其隔離模型）
 - [Waishnav/devspace](https://github.com/Waishnav/devspace)（實際接入的 DevSpace
   上游來源，MIT 授權）
+
+## Addendum: squid 允許清單補上內網位址阻擋（post-implementation）
+
+資安複查追加發現：`squid.conf` 的允許清單（`allowed-domains.txt` + `dstdomain`
+ACL）只管網域名稱，沒有限制**解析後的目的位址**——未來若允許清單加入的某個
+網域，此刻或之後透過 DNS rebinding 解析到內網位址（`egress-proxy` 同時掛在
+`devspace-internal` 與 `devspace-egress` 兩個網路，本來就連得到內網其他服務），
+就能繞過「只能連白名單網域」的設計意圖，直接打到內網。
+
+修法：在 `Safe_ports`/`CONNECT` 檢查之前，新增一條 `dst` ACL 直接擋掉私有/
+loopback/link-local 位址範圍（`10.0.0.0/8`、`172.16.0.0/12`、`192.168.0.0/16`、
+`127.0.0.0/8`、`169.254.0.0/16`、`0.0.0.0/8`、`::1/128`、`fc00::/7`、
+`fe80::/10`），不論來源是哪個網域名稱。squid 的 `dst` ACL 是對「DNS 解析後的
+實際目的位址」判斷，不是對主機名稱字串判斷，所以這條規則會擋住網域重新解析
+到內網的情況，不只是擋直接打 IP。
+
+已在正式運行中的 `devspace-egress-proxy` 容器上實測驗證（`docker compose up
+-d --force-recreate egress-proxy` 套用設定變更；bind-mount 的設定檔變更不會
+自動觸發重建，需要 `--force-recreate`）：
+
+- `curl -x http://egress-proxy:3128 http://example.com/` → `200`（允許清單內，
+  仍然放行）
+- `curl -x http://egress-proxy:3128 http://denied-test.invalid.example/` →
+  `403`（不在允許清單，原本就會擋，確認沒有因為新規則而誤放）
+- `curl -x http://egress-proxy:3128 http://127.0.0.1/` → `403`（新規則生效）
+- `curl -x http://egress-proxy:3128 http://10.1.2.3/` → `403`（新規則生效）
+
+這條規則之後加入真實網域時不需要額外維護——它擋的是目的位址範圍，跟允許清單
+裡有哪些網域無關。

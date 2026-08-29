@@ -114,14 +114,12 @@ stay this narrow unless something inside genuinely needs to phone out (an
 update check, a package script a workspace runs, etc.). Add domains only when
 something actually needs them, not speculatively.
 
-**Before adding a real domain here later:** `squid.conf` has no explicit rule
-denying RFC1918/loopback/docker-internal address ranges. Today's single
-external placeholder domain poses no risk, but a future domain that resolves
-(now or via DNS rebinding later) to an internal address would let traffic
-through this proxy reach further than intended, since `egress-proxy` sits on
-both networks. Add an explicit deny rule for private ranges before the
-`allow allowed_domains` line if the real domain list ever includes anything
-you don't fully trust the DNS of.
+`squid.conf` denies private/loopback/link-local destination IP ranges
+outright, before the domain allowlist is even consulted -- this protects
+against a future allowlisted domain resolving (now, or via DNS rebinding
+later) to an internal address that `egress-proxy` could otherwise reach,
+since it sits on both networks. This doesn't need updating when you add
+real domains later.
 
 ## Known gotcha: git operations inside `/workspace`
 
