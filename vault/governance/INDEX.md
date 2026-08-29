@@ -16,6 +16,8 @@
 
 - L0：`../../core/constitution/rules.md`
 - L1–L6、外部整合、MCP 與 repository hosting：`operating-model.md`
+- 需求驅動開發路由（需求書開發／功能維護／debug 與常見例外）：
+  `requirement-driven-routing.md`
 - 角色：`../../core/agents/{pm,sa,ux,sd,pg,qa}.md`
 - 通用 Skills：`../../core/skills/*/SKILL.md`
 - 技術棧 packs：`../../packs/*/SKILL.md`
