@@ -73,20 +73,22 @@ services:
   egress-proxy:
     image: ubuntu/squid:latest
     container_name: devspace-egress-proxy
+    # This image's entrypoint execs squid directly with no su-exec/gosu
+    # step of its own; squid.conf's default `cache_effective_user proxy`
+    # is what makes squid call setgid/initgroups internally. Previously we
+    # let the container start as root and relied on squid to drop
+    # privileges itself, which needs CAP_SETUID/CAP_SETGID -- incompatible
+    # with cap_drop: ALL. Fix: start the container already AS uid/gid 13
+    # (Debian/Ubuntu's "proxy" user, which is what squid.conf's
+    # cache_effective_user resolves to). Since squid is then already
+    # running as its own target user, it has nothing to drop -- confirmed
+    # by testing that CapEff/CapPrm/CapBnd in /proc/1/status are all zero
+    # and the proxy still serves requests correctly with cap_drop: ALL.
+    user: "13:13"
     security_opt:
       - no-new-privileges:true
-    # NOT cap_drop: [ALL] here, unlike devspace/port-forward -- tried and
-    # confirmed broken by testing. This image's entrypoint starts as root
-    # and drops to its "proxy" user via setuid/setgid, which needs
-    # CAP_SETUID/CAP_SETGID; restoring just those two isn't enough either,
-    # because Linux clears a process's capability set on setuid() by
-    # default (no ambient/file capabilities set on this image's bundled
-    # ICMP pinger helper), so the pinger child process still can't open a
-    # raw socket after the drop and squid treats that as fatal rather than
-    # a soft warning. Fixing this properly needs a custom image (setcap on
-    # the pinger binary, or disabling it entirely) -- tracked as a known
-    # gap, not silently worked around by leaving this container unhardened
-    # without saying so. no-new-privileges alone still applies below.
+    cap_drop:
+      - ALL
     read_only: true
     tmpfs:
       # mode 1777 (world-writable + sticky, same as /tmp): squid's own

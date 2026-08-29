@@ -169,14 +169,32 @@ Tunnel 選用 Microsoft Dev Tunnel（放棄 Cloudflare Tunnel——named tunnel 
 
 - `no-new-privileges: true`、`read_only: true` + 三個必要目錄改 tmpfs
   （`mode=1777`，因為 squid 自己降權後需要能寫）——**可行，已套用**。
-- `cap_drop: [ALL]` **不可行**：`ubuntu/squid` 官方 image 的 entrypoint 會先以
+- `cap_drop: [ALL]` 當時判定**不可行**：`ubuntu/squid` 官方 image 的 entrypoint 會先以
   root 啟動，內部用 `setuid`/`setgid` 降到 `proxy` 使用者，需要
   `CAP_SETUID`/`CAP_SETGID`；就算補回這兩個 capability，squid 內建的 ICMP
   pinger 子程序在降權後一樣拿不到 `CAP_NET_RAW`（Linux 預設 `setuid()` 會清空
   capability，這個 image 的 pinger binary 沒有設定 file capability 讓它繞過這個
   限制），導致 pinger FATAL、squid 整個中止。要真正解決需要客製化 image
   （對 pinger binary 做 `setcap`，或直接移除 pinger），這次不做，留為已知限制
-  記錄，不是默默跳過不提。
+  記錄，不是默默跳過不提。（註：上述「pinger 子程序拿不到 `CAP_NET_RAW` 導致
+  FATAL、squid 整個中止」的判斷，經下方 post-implementation 補測後發現不完全
+  準確——實際擋住 `cap_drop: [ALL]` 的是 squid.conf 預設
+  `cache_effective_user proxy` 讓 squid 主行程自己呼叫
+  `setgid`/`initgroups` 需要 `CAP_SETGID`；pinger 拿不到 `CAP_NET_RAW`
+  確實會 FATAL，但那只是 pinger 自己的子行程失敗、登出雜訊，不會拖垮主行程。）
+
+  **已於 post-implementation 補測解決**：`docker-compose.yml` 的
+  `egress-proxy` 服務加上 `user: "13:13"`（Debian/Ubuntu 內建 `proxy`
+  使用者的 uid/gid，也是 squid.conf `cache_effective_user` 解析到的目標），
+  讓容器一開始就以該身份啟動，squid 已經是自己要降到的目標使用者，完全不需要
+  再呼叫 `setgid`/`initgroups`。實測驗證：`docker exec ... cat
+  /proc/1/status` 顯示 `CapInh`/`CapPrm`/`CapEff`/`CapBnd`/`CapAmb` 全部是
+  `0000000000000000`；`cap_drop: [ALL]` 生效下，允許清單網域 200、非允許
+  網域 403、loopback/RFC1918 403 皆與修改前一致，功能無迴歸。另外在
+  `squid.conf` 加上 `pinger_enable off`——這個代理沒有任何 parent
+  cache/ICP peer，ICMP pinger 本來就用不到，拿掉它讓每次啟動的 log 不再被
+  一段獨立、無害但吵雜的 pinger FATAL 訊息洗版，與 `cap_drop` 能否生效無關，
+  純粹是 log 衛生。
 
 ## References
 
