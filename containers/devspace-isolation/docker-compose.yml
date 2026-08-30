@@ -21,10 +21,11 @@ services:
       # plain env vars, not the config.jsonc system described in the
       # project's main-branch docs (that's a newer, unreleased-as-of-1.0.8
       # config model -- confirmed by testing: a config.jsonc had zero
-      # effect). HOST, PORT, and DEVSPACE_ALLOWED_ROOTS are set directly in
-      # docker-entrypoint.sh since they're fixed by this framework's design
-      # (0.0.0.0:7676, single workspace root); only the secret and the
-      # optional public URL come from .env here.
+      # effect). HOST and PORT are fixed by this framework's design
+      # (0.0.0.0:7676); DEVSPACE_ALLOWED_ROOTS is computed at container
+      # startup from whatever repos are actually mounted under /repos below
+      # (see docker-entrypoint.sh) -- only the secret and the optional
+      # public URL come from .env here.
       DEVSPACE_OAUTH_OWNER_TOKEN: "${DEVSPACE_OAUTH_OWNER_TOKEN}"
       # Deliberately NOT named DEVSPACE_PUBLIC_BASE_URL: 1.0.8 crashes with
       # "Invalid URL" if that variable is merely PRESENT with an empty
@@ -43,15 +44,21 @@ services:
       HTTPS_PROXY: "http://egress-proxy:3128"
       NO_PROXY: "egress-proxy"
     volumes:
-      # The single explicit repo bind-mount ADR 0015 requires. Path comes
-      # from .env (see .env.example); never hardcode a host path here.
-      - ${DEVSPACE_REPO_PATH}:/workspace:rw
+      # Multi-repo bind-mounts, one line per repo this container serves.
+      # Host paths come from .env (see .env.example) -- never hardcode a
+      # host path here. To add another repo: add one more line following
+      # this pattern (`${DEVSPACE_REPO_PATH_<NAME>}:/repos/<name>:rw`), add
+      # the matching var to .env, then `docker compose up -d` -- no image
+      # rebuild or entrypoint change needed (docker-entrypoint.sh discovers
+      # whatever is mounted under /repos at container start).
+      - ${DEVSPACE_REPO_PATH_PROJECTD_CORE}:/repos/projectD-core:rw
+      - ${DEVSPACE_REPO_PATH_CHOUTEN_COURT}:/repos/chouten-court:rw
+      - ${DEVSPACE_REPO_PATH_PROJECTD_KNOWLEDGE}:/repos/projectD-knowledge:rw
       # DevSpace's own $HOME (config, auth, worktrees, state, and anything
       # else it writes under $HOME by default). This is a named
-      # Docker-managed volume, not a host bind-mount -- it exposes no host
-      # filesystem path, so it does not count against the "single bind-mount"
-      # requirement, which is specifically about not exposing arbitrary host
-      # paths.
+      # Docker-managed volume, not a host bind-mount, so it doesn't widen
+      # this container's host-path exposure the way the /repos mounts above
+      # do.
       - devspace-config:/home/devspace
     # No `ports:` here -- Docker does not wire up published-port DNAT for a
     # container whose only network is `internal: true` (found by testing:

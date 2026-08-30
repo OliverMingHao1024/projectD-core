@@ -21,16 +21,16 @@ ENV HOME=/home/devspace
 # docker-compose.yml -- DevSpace writes ~/.devspace/{auth.json,worktrees,...}
 # under $HOME by default (v1.0.8 has no DEVSPACE_CONFIG_DIR; see
 # docker-entrypoint.sh). A named volume over all of $HOME still exposes no
-# host path (unlike the one repo bind-mount), so this doesn't compromise the
-# "single bind-mount" requirement; it just needs to exist with the right
-# ownership before Docker seeds a new volume from it.
+# host path (unlike the repo bind-mounts under /repos), so this doesn't
+# widen this container's host-path exposure; it just needs to exist with
+# the right ownership before Docker seeds a new volume from it.
 RUN chown -R 10001:10001 /home/devspace
 
 COPY --chown=10001:10001 docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-WORKDIR /workspace
-RUN chown 10001:10001 /workspace
+WORKDIR /repos
+RUN chown 10001:10001 /repos
 
 USER 10001:10001
 

@@ -17,54 +17,37 @@ real Windows account.
 
 ## Network topology
 
-Two independent instances now exist -- this one (projectD-core) and
-`containers/chouten-court-isolation/` -- sharing a single devtunnel with one
-forwarded port each. Each instance's `devspace-internal` network is its own
-Docker-`internal: true` network (no route to the Internet, and no route to
-the *other* instance's network either -- confirmed by testing, see that
-instance's README):
+One shared instance now serves every repo DevSpace touches (`projectD-core`,
+`chouten-court`, `projectD-knowledge`, ...) through a single container --
+see "Multi-repo support" below for why this replaced the earlier
+one-container-per-repo design (`containers/chouten-court-isolation/`, since
+removed):
 
 ```mermaid
 flowchart LR
     client["ChatGPT / MCP client(s)<br/>(Internet)"]
-    tunnel["devtunnel host: devspace-projectd<br/>(Windows host, OAuth)<br/>port 7676 -> projectD-core<br/>port 7677 -> chouten-court"]
+    tunnel["devtunnel host: devspace-projectd<br/>(Windows host, OAuth)<br/>port 7676"]
+    pf["port-forward (socat)<br/>127.0.0.1:7676 published"]
 
-    subgraph pd ["projectD-core instance (containers/devspace-isolation/)"]
-        pf1["port-forward (socat)<br/>127.0.0.1:7676 published"]
-        subgraph pd_internal ["devspace-isolation_devspace-internal (internal: true)"]
-            ds1["devspace container<br/>non-root · cap_drop ALL<br/>bind-mount: projectD-core"]
-            eg1["egress-proxy (squid)<br/>deny-by-default allowlist"]
-        end
-        pf1 -->|TCP :7676| ds1
-        ds1 -.->|HTTP_PROXY, unused by default| eg1
+    subgraph internal_net ["devspace-isolation_devspace-internal (internal: true)"]
+        ds["devspace container<br/>non-root · cap_drop ALL<br/>bind-mounts: /repos/projectD-core,<br/>/repos/chouten-court, /repos/projectD-knowledge, ..."]
+        egress["egress-proxy (squid)<br/>deny-by-default allowlist"]
     end
 
-    subgraph cc ["chouten-court instance (containers/chouten-court-isolation/)"]
-        pf2["port-forward (socat)<br/>127.0.0.1:7677 published"]
-        subgraph cc_internal ["chouten-court-isolation_devspace-internal (internal: true)"]
-            ds2["devspace container<br/>non-root · cap_drop ALL<br/>bind-mount: chouten-court"]
-            eg2["egress-proxy (squid)<br/>deny-by-default allowlist"]
-        end
-        pf2 -->|TCP :7676| ds2
-        ds2 -.->|HTTP_PROXY, unused by default| eg2
-    end
-
-    inet["Internet<br/>(each instance's own allowlisted domains only)"]
+    inet["Internet<br/>(allowlisted domains only)"]
 
     client -->|HTTPS + OAuth| tunnel
-    tunnel -->|port 7676| pf1
-    tunnel -->|port 7677| pf2
-    eg1 -->|allowed domains only| inet
-    eg2 -->|allowed domains only| inet
+    tunnel --> pf
+    pf -->|TCP :7676| ds
+    ds -.->|HTTP_PROXY, unused by default| egress
+    egress -->|allowed domains only| inet
 ```
 
-Neither `devspace` container has an edge to `inet` in this diagram on
-purpose: each one's only network is its own `devspace-internal`, which is
-Docker-`internal: true` and therefore has no gateway to anything outside
-it -- including the other instance. Each instance's `egress-proxy` and
-`port-forward` are the only services that also join that instance's
-non-internal `*-devspace-egress` network, which is what makes either of them
-reachable from (or able to reach) the outside world at all -- see
+`devspace` has no edge to `inet` in this diagram on purpose: its only network
+is `devspace-internal`, which is Docker-`internal: true` and therefore has no
+gateway to anything outside it. `egress-proxy` and `port-forward` are the only
+two services that also join `devspace-egress`, which is what makes either of
+them reachable from (or able to reach) the outside world at all -- see
 "Architecture note" below for why `port-forward` has to exist for that reason
 alone, and "Squid allowlist" for why `egress-proxy`'s side of that route is
 still policy-enforced, not just topology.
@@ -78,9 +61,13 @@ this framework changes. What this framework actually provides:
 
 - the container's own process runs as a non-root user (UID 10001)
 - `no-new-privileges` and a full capability drop
-- read-only root filesystem (except the one bind-mount and one named config
-  volume, both of which remain writable by design)
-- exactly one host bind-mount, no Docker socket, no route to the internet
+- read-only root filesystem (except the repo bind-mounts and one named
+  config volume, all of which remain writable by design)
+- only the host paths explicitly listed in `docker-compose.yml`'s `volumes:`
+  are reachable (see "Multi-repo support" below -- this used to mean
+  literally one bind-mount per container; it now means one container may
+  have several, each still an explicit, reviewed line in that file, never a
+  broader parent directory), no Docker socket, no route to the internet
   except through the egress proxy
 
 This is a real, meaningful reduction in blast radius. It is **not** the same
@@ -101,13 +88,52 @@ enforcing its allowlist correctly. See
 `docs/specs/devspace-isolation-container-framework.md`'s "egress-proxy 最小
 權限強化" addendum for the full diagnosis.
 
+## Multi-repo support
+
+This container serves multiple repos, not one. That started as a strict
+one-container-per-repo design (`containers/chouten-court-isolation/`, a
+second full stack -- separate container, port, devtunnel port, OAuth token,
+ChatGPT connector) so a container compromise could only ever reach one
+repo. In practice that made adding a repo real operational overhead, and
+`@waishnav/devspace@1.0.8` already natively supports serving several
+workspace roots from one process -- confirmed against the
+[v1.0.8-tagged upstream docs](https://github.com/Waishnav/devspace/blob/v1.0.8/docs/configuration.md):
+`DEVSPACE_ALLOWED_ROOTS` takes a comma-separated list, and the connecting
+client picks which root to `open_workspace` on. This deployment now trades
+some of that per-repo blast-radius containment for that operational
+simplicity -- a compromise of this one container now reaches every repo
+mounted into it, not just one; that's a conscious trade-off, not an
+oversight (see `docs/adr/0015-isolate-ai-agent-mcp-server-execution.md`'s
+addendum for the full reasoning).
+
+Each repo is bind-mounted under `/repos/<name>` in `docker-compose.yml`;
+`docker-entrypoint.sh` discovers whatever is actually mounted there at
+container start and builds `DEVSPACE_ALLOWED_ROOTS` from it -- no
+entrypoint change needed to add a repo. **To add another repo:**
+
+1. Add one more volume line to `docker-compose.yml`'s `devspace` service,
+   following the existing pattern: `` - ${DEVSPACE_REPO_PATH_<NAME>}:/repos/<name>:rw ``.
+2. Add the matching `DEVSPACE_REPO_PATH_<NAME>=<host path>` line to `.env`.
+3. `docker compose up -d` -- no `--build` needed (mounts are compose-level,
+   not baked into the image), and it only recreates the `devspace` service,
+   not `egress-proxy`/`port-forward`.
+
+Recreating just the `devspace` container (not its `devspace-config` volume)
+does **not** disturb an existing ChatGPT connector's OAuth session --
+confirmed by testing after adding a third repo this way. Only wiping that
+named volume (`docker compose down -v`, or deleting the volume directly)
+invalidates it; see the "Gotcha" under "Connecting ChatGPT" below for what
+that looks like and how to recover.
+
 ## Usage
 
 ```bash
 cp .env.example .env
-# edit .env: set DEVSPACE_REPO_PATH (the one folder DevSpace may touch) and
-# DEVSPACE_OAUTH_OWNER_TOKEN (a long random secret -- e.g. `openssl rand
-# -base64 32`); leave DEVSPACE_PUBLIC_BASE_URL blank for local-only testing
+# edit .env: for each repo DevSpace should serve, set a
+# DEVSPACE_REPO_PATH_<NAME> var (see .env.example and "Multi-repo support"
+# above) and DEVSPACE_OAUTH_OWNER_TOKEN (a long random secret -- e.g.
+# `openssl rand -base64 32`); leave DEVSPACE_PUBLIC_BASE_URL blank for
+# local-only testing
 docker compose up -d --build
 ```
 
@@ -151,26 +177,25 @@ later) to an internal address that `egress-proxy` could otherwise reach,
 since it sits on both networks. This doesn't need updating when you add
 real domains later.
 
-## Known gotcha: git operations inside `/workspace`
+## Known gotcha: git operations inside `/repos/<name>`
 
 `docker-entrypoint.sh` runs `git config --global --add safe.directory
-/workspace` on every start. Without it, every git command inside the
-container fails with `fatal: detected dubious ownership in repository at
-'/workspace'` -- confirmed live: ChatGPT's first real `bash` tool call
-after connecting hit exactly this. The bind-mounted repo's reported
-ownership (via Docker Desktop's Windows/WSL2 bind-mount translation)
-essentially never matches the container's UID 10001; this tells git to
-trust the one path this container was already explicitly given, nothing
+<path>` for every repo it discovers under `/repos` on every start. Without
+it, every git command inside the container fails with `fatal: detected
+dubious ownership in repository at '<path>'` -- confirmed live (originally
+against the single `/workspace` mount this framework used before multi-repo
+support; the underlying cause and fix are unchanged, just applied in a
+loop now). The bind-mounted repos' reported ownership (via Docker Desktop's
+Windows/WSL2 bind-mount translation) essentially never matches the
+container's UID 10001; this tells git to trust exactly the paths this
+container was already explicitly given via `docker-compose.yml`, nothing
 broader.
 
-Also worth knowing: `/workspace` is always exactly the one folder
-`DEVSPACE_REPO_PATH` points at (`D:/workspaces/projectD-core` in this
-deployment) -- not its parent `D:/workspaces`, and not switchable per
-ChatGPT session. Seeing more than one project from ChatGPT would mean
-either mounting a broader host directory (giving up the single-repo
-boundary ADR 0015 requires) or changing `DEVSPACE_REPO_PATH` and
-restarting the container to point at a different project one at a time.
-This deployment deliberately keeps the narrower, single-project scope.
+A ChatGPT session picks which repo to work in by calling `open_workspace`
+with one of the paths DevSpace reports as an allowed root (see "Multi-repo
+support" above) -- it can switch between repos within the same
+conversation by opening a different one, since all of them are already
+mounted into the same running container.
 
 ## Config
 
@@ -185,14 +210,15 @@ image bump upgrades past whatever version introduces that system, revisit
 `docker-entrypoint.sh` -- it may need to write a config file instead of (or
 alongside) exporting env vars.
 
-`docker-entrypoint.sh` sets `HOST=0.0.0.0`, `PORT=7676`, and
-`DEVSPACE_ALLOWED_ROOTS=/workspace` unconditionally (these are fixed by this
-framework's design, not meant to be end-user configurable), and exports
-`DEVSPACE_PUBLIC_BASE_URL` only when `DEVSPACE_ISOLATION_PUBLIC_BASE_URL` is
-non-empty -- **do not** rename that back to `DEVSPACE_PUBLIC_BASE_URL` in
-`docker-compose.yml`'s `environment:` block; 1.0.8 crashes with "Invalid
-URL" if that variable is merely present as an empty string, which is exactly
-what an unset `.env` value would otherwise produce.
+`docker-entrypoint.sh` sets `HOST=0.0.0.0` and `PORT=7676` unconditionally
+(fixed by this framework's design, not meant to be end-user configurable),
+computes `DEVSPACE_ALLOWED_ROOTS` from whatever is mounted under `/repos`
+(see "Multi-repo support" above), and exports `DEVSPACE_PUBLIC_BASE_URL`
+only when `DEVSPACE_ISOLATION_PUBLIC_BASE_URL` is non-empty -- **do not**
+rename that back to `DEVSPACE_PUBLIC_BASE_URL` in `docker-compose.yml`'s
+`environment:` block; 1.0.8 crashes with "Invalid URL" if that variable is
+merely present as an empty string, which is exactly what an unset `.env`
+value would otherwise produce.
 
 ## Architecture note: why there's a `port-forward` service
 
@@ -285,8 +311,10 @@ old `client_id` and fails with `{"error":"invalid_client","error_description":
 "Invalid client_id"}` -- it does not re-register. The fix is to delete the
 connector entirely (`...` menu → 刪除) and go through "Connecting ChatGPT"
 again from step 3, which registers a fresh `client_id` against the current
-DevSpace instance. This applies to any DevSpace-backed connector, including
-`containers/chouten-court-isolation/`'s.
+DevSpace instance. Merely recreating the `devspace` container (e.g. to
+mount a newly added repo) does **not** trigger this -- only actually losing
+the `devspace-config` volume's contents does; see "Multi-repo support"
+above.
 
 ## Cross-reference
 

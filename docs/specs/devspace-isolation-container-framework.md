@@ -281,3 +281,27 @@ ADR 0015 的「單一 bind-mount」邊界是**每個容器實例**的邊界，�
 對外曝露沿用同一個 `devspace-projectd` devtunnel、多加一個 port（7677）轉發，
 不另外開一條 tunnel、也不用多維護一個排程工作；細節見
 `containers/chouten-court-isolation/README.md`。
+
+## Addendum: 上述「多實例」設計被取代——改成單一容器多 repo 掛載（post-implementation）
+
+上面這個「一個 repo 一組獨立容器」的決定，實際運作後發現每加一個 repo 就要
+重來一整套（容器、port、devtunnel port、token、ChatGPT 連接器），維運成本
+跟效益不成比例；同時發現已安裝的 `@waishnav/devspace@1.0.8` 原生就支援
+`DEVSPACE_ALLOWED_ROOTS` 吃逗號分隔的多個路徑（依 v1.0.8 標籤版本的上游文件
+確認），根本不需要靠多容器來服務多個 repo。詳細取捨理由記在
+`docs/adr/0015-isolate-ai-agent-mcp-server-execution.md` 的對應 addendum。
+
+`containers/chouten-court-isolation/` 已整個移除，`chouten-court` 改成掛進
+`containers/devspace-isolation/` 這唯一一個容器（`/repos/chouten-court`）；
+devtunnel 的 7677 port 也已刪除，只剩 7676 一個 port 服務所有 repo。上面這段
+「多實例」的內容保留作為歷史紀錄與設計思路對照，不代表目前的實際架構——目前
+架構、加 repo 的步驟、`docker-entrypoint.sh` 如何動態組出
+`DEVSPACE_ALLOWED_ROOTS`，都記在 `containers/devspace-isolation/README.md`
+的「Multi-repo support」段落。
+
+已用真實測試驗證：`verify-isolation.ps1` 新增兩項檢查（多 repo 掛載不互相
+混淆、`DEVSPACE_ALLOWED_ROOTS` 正確列出所有 repo），9 項全過;實際掛
+`projectD-core`、`chouten-court`、`projectD-knowledge` 三個 repo 到同一個
+執行中容器，`docker exec` 確認 `/repos/` 下三個資料夾內容互不混淆;只重建
+`devspace` 容器（不動 `devspace-config` volume）不會讓既有 ChatGPT 連接器的
+OAuth 授權失效——只有整個 volume 被清掉才會。
