@@ -1,5 +1,8 @@
 ---
 status: accepted
+date: 2026-07-28
+domain: knowledge-workspace
+current_authority: ../specs/knowledge-workspace-boundary.md
 ---
 
 # Separate the KnowledgeWorkspace from projectD-core
