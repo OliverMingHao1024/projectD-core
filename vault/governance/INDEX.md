@@ -25,7 +25,7 @@
 - 前端選型：`../../core/skills/select-frontend-capability/SKILL.md`
 - Skill 引入：`../../docs/adr/0016-targeted-skill-intake.md`、`skill-registry.json`、
   `skill-candidates.md`
-- System Feature Wiki：`../../docs/specs/external-knowledge-wiki.md`、`../../docs/adr/`
+- System Feature Wiki 核心邊界：`../../docs/specs/knowledge-workspace-boundary.md`；正式規格與專屬 ADR 位於 `projectD-knowledge`
 - Governance Evals：`../../docs/specs/governance-evals-v2.md`、
   `../../docs/specs/governance-evals-v2-phase-3.md`、`../../evals/`
 - 跨專案歷程：`../../core/skills/query-project-history/SKILL.md`
