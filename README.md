@@ -53,6 +53,8 @@ pwsh -File scripts/uninstall.ps1
 ## 操作索引
 
 - [治理接線、Fleet、檢查與 Phase 3 離線工具](docs/operations/governance-workflow-and-checks.md)
+- [ADR 決策索引](docs/adr/README.md)
+- [DevSpace 現行安全邊界](docs/specs/devspace-security-boundary.md)
 - [Fleet 說明](fleet/README.md)
 - [Skill catalog](docs/operations/skill-catalog.md)
 - [Governance Evals v2](docs/specs/governance-evals-v2.md)
