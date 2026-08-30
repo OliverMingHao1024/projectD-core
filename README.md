@@ -25,7 +25,7 @@ Claude、Codex 與 GitHub Copilot 使用相同來源。
 | `fleet/` | 專案清單與 scoped pack 接線 |
 | `evals/` | Deterministic governance schemas、catalogs 與 fixtures |
 | `scripts/` | Desired-state wiring、檢查、hooks 與離線 evaluators |
-| `docs/` | Specs、ADR、history、research 與操作手冊 |
+| `docs/` | Specs、ADR、history 與操作手冊 |
 
 ## 快速開始
 
@@ -60,6 +60,7 @@ pwsh -File scripts/uninstall.ps1
 - [Token 用量監控操作手冊](docs/operations/token-usage-monitoring.md)
 - [外部 Skill 定向引入 ADR](docs/adr/0016-targeted-skill-intake.md)
 - [外部知識 Wiki 規格](docs/specs/external-knowledge-wiki.md)
+- [研究報告歸檔](https://github.com/OliverMingHao1024/projectD-knowledge/tree/main/research)
 - [可選專案歷程搜尋移機說明](core/skills/query-project-history/references/portable-setup.md)
 
 ## 目前邊界
