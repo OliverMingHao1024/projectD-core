@@ -1,8 +1,27 @@
-# Scripts that run inside Linux containers (via a #! shebang) must always
-# check out with LF line endings, even on a Windows checkout with
-# core.autocrlf=true -- a CRLF shebang line makes the kernel's exec() fail
-# with "no such file or directory", which has no useful stack trace and is
-# easy to mistake for a missing file. Found while testing
-# containers/devspace-isolation/docker-entrypoint.sh.
+# Keep repository text deterministic across Windows, Linux, editors, and
+# automation. Git stores text as LF unless a format requires CRLF.
+* text=auto eol=lf
+
+# Windows command scripts retain their native line endings.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Scripts and configuration executed by cross-platform runtimes use LF.
 *.sh text eol=lf
+*.ps1 text eol=lf
+*.psm1 text eol=lf
+*.psd1 text eol=lf
 .gitattributes text eol=lf
+
+# Common binary assets must never be line-ending normalized.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.7z binary
+*.woff binary
+*.woff2 binary
