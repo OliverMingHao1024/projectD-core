@@ -1,5 +1,7 @@
 ---
 status: accepted
+date: 2026-07-27
+domain: governance-wiring
 ---
 
 # Manage governance wiring as desired state

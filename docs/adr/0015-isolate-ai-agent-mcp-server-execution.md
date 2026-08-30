@@ -1,3 +1,12 @@
+---
+status: amended
+date: 2026-08-14
+domain: devspace-security
+amended_by:
+  - "0017"
+current_authority: ../specs/devspace-security-boundary.md
+---
+
 # Isolate AI-agent MCP server execution behind rootless containers and enforced egress
 
 AI-agent MCP servers with file read/write and shell execution capability (e.g. DevSpace) must never be exposed through an anonymous public tunnel, and must run inside a non-root Docker container with a single explicit repo bind-mount, no Docker socket, and egress forced through a domain-allowlisted proxy container on an internal-only network — rather than relying on policy statements, host firewall rules, or WSL2/VM isolation. This follows the 2026/07/01 Offense 335495 incident, where `devtunnel.exe --allow-anonymous` exposed DevSpace's high-privilege capabilities to the Internet; the incident showed that "remember not to do X" is not a real control, and this repo's own convention (ADR 0010, bound local security scans and verify downloads) already favors enforced allowlists over trusted defaults.

@@ -1,5 +1,7 @@
 ---
 status: accepted
+date: 2026-07-27
+domain: project-history
 ---
 
 # Split history bootstrap from local runtime

@@ -1,3 +1,9 @@
+---
+status: accepted
+date: 2026-07-28
+domain: skill-governance
+---
+
 # Use targeted, governed Skill intake
 
 projectD-core discovers external Skills through a targeted `skill-scout` workflow that accepts either a capability requirement or an exact GitHub source, returns at most three verified candidates, and never broadens scope, stages content, executes external code, or adopts changes without explicit user confirmation. Machine-readable lifecycle facts live in `skill-registry.json`, human decision rationale remains in `skill-candidates.md`, and upstream update detection is a separate `skill-update-check` capability. Adopted Skills become projectD-maintained CanonicalSkills whose location is determined by applicability—cross-stack in `core/skills/`, stack-specific in `packs/`—with immutable upstream and adapted staging snapshots retained during review.
