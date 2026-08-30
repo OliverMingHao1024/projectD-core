@@ -59,7 +59,9 @@ pwsh -File scripts/uninstall.ps1
 - [Governance Evals v2 Phase 3](docs/specs/governance-evals-v2-phase-3.md)
 - [Token 用量監控操作手冊](docs/operations/token-usage-monitoring.md)
 - [外部 Skill 定向引入 ADR](docs/adr/0016-targeted-skill-intake.md)
-- [外部知識 Wiki 規格](docs/specs/external-knowledge-wiki.md)
+- [KnowledgeWorkspace 核心邊界](docs/specs/knowledge-workspace-boundary.md)
+- [KnowledgeWorkspace 正式規格](https://github.com/OliverMingHao1024/projectD-knowledge/blob/main/specs/external-knowledge-wiki.md)
+- [本機 runtime state 外移規格](docs/specs/external-runtime-state.md)
 - [研究報告歸檔](https://github.com/OliverMingHao1024/projectD-knowledge/tree/main/research)
 - [可選專案歷程搜尋移機說明](core/skills/query-project-history/references/portable-setup.md)
 
