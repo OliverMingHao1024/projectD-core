@@ -74,6 +74,45 @@ pwsh -File scripts/governance-hooks.ps1 -Mode Uninstall
 
 Hook 只提供本機提早回饋，不取代 CI、branch protection、L0 授權或人工 review。
 
+## Line-ending policy and one-time recovery
+
+Repository 以 `.gitattributes` 為權威：一般文字檔在 index 與 working tree 使用 LF，
+BAT／CMD 在 index 正規化為 LF、checkout 時使用 CRLF；`.editorconfig` 讓支援的編輯器
+採用相同設定。CI 會執行 `git add --renormalize .` 並拒絕任何 staged 差異。
+
+若既有 checkout 突然出現大量 modified 檔，只有在下列 preflight 回傳成功時，才能將其
+視為 CRLF 噪音：
+
+```powershell
+git diff --ignore-cr-at-eol --quiet
+if ($LASTEXITCODE -ne 0) {
+    throw 'Working tree contains changes beyond CRLF normalization; stop and review the diff.'
+}
+```
+
+確認只有換行差異後，使用可復原流程同步。Stash 保留為 recovery point，不自動重新套用：
+
+```powershell
+git stash push -u -m 'pre-sync-crlf-only'
+
+# Repository-local convenience; committed .gitattributes remains authoritative.
+git config --local core.autocrlf false
+git config --local core.eol lf
+git config --local core.safecrlf true
+
+git fetch --prune origin
+git merge --ff-only origin/master
+git restore --source=HEAD --worktree -- .
+
+git status --short --branch
+git ls-files --eol
+git stash show --stat
+```
+
+若 `--ff-only` 失敗、preflight 非零或 status 仍有修改，立即停止，不使用 force/reset。
+確認同步與工具正常後，才以獨立明確動作刪除 recovery stash；不要 `stash pop` 把換行
+噪音重新帶回 working tree。
+
 ## Host evidence tools
 
 這些入口只處理已授權、metadata-only、位於 repository 內的 evidence；不啟動模型，也不讀取
