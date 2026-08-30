@@ -4,16 +4,19 @@ docs/adr/0015-isolate-ai-agent-mcp-server-execution.md and
 docs/specs/devspace-isolation-container-framework.md.
 
 Runs on the host; drives the containers via `docker compose exec` rather than
-requiring a second in-container script. Brings the stack up, checks seven
-things, tears the stack back down (including the scratch repo directory it
-creates for the bind-mount), and reports PASS/FAIL per check with a non-zero
-exit code if anything failed.
+requiring a second in-container script. Brings the stack up, checks nine
+things, tears the stack back down (including the two scratch repo
+directories it creates for the multi-repo bind-mounts), and reports
+PASS/FAIL per check with a non-zero exit code if anything failed.
 #>
 
 [CmdletBinding()]
 param(
-    [string]$RepoPath = (Join-Path ([IO.Path]::GetTempPath()) (
-        "devspace-isolation-verify-$PID"
+    [string]$RepoPathA = (Join-Path ([IO.Path]::GetTempPath()) (
+        "devspace-isolation-verify-a-$PID"
+    )),
+    [string]$RepoPathB = (Join-Path ([IO.Path]::GetTempPath()) (
+        "devspace-isolation-verify-b-$PID"
     ))
 )
 
@@ -39,8 +42,14 @@ function Invoke-InContainer {
     return (docker compose exec -T devspace sh -c $Command 2>&1) -join "`n"
 }
 
-New-Item -ItemType Directory -Path $RepoPath -Force | Out-Null
-$env:DEVSPACE_REPO_PATH = $RepoPath
+New-Item -ItemType Directory -Path $RepoPathA -Force | Out-Null
+New-Item -ItemType Directory -Path $RepoPathB -Force | Out-Null
+# Something distinguishable in each scratch repo, so check 7 below can prove
+# the two /repos/* mounts are not somehow the same directory or swapped.
+Set-Content -LiteralPath (Join-Path $RepoPathA 'marker-a.txt') -Value 'a'
+Set-Content -LiteralPath (Join-Path $RepoPathB 'marker-b.txt') -Value 'b'
+$env:DEVSPACE_REPO_PATH_PROJECTD_CORE = $RepoPathA
+$env:DEVSPACE_REPO_PATH_CHOUTEN_COURT = $RepoPathB
 # Verification-only throwaway Owner token -- never the real deployment
 # secret. Compose requires the variable to be set at all.
 $env:DEVSPACE_OAUTH_OWNER_TOKEN = [Guid]::NewGuid().ToString('N')
@@ -131,10 +140,34 @@ try {
     Add-Result 'egress-proxy-has-no-capabilities' (
         $capLines.Count -gt 0 -and $nonZeroCaps.Count -eq 0
     ) ($capLines -join ' | ')
+
+    # 8. Multi-repo mounts land in the right place and don't cross-contaminate
+    #    -- each scratch repo's own marker file is visible only under its own
+    #    /repos/<name> path, and DEVSPACE_ALLOWED_ROOTS actually lists both.
+    $markerAOutput = Invoke-InContainer (
+        '[ -f /repos/projectD-core/marker-a.txt ] && ' +
+        '[ ! -f /repos/projectD-core/marker-b.txt ] && echo OK || echo WRONG'
+    )
+    $markerBOutput = Invoke-InContainer (
+        '[ -f /repos/chouten-court/marker-b.txt ] && ' +
+        '[ ! -f /repos/chouten-court/marker-a.txt ] && echo OK || echo WRONG'
+    )
+    Add-Result 'multi-repo-mounts-not-cross-contaminated' (
+        $markerAOutput.Trim() -eq 'OK' -and $markerBOutput.Trim() -eq 'OK'
+    ) "projectD-core=$($markerAOutput.Trim()) chouten-court=$($markerBOutput.Trim())"
+
+    $rootsOutput = Invoke-InContainer (
+        'cat /proc/1/environ | tr "\0" "\n" | grep ^DEVSPACE_ALLOWED_ROOTS='
+    )
+    Add-Result 'allowed-roots-lists-both-repos' (
+        $rootsOutput -match '/repos/projectD-core' -and
+        $rootsOutput -match '/repos/chouten-court'
+    ) $rootsOutput.Trim()
 } finally {
     docker compose down -v 2>&1 | Out-Null
     Pop-Location
-    Remove-Item -LiteralPath $RepoPath -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $RepoPathA -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $RepoPathB -Recurse -Force -ErrorAction SilentlyContinue
 }
 
 foreach ($result in $results) {
