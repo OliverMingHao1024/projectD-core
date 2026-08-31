@@ -3,9 +3,9 @@
 - 狀態：approved / Phase 1 complete / Phase 2 complete / Phase 3 durable operation log and Codex-Claude hook contracts, adapters, run-plan integrity and upgrade gate complete
 - 核准日期：2026-08-21
 - Phase 2 核准：2026-08-21（使用者指示「繼續」）
-- 研究依據：`../research/ai-governance-gap-analysis-2026-08-21.md`
-- 採用歷程：`../history/2026-08-21-governance-evals-v2-phase-1.md`、
-  `../history/2026-08-21-governance-evals-v2-phase-2.md`
+- 研究依據：`https://github.com/OliverMingHao1024/projectD-knowledge/blob/main/research/projectd-core/ai-governance-gap-analysis-2026-08-21.md`
+- 採用歷程：`https://github.com/OliverMingHao1024/projectD-knowledge/blob/main/archive/projectd-core/history/governance-evals/2026-08-21-governance-evals-v2-phase-1.md`、
+  `https://github.com/OliverMingHao1024/projectD-knowledge/blob/main/archive/projectd-core/history/governance-evals/2026-08-21-governance-evals-v2-phase-2.md`
 - Phase 3 規格：`governance-evals-v2-phase-3.md`
 
 ## Roadmap 狀態
