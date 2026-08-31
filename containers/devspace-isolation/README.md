@@ -274,6 +274,35 @@ $devtunnel = "C:\Users\User\AppData\Local\Microsoft\WinGet\Packages\Microsoft.de
 schtasks /Create /TN "DevSpace Dev Tunnel" /TR "`"$devtunnel`" host devspace-projectd" /SC ONLOGON /RL LIMITED /F
 ```
 
+### Keeping the tunnel connected: watchdog
+
+The `devtunnel host` process can silently lose its relay connection while
+staying alive as a process -- confirmed by testing: after roughly 30 hours
+of uptime, `devtunnel show devspace-projectd` reported `Host connections: 0`
+even though `devtunnel.exe` itself hadn't exited, and the public URL just
+timed out (`curl` exit 000) until the process was manually killed and
+restarted. The "DevSpace Dev Tunnel" scheduled task above only restarts it
+at logon, so a mid-session drop like this stays broken until someone
+notices.
+
+`scripts/devtunnel-watchdog.ps1` checks `devtunnel show`'s `Host
+connections` count and only restarts the process when it's actually at
+zero -- it does nothing on the healthy path (no log noise). Install it as
+its own recurring scheduled task (separate from the ONLOGON one above, and
+safe to run alongside it):
+
+```powershell
+pwsh -File scripts/devtunnel-watchdog.ps1 -Install -IntervalMinutes 5
+```
+
+This registers "DevSpace Dev Tunnel Watchdog" to run every 5 minutes
+indefinitely (`New-ScheduledTaskTrigger`'s `-RepetitionDuration` needs an
+actual bounded `TimeSpan` -- `[TimeSpan]::MaxValue` serializes to an
+out-of-range Task Scheduler duration and the registration silently fails
+without `-ErrorAction Stop`; the script uses 10 years instead, confirmed to
+register successfully). Restarts and warnings are appended to
+`%TEMP%\devtunnel-watchdog.log`.
+
 ### Connecting ChatGPT
 
 1. Settings → 安全性與登入 (Security & login) → 開發者模式 (Developer mode) --
