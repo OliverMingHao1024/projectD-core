@@ -1,158 +1,44 @@
-# Skill 候選決策紀錄
+# Skill 候選治理清單
 
-> 保存人工審查理由。機器可讀的來源、單一 Skill ID、commit、digest、生命週期狀態與
-> canonical 目標以 `skill-registry.json` 為準。
-> 格式契約：三個固定 H2 區塊 + 每筆用 `### <owner>/<repo>` H3 標題 + 固定 key 條列。
-> 回填策略：區塊定位搬移，不整檔重寫（避免破壞手改內容）。
-> 本檔既有 repo 級 `id` 是歷史欄位；新候選使用
-> `<owner>-<repo>--<完整-skill-路徑>`，與 registry 及 staging 目錄一致。
+> 現行機器可讀的 source、candidate ID、commit、digest、lifecycle 與 canonical target，
+> 以 [`skill-registry.json`](skill-registry.json) 為準。
+> 完整人工採用／拒絕理由已封存於
+> [projectD-knowledge](https://github.com/OliverMingHao1024/projectD-knowledge/blob/4049cdc1dfccaed8910092d499806b2e33c4ab14/archive/projectd-core/history/skill-intake/skill-candidates-full-history.md)。
 
-固定欄位 key（每筆）：
-`id`、`來源連結`、`授權條款`、`star 數（評估時）`、`最近更新`、`評估日期`、`結論`、
-`理由`、`目標 pack`（收錄／部分收錄時填）、`發現管道`。
-`結論` 用固定 enum：`收錄` / `部分收錄` / `暫緩` / `拒絕`。
-`部分收錄`：只吸收來源中可用的片段，其餘捨棄；`理由` 必須寫清楚抽了什麼、捨了什麼、為何捨。
+**維護契約**
+
+- 本檔保留三個固定 lifecycle H2 區塊，以及 registry 引用的精確 H3 decision-record headings。
+- 已完成 decision 的 metadata、理由與歷史 star／日期只保存在 archive，不在 core 重複。
+- 評估中的候選保留完整人工判斷資料；狀態完成後更新 registry，再把理由追加至 archive。
+- 新候選 ID 使用 `<owner>-<repo>--<完整-skill-路徑>`，與 registry 及 staging 目錄一致。
+- 候選固定欄位為 `id`、來源、授權、評估證據、結論、理由、目標與發現管道。
+- `packs/_staging/` 只放正在有界審查的候選，不保存已採用或已拒絕的完整副本。
 
 ## 已收錄
 
-<!-- 畢業並移入正式 pack 者。每筆務必補「目標 pack」。 -->
+下列 headings 僅為 `skill-registry.json` 的 referential-integrity keys；完整理由見 archive。
 
 ### ali/tfs-code
-- id：skill-vault-ali--tfs-code
-- 來源連結：https://skill-vault.apps.okd.f25b.com/api/skills/ali/tfs-code
-- 授權條款：未宣告 SPDX；F25B 內部來源，僅限內部使用，不得對外再散布
-- star 數（評估時）：不適用（Skill Vault v2；下載 11、瀏覽 23）
-- 最近更新：2026-07-13
-- 評估日期：2026-08-03
-- 結論：部分收錄
-- 理由：使用者指定安裝並在完整靜態檢視後確認信任發佈者與內容，且明確要求統整至 projectD。來源 zip 僅含 SKILL.md，archive SHA-256 與 Vault metadata 相符。保留 Hound、TFS REST 與 SSH/HTTP clone 的核心流程；改為跨 Agent 用語，將 REST 限定為唯讀、PAT 改為不進命令列或日誌、`-k` 僅允許精確的內部 Hound 主機，並把詳細 REST 範例移至按需載入 reference。來源未宣告開源授權，因此此次是經使用者授權的 F25B 內部整合例外，不視為可對外散布的開源收錄。
-- 目標 pack：core/skills/tfs-code
-- 發現管道：使用者指定 F25B Skill Vault 座標 + Vault v2 metadata + zip 靜態審查
 
 ### ch-chang/tfs
-- id：skill-vault-ch-chang--tfs
-- 來源連結：https://skill-vault.apps.okd.f25b.com/api/skills/ch-chang/tfs
-- 授權條款：未宣告 SPDX；F25B 內部來源，僅限內部使用，不得對外再散布
-- star 數（評估時）：不適用（Skill Vault v2；下載 11、瀏覽 19）
-- 最近更新：2026-07-15
-- 評估日期：2026-08-03
-- 結論：部分收錄
-- 理由：使用者指定安裝並在完整靜態檢視後確認信任發佈者與內容，且明確要求統整至 projectD。來源是 `ali/tfs` 的 fork，zip 僅含 SKILL.md，archive SHA-256 與 Vault metadata 相符。保留 build、release、deployment、pipeline、work item、repo/PR metadata 與 service endpoint 能力；將 PAT 改為不進命令列或日誌，優先要求最小 scope，並把每次共享狀態變更收緊為「出示精確目標、payload 與影響後取得新的確認」。唯讀與寫入範例拆成按需載入 references，且與 `tfs-code` 的原始碼搜尋／讀取／clone 範圍明確分工。來源未宣告開源授權，因此此次是經使用者授權的 F25B 內部整合例外，不視為可對外散布的開源收錄。
-- 目標 pack：core/skills/tfs
-- 發現管道：使用者指定 F25B Skill Vault 座標 + Vault v2 metadata + zip 靜態審查
 
 ### dreamwing/angular-developer
-- id：skill-vault-dreamwing--angular-developer
-- 來源連結：https://skill-vault.apps.okd.f25b.com/api/skills/dreamwing/angular-developer
-- 授權條款：SKILL.md frontmatter 宣告 MIT；archive 無獨立 LICENSE 檔
-- star 數（評估時）：不適用（Skill Vault v1；下載 1、瀏覽 8）
-- 最近更新：2026-08-04
-- 評估日期：2026-08-17
-- 結論：部分收錄
-- 理由：使用者指定 Skill Vault 座標，完成 40 個 Markdown 的靜態安全檢視後核准整合。候選提供 Signals、Forms、routing/rendering、Angular Aria、testing 與 CLI 等詳細現代 Angular 參考，但其通用觸發範圍與既有 `frontend-angular` 重疊，且「最新版、CLI、Signal Forms、Tailwind v4、直接 ng build、MCP」等絕對預設可能違反舊專案慣例，因此不建立第二個 active Skill。保留單一 `frontend-angular` 入口，明確分流完全全新專案與既有 workspace；全新專案可採相容的現代預設，既有專案一律以原版本、架構、forms、Signals/RxJS、測試、樣式與 repository commands 為準。原始 39 份 references 整理為六個按需載入主題，所有依賴安裝、migration、deploy 與 MCP 行為仍受 projectD 授權與安全邊界約束。Vault version 1、archive SHA-256 與 metadata 相符；發佈者 dreamwing／陳俊霖與 upstream `Copyright 2026 Google LLC` 宣告的關係未獨立驗證。
-- 目標 pack：packs/frontend-angular
-- 發現管道：使用者指定 F25B Skill Vault 座標 + Vault metadata + zip 全檔靜態審查 + 核准整合規格
 
 ### mattpocock/skills（implement / code-review review gate）
-- id：mattpocock-skills--skills-engineering-implement / mattpocock-skills--skills-engineering-code-review
-- 來源連結：https://github.com/mattpocock/skills/tree/ed37663cc5fbef691ddfecd080dff42f7e7e350d/skills/engineering
-- 授權條款：MIT
-- star 數（評估時）：191168
-- 最近更新：2026-07-27
-- 評估日期：2026-07-28
-- 結論：部分收錄
-- 理由：使用者核准 Implementation Review Gate 規格與兩張依賴 tickets。code-review 保留 Standards／Spec 雙軸，新增 working-tree 模式，移除 setup-matt-pocock-skills 與強制平行 sub-agent，並維持全程唯讀；implement 改為只執行已核准範圍、依專案選擇測試策略而不強制 TDD，但對程式碼與行為設定強制完成有界 code-review gate。兩者皆不自動 commit、push 或修改 tracker。
-- 更新審查（2026-08-25）：唯讀比對至 commit `6654f6b60cd9d5be8b54c6fafe44346dabeb3b76`。`implement` 路徑 digest 未變；`code-review` 的實質流程仍與既有 cross-agent adaptation 相同，上游差異主要是標點、tracker setup 提示與 Skill tool／sub-agent 語法，因此不改 canonical 行為，只推進 reviewed upstream digest。
-- 目標 pack：core/skills/{code-review,implement}
-- 發現管道：使用者指定 + skill-scout 固定 commit 審查 + 核准規格與 tickets
 
 ### mattpocock/skills（to-spec / to-tickets）
-- id：mattpocock-skills--skills-engineering-to-spec / mattpocock-skills--skills-engineering-to-tickets
-- 來源連結：https://github.com/mattpocock/skills/tree/ed37663cc5fbef691ddfecd080dff42f7e7e350d/skills/engineering
-- 授權條款：MIT
-- star 數（評估時）：191153
-- 最近更新：2026-07-27
-- 評估日期：2026-07-28
-- 結論：部分收錄
-- 理由：使用者確認引入兩者。保留將既有討論收斂為規格，以及將核准範圍拆成 tracer-bullet 垂直切片與 blocking edges 的核心方法；移除作者專用 setup Skill、Claude metadata 與固定 tracker 假設，改用專案既有 glossary、ADR 與 tracker 慣例。規格、檔案、Issue、Label、blocking link 等本地或外部寫入皆須先出示草稿並取得明確確認。
-- 更新審查（2026-08-25）：唯讀比對至 commit `6654f6b60cd9d5be8b54c6fafe44346dabeb3b76`；兩個 Skill 只有標點與作者專用 tracker setup 提示調整，未改變 projectD 採用的規格合成、tracer-bullet 或寫入授權邊界，因此 canonical 內容不變並推進 reviewed upstream digest。
-- 目標 pack：core/skills/{to-spec,to-tickets}
-- 發現管道：使用者指定 + skill-scout 固定 commit 審查
 
 ### mattpocock/skills（grill-with-docs）
-- id：mattpocock-skills
-- 來源連結：https://github.com/mattpocock/skills/tree/ed37663cc5fbef691ddfecd080dff42f7e7e350d/skills/engineering/grill-with-docs
-- 授權條款：MIT
-- star 數（評估時）：191111
-- 最近更新：2026-07-27
-- 評估日期：2026-07-28
-- 結論：收錄
-- 理由：使用者指名收錄。此 Skill 是既有 grilling 與 domain-modeling 的小型組合工作流；相依能力已存在。引入時移除 Claude 專屬 `/skill` 語法與 `disable-model-invocation` metadata，補上跨 Agent 觸發、相依 Skill 缺少時的降級行為，以及逐筆確認後才寫入 CONTEXT.md／ADR 的界線。
-- 更新審查（2026-08-25）：唯讀比對至 commit `6654f6b60cd9d5be8b54c6fafe44346dabeb3b76`；上游只把 `/skill` 改成 OpenAI Skill tool 呼叫，仍屬平台專用語法，不取代現有工具中立組合與降級行為，只推進 reviewed upstream digest。
-- 目標 pack：core/skills/grill-with-docs
-- 發現管道：使用者指定 + gh repo/API 實檔審查
 
 ### mattpocock/skills（codebase-design / domain-modeling / improve-codebase-architecture / writing-great-skills）
-- id：mattpocock-skills
-- 來源連結：https://github.com/mattpocock/skills
-- 授權條款：MIT
-- star 數（評估時）：189187
-- 最近更新：2026-07-23
-- 評估日期：2026-07-26
-- 結論：部分收錄
-- 理由：使用者指名要收 improve-codebase-architecture 與 writing-great-skills。improve-codebase-architecture 依賴 codebase-design（詞彙）與 domain-modeling（CONTEXT.md/ADR 收斂），兩者皆未收錄；使用者確認四者一起收錄才能保持功能完整（同一 id 下已有 grill-me/grilling 先前收錄，未留痕於本檔，屬歷史缺口）。PG 乾跑找出並已修正：(1) codebase-design/DEEPENING.md 內建「刪除舊測試」指令，改為需明確使用者核准才刪；(2) domain-modeling 原版就地寫入 CONTEXT.md/ADR，改為提案後才寫（與 emilkowalski 收錄時同一類寫入授權問題）；(3) improve-codebase-architecture 的 `subagent_type=Explore`、`/skill` 斜線語法、Windows `start`/`%TEMP%` 均為 Claude Code 專屬寫法，已改寫為工具中立表述並修正 Git Bash/PowerShell 相容性；(4) 為 codebase-design 加入「使用者指示 > 專案既有慣例 > 本 skill 詞彙」優先序前言，避免強加 DDD/命名體系覆蓋既有專案慣例；(5) 四者皆補上 LICENSE 與 `## Source` 溯源段（比照既有 grill-me/grilling 格式）。此結論不涵蓋同來源的 tdd/code-review（見上方「已拒絕・暫緩」同一 id 的舊評估，範圍不同、未重新檢視）。
-- 更新審查（2026-08-25）：唯讀比對至 commit `6654f6b60cd9d5be8b54c6fafe44346dabeb3b76`。`codebase-design`、`domain-modeling` 與 `improve-codebase-architecture` 只有標點或平台呼叫語法變更；`grilling` 的上游改成一次詢問整個 decision frontier，與 projectD 刻意保留的一次一題 HITL 流程衝突，故不採用。原 `writing-great-skills` 已被上游刪除，同期新增範圍更廣的 `writing-for-agents`；兩者是否遷移需另行判斷，因此此項維持舊 pin，等待獨立 migration review。其餘已審查路徑推進 upstream digest。
-- 目標 pack：core/skills/{codebase-design,domain-modeling,improve-codebase-architecture,writing-great-skills}
-- 發現管道：使用者指定（本機已安裝 plugin marketplace `~/.claude/plugins/marketplaces/mattpocock`）+ PG dry-run
 
 ### mattpocock/skills（第二批：to-questionnaire / resolving-merge-conflicts / diagnosing-bugs / research / prototype / wayfinder）
-- id：mattpocock-skills
-- 來源連結：https://github.com/mattpocock/skills
-- 授權條款：MIT
-- star 數（評估時）：189187
-- 最近更新：2026-07-23
-- 評估日期：2026-07-26
-- 結論：部分收錄
-- 理由：使用者從 README 概覽中選定這六個（排除 git-guardrails-claude-code，留待之後單獨評估）。wayfinder 依賴 research 與 prototype（Research/Prototype 票種）；使用者確認三者一起收，但明確不收 setup-matt-pocock-skills（per-repo 一次性 issue tracker 設定流程）。PG 乾跑找出並已修正：(1) resolving-merge-conflicts 原版「stage everything and commit」「never --abort」直接違反 L0 不可逆操作需授權，改為只 stage 衝突相關檔案、commit 前出示 diff 並取得同意、abort 改為使用者的選擇而非 agent 自行排除的選項；(2) research 的 background-agent 派工與 findings 寫檔皆改為條件式/需確認；(3) prototype 的 SKILL.md/UI.md 把「commit 到 throwaway branch」「刪除落選 variant」「改 package.json/Makefile」全部改為提案後才動手，且不再假設一定有 issue tracker；(4) diagnosing-bugs 修正 CONTEXT.md/ADR 存在假設與 `/improve-codebase-architecture`、`scripts/hitl-loop.template.sh` 的死引用；(5) wayfinder 改動最大：移除對未收錄 setup-matt-pocock-skills 的依賴，改為就地定義 local-markdown tracker fallback（claim/blocking/frontier 皆給出 markdown 慣例的對應寫法）；所有 `/skill` 斜線引用改寫成工具中立的 Skill 名稱＋降級語；「update or delete tickets」改為「一律 close 並記錄原因，不刪除」；不確定 assignee 時改為詢問而非猜測；每一次 tracker 寫入（建 issue、指派、留言、關閉、開分支）都要求先出示批次內容再取得使用者確認。六者皆補上 LICENSE 與 `## Source` 溯源段。
-- 更新審查（2026-08-25）：使用者確認同步安全且跨技術棧適用的部分至 commit `6654f6b60cd9d5be8b54c6fafe44346dabeb3b76`。`diagnosing-bugs` 吸收 commands／output／HAR／trace 的秘密遮罩；`prototype` 增加給非開發者或非同步審查者使用的單檔 HTML logic demo，但保留依專案 runtime 的 TUI，依受眾選擇而非把 JavaScript 設成唯一答案；`to-questionnaire` 跟隨上游由 `skills/in-progress/` 搬至 `skills/productivity/`，維持寫檔前確認。其餘路徑只有標點或平台／tracker 專用語法變更，不改 canonical 行為並推進 reviewed upstream digest。
-- 目標 pack：core/skills/{to-questionnaire,resolving-merge-conflicts,diagnosing-bugs,research,prototype,wayfinder}
-- 發現管道：使用者指定（本機已安裝 plugin marketplace）+ PG dry-run
 
 ### emilkowalski/skills
-- id：emilkowalski-skills
-- 來源連結：https://github.com/emilkowalski/skills
-- 授權條款：MIT
-- star 數（評估時）：20922
-- 最近更新：2026-07-23
-- 評估日期：2026-07-26
-- 結論：部分收錄
-- 理由：部分收錄並全面改寫 apple-design、animation-vocabulary、emil-design-eng、find-animation-opportunities、improve-animations、review-animations。保留設計／動效核心方法，修正 duration-based spring、效能保證、絕對 duration、Pointer Events、無障礙、跨框架與寫入授權問題。原版 pick-ui-library 的封閉清單違反 L0 生態中立，不建立 active Skill；僅把經驗證且附條件的 React 候選整合至既有能力 adapter。
-- 目標 pack：core/skills/{apple-design,animation-vocabulary,design-engineering,find-animation-opportunities,improve-animations,review-animations} + packs/frontend-react/references/react-capabilities.md
-- 發現管道：使用者指定 + gh repo/API 實檔審查 + PG dry-run
 
 ### humanlayer/skills — plugins/show-me/skills/show-me
-- id：humanlayer-skills--plugins-show-me-skills-show-me
-- 來源連結：https://github.com/humanlayer/skills/tree/6ab9013a10c28f5046f7f999549cd5328a0b30d7/plugins/show-me/skills/show-me
-- 授權條款：MIT（repository root `LICENSE` 與 plugin manifest 已交叉確認）
-- star 數（評估時）：484
-- 最近推送：2026-08-13
-- 評估日期：2026-08-26
-- 結論：已收錄並安裝為跨技術棧 Canonical Skill
-- 理由：以最小視圖解釋流程、結構與狀態的核心方向可補足通用視覺解說能力；原版觸發過寬且把 `Bash(open ...)` 綁死為 macOS/Bash。改寫後僅在使用者要求或視覺確實提升理解時觸發，並加入跨平台、repository-safe、離線、無障礙及 proposed-vs-applied 契約。
-- 目標 pack：`core/skills/show-me`
-- 發現管道：使用者提供精確 GitHub URL；`skill-scout` 以 pinned raw source、commit、MIT license、plugin metadata 與 SHA-256 交叉驗證
 
 ### freestylefly/awesome-gpt-image-2 — agents/skills/gpt-image-2-style-library
-- id：freestylefly-awesome-gpt-image-2--agents-skills-gpt-image-2-style-library
-- 來源連結：https://github.com/freestylefly/awesome-gpt-image-2/tree/9a7b2e9c39f816d6c699c2a133e11b6d8bfdc464/agents/skills/gpt-image-2-style-library
-- 授權條款：MIT
-- star 數（評估時）：20681
-- 最近更新：2026-08-26
-- 評估日期：2026-08-27
-- 結論：收錄
-- 理由：GPT-Image2 提示詞工程 skill，內建 538 案例、20+ 模板索引（`references/style-library.md`），與現有 packs／core/skills 均無重疊；自包含（僅 SKILL.md + 一份 reference 檔），無 npm／執行檔依賴。已依 skill-scout 流程 staging 至 `packs/_staging/freestylefly-awesome-gpt-image-2--agents-skills-gpt-image-2-style-library/`，adapted 版本移除上游 npm/Codex 安裝步驟並加註適用範圍（僅限 GPT-Image2 相容模型）。使用者已於 2026-08-27 主觀確認畢業，adapted 版本移入 `core/skills/gpt-image-2-style-library/`。
-- 目標 pack：`core/skills/gpt-image-2-style-library`
-- 發現管道：使用者提供 repository URL
 
 ## 評估中
 
@@ -194,307 +80,56 @@
 - 目標 pack：（待定，可能 core/skills 或新 design pack）
 - 發現管道：gh code search + WebSearch（OpenData 作者文章與社群討論交叉命中）
 
-
 ## 已拒絕・暫緩
 
-<!-- 拒絕或暫緩者。理由必填；是否重新審查由使用者決定，不由 scout 自動展開。 -->
+下列 headings 僅為 `skill-registry.json` 的 referential-integrity keys；完整理由見 archive。
 
 ### mattpocock/skills（tdd / code-review 兩個 skill，此為舊評估範圍）
-- id：mattpocock-skills
-- 來源連結：https://github.com/mattpocock/skills
-- 授權條款：MIT
-- star 數（評估時）：185684
-- 最近更新：2026-07-23
-- 評估日期：2026-07-24
-- 結論：暫緩
-- 理由：PG 乾跑發現三項阻擋：強制每次測試前由使用者確認 seam、將 Refactor 排除在 TDD loop 外、依賴當時未擷取的 code-review Skill。此舊結論中的 tdd 仍維持暫緩；code-review 已依後續核准的 Implementation Review Gate 規格重新審查並收錄，見「implement / code-review review gate」紀錄。
-- 目標 pack：（待定，僅 tdd/code-review 範圍）
-- 發現管道：gh search + gh code search + WebSearch
 
 ### addyosmani/agent-skills
-- id：addyosmani-agent-skills
-- 來源連結：https://github.com/addyosmani/agent-skills
-- 授權條款：MIT
-- star 數（評估時）：80128
-- 最近更新：2026-07-24
-- 評估日期：2026-08-27
-- 結論：拒絕
-- 理由：使用者於治理積壓清理（2026-08-27）批次確認拒絕。沒有具體要收的技能範圍，先前僅留存查詢結果供之後參考，未見後續需求出現。
-- 目標 pack：（不適用）
-- 發現管道：gh search --topic claude-code
 
 ### agentskills/agentskills
-- id：agentskills-agentskills
-- 來源連結：https://github.com/agentskills/agentskills
-- 授權條款：Apache-2.0
-- star 數（評估時）：23413
-- 最近更新：2026-07-10
-- 評估日期：2026-08-27
-- 結論：拒絕
-- 理由：使用者於治理積壓清理（2026-08-27）批次確認拒絕。是 Agent Skills 開放標準的規格/文件庫本身，不是可安裝的技能包。
-- 目標 pack：（不適用）
-- 發現管道：gh search --topic ai-agent-skills
 
 ### K-Dense-AI/scientific-agent-skills
-- id：k-dense-ai-scientific-agent-skills
-- 來源連結：https://github.com/K-Dense-AI/scientific-agent-skills
-- 授權條款：MIT
-- star 數（評估時）：31631
-- 最近更新：2026-07-23
-- 評估日期：2026-08-27
-- 結論：拒絕
-- 理由：使用者於治理積壓清理（2026-08-27）批次確認拒絕。148 個科學領域技能，與目前技術棧（csharp/frontend/python）無關聯。
-- 目標 pack：（不適用）
-- 發現管道：gh search --topic claude-code
 
 ### sickn33/agentic-awesome-skills
-- id：sickn33-agentic-awesome-skills
-- 來源連結：https://github.com/sickn33/agentic-awesome-skills
-- 授權條款：MIT
-- star 數（評估時）：43791
-- 最近更新：2026-07-22
-- 評估日期：2026-08-27
-- 結論：拒絕
-- 理由：使用者於治理積壓清理（2026-08-27）批次確認拒絕。聲稱 1,987+ 技能的目錄型工具，規模可疑，無法交叉驗證品質。
-- 目標 pack：（不適用）
-- 發現管道：gh search --topic claude-code / ai-agent-skills（重複命中）
 
 ### alirezarezvani/claude-skills
-- id：alirezarezvani-claude-skills
-- 來源連結：https://github.com/alirezarezvani/claude-skills
-- 授權條款：MIT
-- star 數（評估時）：23107
-- 最近更新：2026-07-17
-- 評估日期：2026-08-27
-- 結論：拒絕
-- 理由：使用者於治理積壓清理（2026-08-27）批次確認拒絕。345 個技能/agent/command 品質一致性未經審查，範疇過廣。
-- 目標 pack：（不適用）
-- 發現管道：gh search --topic claude-skills
 
 ### Jeffallan/claude-skills
-- id：jeffallan-claude-skills
-- 來源連結：https://github.com/Jeffallan/claude-skills
-- 授權條款：MIT
-- star 數（評估時）：10710
-- 最近更新：2026-05-20
-- 評估日期：2026-08-27
-- 結論：拒絕
-- 理由：使用者於治理積壓清理（2026-08-27）批次確認拒絕。66 個全端開發技能與既有 frontend-core pack 重疊，沒有明確缺口。
-- 目標 pack：（不適用）
-- 發現管道：gh search --topic claude-skills
 
 ### KKKKhazix/khazix-skills
-- id：kkkkhazix-khazix-skills
-- 來源連結：https://github.com/KKKKhazix/khazix-skills
-- 授權條款：MIT
-- star 數（評估時）：17833
-- 最近更新：2026-07-24
-- 評估日期：2026-08-27
-- 結論：拒絕
-- 理由：使用者於治理積壓清理（2026-08-27）批次確認拒絕。沒有具體要收的技能範圍。
-- 目標 pack：（不適用）
-- 發現管道：gh search --topic claude-skills
 
 ### majiayu000/claude-skill-registry
-- id：majiayu000-claude-skill-registry
-- 來源連結：https://github.com/majiayu000/claude-skill-registry
-- 授權條款：MIT
-- star 數（評估時）：未取得（code search 意外命中，未走 repo search）
-- 最近更新：（未查）
-- 評估日期：2026-08-27
-- 結論：拒絕
-- 理由：使用者於治理積壓清理（2026-08-27）批次確認拒絕。意外命中，未深入審查內容。
-- 目標 pack：（不適用）
-- 發現管道：gh search code --filename SKILL.md（意外命中）
 
 ### yusufkaraaslan/Skill_Seekers
-- id：yusufkaraaslan-skill_seekers
-- 來源連結：https://github.com/yusufkaraaslan/Skill_Seekers
-- 授權條款：MIT
-- star 數（評估時）：14544
-- 最近更新：2026-07-20
-- 評估日期：2026-08-27
-- 結論：拒絕
-- 理由：使用者於治理積壓清理（2026-08-27）批次確認拒絕。是「把文件/repo/PDF 轉成技能」的工具型 repo，不是技能本身。
-- 目標 pack：（不適用）
-- 發現管道：gh search --topic claude-skills
 
 ### VoltAgent/awesome-agent-skills
-- id：voltagent-awesome-agent-skills
-- 來源連結：https://github.com/VoltAgent/awesome-agent-skills
-- 授權條款：MIT
-- star 數（評估時）：28817
-- 最近更新：2026-07-10
-- 評估日期：2026-08-27
-- 結論：拒絕
-- 理由：使用者於治理積壓清理（2026-08-27）批次確認拒絕。是策展清單（curated list），不是可安裝的技能包。
-- 目標 pack：（不適用）
-- 發現管道：gh search --topic claude-skills + ai-agent-skills（重複命中）+ WebSearch
 
 ### JimLiu/baoyu-skills
-- id：jimliu-baoyu-skills
-- 來源連結：https://github.com/JimLiu/baoyu-skills
-- 授權條款：MIT
-- star 數（評估時）：24104
-- 最近更新：2026-07-04
-- 評估日期：2026-08-27
-- 結論：拒絕
-- 理由：使用者於治理積壓清理（2026-08-27）批次確認拒絕。無 repo 描述，範疇不明。
-- 目標 pack：（不適用）
-- 發現管道：gh search --topic claude-skills
 
 ### Orchestra-Research/AI-Research-SKILLs
-- id：orchestra-research-ai-research-skills
-- 來源連結：https://github.com/Orchestra-Research/AI-Research-SKILLs
-- 授權條款：MIT
-- star 數（評估時）：11047
-- 最近更新：2026-06-16
-- 評估日期：2026-08-27
-- 結論：拒絕
-- 理由：使用者於治理積壓清理（2026-08-27）批次確認拒絕。沒有具體要收的技能範圍。
-- 目標 pack：（不適用）
-- 發現管道：gh search --topic claude-skills
 
 ### anthropics/skills（授權未明，不可收錄）
-- id：anthropics-skills
-- 來源連結：https://github.com/anthropics/skills
-- 授權條款：未偵測到（gh api 回 404，GitHub license API 未識別出 license 檔案）
-- star 數（評估時）：163853
-- 最近更新：2026-07-22
-- 評估日期：2026-08-27
-- 結論：拒絕
-- 理由：官方 Anthropic 倉庫，但自動授權偵測未過關；使用者於治理積壓清理（2026-08-27）批次確認拒絕，維持授權未明前不予收錄。若日後確認 repo 內有 LICENSE 檔可重新評估。
-- 目標 pack：（不適用）
-- 發現管道：gh search --topic agent-skills
 
 ### ComposioHQ/awesome-claude-skills（授權未明，不可收錄）
-- id：composiohq-awesome-claude-skills
-- 來源連結：https://github.com/ComposioHQ/awesome-claude-skills
-- 授權條款：未偵測到（gh api 回 404）
-- star 數（評估時）：69714
-- 最近更新：2026-07-24
-- 評估日期：2026-08-27
-- 結論：拒絕
-- 理由：策展清單，授權未明；使用者於治理積壓清理（2026-08-27）批次確認拒絕。
-- 目標 pack：（不適用）
-- 發現管道：gh search --topic claude-code + WebSearch
 
 ### travisvn/awesome-claude-skills（授權未明，不可收錄）
-- id：travisvn-awesome-claude-skills
-- 來源連結：https://github.com/travisvn/awesome-claude-skills
-- 授權條款：未偵測到（gh api 回 404）
-- star 數（評估時）：14270
-- 最近更新：2026-04-28
-- 評估日期：2026-08-27
-- 結論：拒絕
-- 理由：策展清單，授權未明；使用者於治理積壓清理（2026-08-27）批次確認拒絕。
-- 目標 pack：（不適用）
-- 發現管道：gh search --topic claude-skills + WebSearch
 
 ### hesreallyhim/awesome-claude-code（授權未明，不可收錄）
-- id：hesreallyhim-awesome-claude-code
-- 來源連結：https://github.com/hesreallyhim/awesome-claude-code
-- 授權條款：NOASSERTION
-- star 數（評估時）：50815
-- 最近更新：2026-07-24
-- 評估日期：2026-08-27
-- 結論：拒絕
-- 理由：策展清單，授權標示為 NOASSERTION（等同未明）；使用者於治理積壓清理（2026-08-27）批次確認拒絕。
-- 目標 pack：（不適用）
-- 發現管道：gh search --topic claude-code + ai-agent-skills
 
 ### dominikmartn/hue
-- id：dominikmartn-hue
-- 來源連結：https://github.com/dominikmartn/hue
-- 授權條款：MIT
-- star 數（評估時）：765
-- 最近更新：2026-06-11
-- 評估日期：2026-08-27
-- 結論：拒絕
-- 理由：使用者於治理積壓清理（2026-08-27）批次確認拒絕。與 xiaopu-ai/web-design（仍在評估中）主題重疊，優先看那個。
-- 目標 pack：（不適用）
-- 發現管道：gh search --topic claude-code（先前廣掃已見）
 
 ### wondelai/skills
-- id：wondelai-skills
-- 來源連結：https://github.com/wondelai/skills
-- 授權條款：MIT
-- star 數（評估時）：1718
-- 最近更新：2026-07-22
-- 評估日期：2026-08-27
-- 結論：拒絕
-- 理由：使用者於治理積壓清理（2026-08-27）批次確認拒絕。50 個技能合集範圍過廣，僅 top-design 子目錄可能有用，未窄化前不予收錄。
-- 目標 pack：（不適用）
-- 發現管道：gh search code --filename SKILL.md "web design"
 
 ### nexu-io/html-anything（僅留痕，偏工具型）
-- id：nexu-io-html-anything
-- 來源連結：https://github.com/nexu-io/html-anything
-- 授權條款：Apache-2.0
-- star 數（評估時）：7935
-- 最近更新：2026-07-14
-- 評估日期：2026-08-27
-- 結論：拒絕
-- 理由：使用者於治理積壓清理（2026-08-27）批次確認拒絕。75 Skills 的工具型產品，偏工具而非單一 skill。
-- 目標 pack：（不適用）
-- 發現管道：gh search repos "claude code frontend design skill"
 
 ### anthropics/skills — skills/frontend-design（授權未明，不可收錄）
-- id：anthropics-skills-frontend-design
-- 來源連結：https://github.com/anthropics/skills/tree/main/skills/frontend-design
-- 授權條款：未偵測到（repo 根目錄無 LICENSE 檔，gh api 回 404）
-- star 數（評估時）：163853（整包 repo）
-- 最近更新：2026-07-22
-- 評估日期：2026-08-27
-- 結論：拒絕
-- 理由：官方 frontend-design 子技能，但整包 repo 無 LICENSE 檔，授權未明；使用者於治理積壓清理（2026-08-27）批次確認拒絕。
-- 目標 pack：（不適用）
-- 發現管道：WebSearch + gh api 驗證
 
 ### vercel-labs/agent-skills（授權未明，不可收錄）
-- id：vercel-labs-agent-skills
-- 來源連結：https://github.com/vercel-labs/agent-skills
-- 授權條款：未偵測到（gh api 回 404）
-- star 數（評估時）：29430
-- 最近更新：2026-07-24
-- 評估日期：2026-08-27
-- 結論：拒絕
-- 理由：Vercel 官方技能集，但無 LICENSE 檔，授權未明；使用者於治理積壓清理（2026-08-27）批次確認拒絕。
-- 目標 pack：（不適用）
-- 發現管道：gh search code --filename SKILL.md "web design"（awesomething repo 提及）+ WebSearch
 
 ### nextlevelbuilder/ui-ux-pro-max-skill（存疑，疑似洗星）
-- id：nextlevelbuilder-ui-ux-pro-max-skill
-- 來源連結：https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
-- 授權條款：MIT
-- star 數（評估時）：109612
-- 最近更新：2026-07-21
-- 評估日期：2026-08-27
-- 結論：拒絕
-- 理由：短期內（單一貢獻者、近期推送）star 數異常暴增至 10 萬+，與先前掃描中發現的多筆洗星模式相符；使用者於治理積壓清理（2026-08-27）批次確認拒絕，不採信 star 數。
-- 目標 pack：（不適用）
-- 發現管道：WebSearch
 
 ### SamurAIGPT/Generative-Media-Skills — logo-branding
-- id：samuraigpt-generative-media-skills-logo-branding
-- 來源連結：https://github.com/SamurAIGPT/Generative-Media-Skills/tree/main/library/visual/logo-branding
-- 授權條款：MIT
-- star 數（評估時）：3910
-- 最近更新：2026-07-24
-- 評估日期：2026-08-27
-- 結論：拒絕
-- 理由：使用者於治理積壓清理（2026-08-27）批次確認拒絕。流程綁定 muapi.ai、API Key 與多個指定影像模型，不宜整包收錄為通用 Skill。
-- 目標 pack：（不適用）
-- 發現管道：gh code search
 
 ### fucha1122/minimalist-bw-logo-skill
-- id：fucha1122-minimalist-bw-logo-skill
-- 來源連結：https://github.com/fucha1122/minimalist-bw-logo-skill
-- 授權條款：MIT
-- star 數（評估時）：19
-- 最近更新：2026-06-16
-- 評估日期：2026-08-27
-- 結論：拒絕
-- 理由：使用者於治理積壓清理（2026-08-27）批次確認拒絕。高度依賴點陣影像生成，文字與幾何精度不如原生 SVG 方案（見仍在評估中的 tryopendata/skills svg-design）。
-- 目標 pack：（不適用）
-- 發現管道：gh code search
