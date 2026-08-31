@@ -25,7 +25,7 @@ Claude、Codex 與 GitHub Copilot 使用相同來源。
 | `fleet/` | 專案清單與 scoped pack 接線 |
 | `evals/` | Deterministic governance schemas、catalogs 與 fixtures |
 | `scripts/` | Desired-state wiring、檢查、hooks 與離線 evaluators |
-| `docs/` | Specs、ADR、history 與操作手冊 |
+| `docs/` | 現行 Specs、ADR 與操作手冊；研究及完成歷程移至 projectD-knowledge |
 
 ## 快速開始
 
