@@ -8,3 +8,4 @@ __pycache__/
 .claude/output-styles/
 .claude/settings.local.json
 containers/*/.env
+containers/devspace-isolation/scripts/devtunnel-watchdog-hidden.vbs

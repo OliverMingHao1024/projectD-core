@@ -303,6 +303,16 @@ without `-ErrorAction Stop`; the script uses 10 years instead, confirmed to
 register successfully). Restarts and warnings are appended to
 `%TEMP%\devtunnel-watchdog.log`.
 
+Running `pwsh.exe` directly from the scheduled task action flashes a
+console window on every trigger even with `-WindowStyle Hidden` -- a known
+Windows quirk (confirmed by testing) where `conhost.exe` briefly attaches
+before the hidden style takes effect. `-Install` works around this by
+generating a small VBScript wrapper next to this script
+(`devtunnel-watchdog-hidden.vbs`, gitignored -- it bakes in this machine's
+absolute script path) and pointing the task at `wscript.exe` instead, which
+has no console subsystem at all. Re-run `-Install` any time this script
+moves to regenerate the wrapper with the new path.
+
 ### Connecting ChatGPT
 
 1. Settings → 安全性與登入 (Security & login) → 開發者模式 (Developer mode) --
