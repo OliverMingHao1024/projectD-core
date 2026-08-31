@@ -1,82 +1,47 @@
 # Implementation Review Gate
 
-## Problem
+- 狀態：approved／active
+- 決策依據：[Targeted Skill intake ADR](../adr/0016-targeted-skill-intake.md)
+- 導入前完整規格：[Git history](https://github.com/OliverMingHao1024/projectD-core/blob/ef0f62c3e4bffbfc3a5cb4ed35c0c49bb90007eb/docs/specs/implement-review-gate.md)
 
-The upstream `implement` workflow mandates TDD, review, and commit regardless of
-context. Removing review entirely, however, would make implementation quality
-vary across AI Agents.
-
-## Outcome
-
-Provide a cross-agent delivery flow:
+## 現行交付流程
 
 `to-spec → to-tickets → implement → code-review`
 
-The flow keeps TDD conditional while making review a completion gate for code
-and behavior-affecting configuration changes.
+`implement` 只能依 approved specification、ticket 或同等明確的 settled scope 執行。
+TDD 由專案證據決定，不是強制流程；相關 validation 與 tests 始終必須執行。
 
-## User stories
+## Completion gate
 
-1. As a project maintainer, I want every behavioral implementation reviewed, so
-   that standards violations and specification drift are caught consistently.
-2. As an implementing Agent, I want to select the testing approach from project
-   evidence, so that work is not blocked by an unsuitable TDD mandate.
-3. As a project maintainer, I want upstream Skill updates detected without
-   overwriting local adaptations, so that projectD governance remains stable.
+- Source code 與會改變行為的 configuration 必須通過 `code-review`。
+- Documentation-only 工作可明示 `code-review: not applicable`。
+- Review 分開回報 Standards 與 Specification findings。
+- Review 可檢查 uncommitted working tree，或固定 branch／tag／commit 比較。
+- Material fix 最多接受一次 focused re-review，避免無界循環。
+- Review 不要求 sub-agent；目前 Agent 可完成兩個審查軸。
+- `implement` 與 `code-review` 都不得在未取得使用者明確授權時 commit、push 或開 PR。
 
-## Acceptance criteria
+## Skill governance
 
-- [x] `implement` operates only from an approved specification, ticket, or
-      equivalently settled scope.
-- [x] TDD is optional; validation and relevant tests remain mandatory.
-- [x] Source-code and behavior-affecting configuration changes must pass
-      `code-review`.
-- [x] Documentation-only work may report `code-review: not applicable`.
-- [x] `code-review` supports an uncommitted working tree and fixed-point branch,
-      tag, or commit comparisons.
-- [x] Standards and specification findings remain separate.
-- [x] Review does not require sub-agents; the current Agent can run both axes.
-- [x] Material fixes receive one focused re-review without creating an
-      unbounded review loop.
-- [x] Neither Skill commits or pushes without explicit user authorization.
-- [x] Upstream changes produce a drift report and never overwrite a
-      CanonicalSkill automatically.
+- Canonical Skills：`core/skills/implement/`、`core/skills/code-review/`。
+- 共通規則引用 glossary、ADR、repository standards、PG guidance 與 stack packs，不在 Skills 重複。
+- 外部來源以 pinned commit 與 digest 記錄於 `vault/governance/skill-registry.json`。
+- Upstream drift 只產生報告，不得自動覆寫 CanonicalSkill。
+- Claude-specific metadata、mandatory sub-agent dispatch、mandatory TDD、automatic commit 與 upstream
+  setup dependency 不屬於 projectD 契約。
 
-## Implementation decisions
+## 驗證
 
-- Adopt the adapted `code-review` CanonicalSkill before the `implement`
-  CanonicalSkill that depends on it.
-- Place both cross-stack Skills under `core/skills/` and expose them through
-  projectD GovernanceWiring.
-- Remove the upstream setup Skill dependency, Claude-specific metadata,
-  mandatory sub-agent dispatch, mandatory TDD, and automatic commit behavior.
-- Reuse project glossary, ADRs, repository standards, PG guidance, and
-  stack-specific packs instead of duplicating coding rules.
-- Track each upstream path by pinned commit and digest in the SkillRegistry.
+- 兩個 Skill 必須通過官方 Skill validator。
+- Catalog、registry、contract 與 GovernanceWiring checks 必須通過。
+- Contract fixtures 必須涵蓋 working-tree review、fixed-point review、無 specification review、
+  non-TDD implementation，以及 material fix 後單次 focused re-review。
 
-## Testing decisions
+```powershell
+pwsh -NoProfile -File scripts/projectd-check.ps1
+```
 
-- Validate both folders with the official Skill validator.
-- Run projectD catalog, registry, contract, and GovernanceWiring checks.
-- Exercise working-tree review, fixed-point review, and review without a
-  specification.
-- Verify that non-TDD implementation still runs relevant tests and reaches the
-  mandatory review gate.
-- Verify that material review fixes trigger at most one focused re-review.
+## 非目標
 
-## Out of scope
-
-- Adopting the upstream `tdd` Skill.
-- Automatically fixing every review finding.
-- Automatically committing, pushing, or opening a pull request.
-- Automatically merging future upstream changes.
-
-## Assumptions and open questions
-
-- No open question currently blocks implementation.
-
-## References
-
-- [Targeted Skill intake ADR](../adr/0016-targeted-skill-intake.md)
-- [Upstream implement Skill](https://github.com/mattpocock/skills/tree/ed37663cc5fbef691ddfecd080dff42f7e7e350d/skills/engineering/implement)
-- [Upstream code-review Skill](https://github.com/mattpocock/skills/tree/ed37663cc5fbef691ddfecd080dff42f7e7e350d/skills/engineering/code-review)
+本閘門不採用 upstream TDD Skill、不自動修正所有 findings，也不自動 commit、push、開 PR
+或合併未來 upstream 變更。
