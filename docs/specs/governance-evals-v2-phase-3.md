@@ -153,6 +153,6 @@ checkpoint recovery，以及量測成本與人工負擔。
 - [Codex hooks](https://learn.chatgpt.com/docs/hooks)
 - [Claude Code hooks](https://code.claude.com/docs/en/hooks)
 - `governance-evals-v2.md`
-- `../research/ai-governance-gap-analysis-2026-08-21.md`
-- `../history/2026-08-21-governance-evals-v2-phase-2.md`
-- `../history/2026-08-22-governance-evals-v2-phase-3-codex-first.md`
+- `https://github.com/OliverMingHao1024/projectD-knowledge/blob/main/research/projectd-core/ai-governance-gap-analysis-2026-08-21.md`
+- `https://github.com/OliverMingHao1024/projectD-knowledge/blob/main/archive/projectd-core/history/governance-evals/2026-08-21-governance-evals-v2-phase-2.md`
+- `https://github.com/OliverMingHao1024/projectD-knowledge/blob/main/archive/projectd-core/history/governance-evals/2026-08-22-governance-evals-v2-phase-3-codex-first.md`
