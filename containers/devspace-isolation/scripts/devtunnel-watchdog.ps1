@@ -48,8 +48,26 @@ if ($PSCmdlet.ParameterSetName -eq 'Install') {
     # process fresh at logon; this one keeps an already-running process
     # actually connected in between logons.
     $scriptPath = $MyInvocation.MyCommand.Path
-    $action = New-ScheduledTaskAction -Execute 'pwsh.exe' `
-        -Argument "-NoProfile -WindowStyle Hidden -File `"$scriptPath`""
+
+    # Task Scheduler running pwsh.exe directly still flashes a console
+    # window on every trigger even with -WindowStyle Hidden (confirmed by
+    # testing -- a known Windows quirk: conhost.exe attaches briefly before
+    # the hidden style applies). The standard workaround is to launch
+    # through wscript.exe instead, which has no console subsystem at all,
+    # via a tiny VBScript wrapper that runs the real command with window
+    # style 0 (hidden).
+    $vbsPath = Join-Path (Split-Path -Parent $scriptPath) 'devtunnel-watchdog-hidden.vbs'
+    # VBScript escapes an embedded double-quote as two consecutive double
+    # quotes (`""`), NOT backslash-quote -- confirmed by testing: a
+    # backslash-quoted version compiled with "必須是陳述式的結尾" (expected
+    # end of statement) because VBScript doesn't recognize `\"` as an escape
+    # at all, it just sees a stray backslash breaking the string literal.
+    $vbsContent = 'Set objShell = CreateObject("WScript.Shell")' + "`r`n" +
+        ('objShell.Run "pwsh.exe -NoProfile -File ""' + $scriptPath + '""", 0, False')
+    Set-Content -LiteralPath $vbsPath -Value $vbsContent -Encoding ASCII
+
+    $action = New-ScheduledTaskAction -Execute 'wscript.exe' `
+        -Argument "//B //Nologo `"$vbsPath`""
     # [TimeSpan]::MaxValue serializes to an out-of-range Task Scheduler XML
     # duration (confirmed by testing: "Duration:P99999999DT23H59M59S" is
     # rejected) -- 10 years is effectively indefinite for this purpose and
@@ -58,11 +76,11 @@ if ($PSCmdlet.ParameterSetName -eq 'Install') {
         -RepetitionInterval (New-TimeSpan -Minutes $IntervalMinutes) `
         -RepetitionDuration (New-TimeSpan -Days 3650)
     $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries `
-        -DontStopIfGoingOnBatteries -StartWhenAvailable
+        -DontStopIfGoingOnBatteries -StartWhenAvailable -Hidden
     Register-ScheduledTask -TaskName 'DevSpace Dev Tunnel Watchdog' `
         -Action $action -Trigger $trigger -Settings $settings `
         -RunLevel Limited -Force | Out-Null
-    Write-Output "Registered 'DevSpace Dev Tunnel Watchdog' (every $IntervalMinutes min)."
+    Write-Output "Registered 'DevSpace Dev Tunnel Watchdog' (every $IntervalMinutes min, no window)."
     return
 }
 
