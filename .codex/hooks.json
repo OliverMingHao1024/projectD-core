@@ -6,14 +6,14 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pwsh -NoProfile -File \"$(git rev-parse --show-toplevel)/scripts/governance-host-operation-hook.ps1\" -HostName codex",
-            "commandWindows": "pwsh -NoProfile -Command \"$root = (& git rev-parse --show-toplevel).Trim(); & (Join-Path $root 'scripts\\governance-host-operation-hook.ps1') -HostName codex -ProjectRoot $root\"",
+            "command": "pwsh -NoProfile -NonInteractive -File \"$(git rev-parse --show-toplevel)/scripts/governance-host-operation-hook.ps1\" -HostName codex",
+            "commandWindows": "\"C:\\Program Files\\PowerShell\\7\\pwsh.exe\" -NoProfile -NonInteractive -Command \"$root=(git rev-parse --show-toplevel).Trim(); & $root/scripts/governance-host-operation-hook.ps1 -HostName codex -ProjectRoot $root\"",
             "timeout": 30
           },
           {
             "type": "command",
-            "command": "pwsh -NoProfile -File \"$(git rev-parse --show-toplevel)/scripts/governance-command-policy-hook.ps1\" -ProjectRoot \"$(git rev-parse --show-toplevel)\"",
-            "commandWindows": "pwsh -NoProfile -Command \"$root = (& git rev-parse --show-toplevel).Trim(); & (Join-Path $root 'scripts\\governance-command-policy-hook.ps1') -ProjectRoot $root\"",
+            "command": "pwsh -NoProfile -NonInteractive -File \"$(git rev-parse --show-toplevel)/scripts/governance-command-policy-hook.ps1\" -ProjectRoot \"$(git rev-parse --show-toplevel)\"",
+            "commandWindows": "\"C:\\Program Files\\PowerShell\\7\\pwsh.exe\" -NoProfile -NonInteractive -Command \"$root=(git rev-parse --show-toplevel).Trim(); & $root/scripts/governance-command-policy-hook.ps1 -ProjectRoot $root\"",
             "timeout": 30
           }
         ]
@@ -25,8 +25,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pwsh -NoProfile -File \"$(git rev-parse --show-toplevel)/scripts/governance-host-operation-hook.ps1\" -HostName codex",
-            "commandWindows": "pwsh -NoProfile -Command \"$root = (& git rev-parse --show-toplevel).Trim(); & (Join-Path $root 'scripts\\governance-host-operation-hook.ps1') -HostName codex -ProjectRoot $root\"",
+            "command": "pwsh -NoProfile -NonInteractive -File \"$(git rev-parse --show-toplevel)/scripts/governance-host-operation-hook.ps1\" -HostName codex",
+            "commandWindows": "\"C:\\Program Files\\PowerShell\\7\\pwsh.exe\" -NoProfile -NonInteractive -Command \"$root=(git rev-parse --show-toplevel).Trim(); & $root/scripts/governance-host-operation-hook.ps1 -HostName codex -ProjectRoot $root\"",
             "timeout": 30
           }
         ]
