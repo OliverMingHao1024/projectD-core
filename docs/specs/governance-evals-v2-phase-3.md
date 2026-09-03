@@ -1,6 +1,6 @@
 # Governance Evals v2 Phase 3 — 跨 Host 與長任務證據
 
-- 狀態：approved；durable operation log、Codex／Claude hooks、adapters、run-plan integrity 與 paired upgrade gate complete；live runner、observers、pilots、Copilot 與 cross-host matrix pending
+- 狀態：approved；durable operation log、Codex／Claude hooks、adapters、run-plan integrity 與 paired upgrade gate complete；Codex host transport 曾完成 bounded pilot，但 security-hardened policy 尚待 live revalidation；live runner、observers、broader pilots、Copilot 與 cross-host matrix pending
 - 核准日期：2026-08-21
 - Parent：[`governance-evals-v2.md`](governance-evals-v2.md)
 - 完整採用與實作歷程：[projectD-knowledge archive](https://github.com/OliverMingHao1024/projectD-knowledge/blob/main/archive/projectd-core/design/governance-evals-v2-phase-3-full-history.md)
@@ -13,6 +13,12 @@ checkpoint recovery、token／cost／latency／approval burden 報告。
 Repository 與 CI 只執行 deterministic contracts。真實 host trials、模型呼叫與任何可能產生成本或
 接觸 credential／外部系統的動作，必須經明確授權的手動入口；未取得 live evidence 前不得宣稱
 runtime、hook coverage 或跨 host compatibility 已驗證。
+
+## Runtime Governance v2 關係
+
+Phase 3 的 durable operation log、checkpoint、host trial 與 upgrade gate 繼續作為 evidence/recovery contracts。Runtime capability classification 與 task-scoped authorization 的新權威邊界改由 [`agent-runtime-governance.md`](agent-runtime-governance.md) 與 `evals/schemas/governance-runtime-policy-decisions.schema.json` 表達。
+
+既有 operation-log `classification` 欄位保留相容性，不再視為完整 runtime authorization taxonomy。Host hook 現在先以 Runtime Governance v2 normalizer 產生 capability/effect decision，再投影成 legacy operation-log classification；只有 payload 無法提供足夠語意時才使用 tool-name fallback 或 `unclassified-effect`。Local/network read 維持 advisory observe-only，且不會因不相關 envelope 升格成 verified authorization；effectful／unclassified operation 沒有 task envelope 時會 pre-effect enforced deny，有 validated、unexpired、current-policy task envelope 與 matching grant 時才 deterministic allow。Codex 曾有一次真實使用者授權的 repository-local allow/deny evidence，但 security hardening 已改變 policy digest；其他 host、capability、recovery 與不可觀測路徑也不得沿用該次結果宣稱 verified。
 
 ## Host evidence 契約
 
@@ -40,7 +46,7 @@ runtime、hook coverage 或跨 host compatibility 已驗證。
 - `scripts/governance-host-operation-hook.ps1` 是 Codex／Claude 共用同步 handler。
 - PreToolUse 使用 write-through temporary file 與 atomic replace 先寫 intent；PostToolUse／Failure 只追加 result。
 - `.codex/hooks.json` 與 `.claude/settings.json` 註冊各 host 可見的 tool paths。
-- Hook 成功不輸出 allow decision，保留 host 原有 permission flow。
+- Hook 成功不輸出 allow decision，保留 host 原有 permission flow。Codex deny 以正常 exit 0 回傳 structured `PreToolUse permissionDecision=deny`；Claude deny 維持 stderr 加 exit 2。
 - `host-permitted` 不等於 projectD 已驗證 task-scoped authorization。
 - 單獨的 hook evidence 固定為 `host-hook-unverified`、`authorization_verified=false`，不得令
   `safe_to_resume=true`。
@@ -64,7 +70,7 @@ harness、adapter、catalog digest、case set 與每 case trial count。Candidat
 
 ## 未完成邊界
 
-- 尚未完成真實 Codex／Claude pilots、runtime hook 載入與 failure payload 驗證。
+- Codex 已完成過一次 bounded same-session runtime hook loading、task authorization、workspace-write allow 與 command-execute pre-effect deny；該 evidence 保留為 transport／structured-deny 歷史證據，現行 hardened policy 尚待重跑。Claude pilot、Codex 其他 capability/tool path 與 failure payload matrix 亦未完成。
 - 尚未完成 filesystem／smoke-test live observers 與 live runner。
 - Copilot adapter、三 host compatibility matrix 與授權 paired evidence 尚未完成。
 - Hosted／specialized tool paths 未被官方 hooks 覆蓋時，必須明示 coverage exclusion。

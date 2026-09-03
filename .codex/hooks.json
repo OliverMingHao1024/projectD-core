@@ -6,14 +6,14 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pwsh -NoProfile -NonInteractive -File \"$(git rev-parse --show-toplevel)/scripts/governance-host-operation-hook.ps1\" -HostName codex",
-            "commandWindows": "\"C:\\Program Files\\PowerShell\\7\\pwsh.exe\" -NoProfile -NonInteractive -Command \"$root=(git rev-parse --show-toplevel).Trim(); & $root/scripts/governance-host-operation-hook.ps1 -HostName codex -ProjectRoot $root\"",
+            "command": "pwsh -NoProfile -NonInteractive -File \"$(git rev-parse --show-toplevel)/scripts/governance-host-operation-hook.ps1\" -HostName codex -ExpectedEventName PreToolUse",
+            "commandWindows": "powershell.exe -NoLogo -NoProfile -NonInteractive -EncodedCommand JABQAHIAbwBnAHIAZQBzAHMAUAByAGUAZgBlAHIAZQBuAGMAZQA9ACcAUwBpAGwAZQBuAHQAbAB5AEMAbwBuAHQAaQBuAHUAZQAnADsAJAByAG8AbwB0AD0AKAAmACAAZwBpAHQAIAByAGUAdgAtAHAAYQByAHMAZQAgAC0ALQBzAGgAbwB3AC0AdABvAHAAbABlAHYAZQBsACkALgBUAHIAaQBtACgAKQA7ACAAJgAgACgASgBvAGkAbgAtAFAAYQB0AGgAIAAkAHIAbwBvAHQAIAAnAHMAYwByAGkAcAB0AHMAXABjAG8AZABlAHgALQBnAG8AdgBlAHIAbgBhAG4AYwBlAC0AaABvAG8AawAuAGMAbQBkACcAKQAgAGgAbwBzAHQAIABQAHIAZQBUAG8AbwBsAFUAcwBlADsAIABlAHgAaQB0ACAAJABMAEEAUwBUAEUAWABJAFQAQwBPAEQARQA=",
             "timeout": 30
           },
           {
             "type": "command",
-            "command": "pwsh -NoProfile -NonInteractive -File \"$(git rev-parse --show-toplevel)/scripts/governance-command-policy-hook.ps1\" -ProjectRoot \"$(git rev-parse --show-toplevel)\"",
-            "commandWindows": "\"C:\\Program Files\\PowerShell\\7\\pwsh.exe\" -NoProfile -NonInteractive -Command \"$root=(git rev-parse --show-toplevel).Trim(); & $root/scripts/governance-command-policy-hook.ps1 -ProjectRoot $root\"",
+            "command": "pwsh -NoProfile -NonInteractive -File \"$(git rev-parse --show-toplevel)/scripts/governance-command-policy-hook.ps1\" -ProjectRoot \"$(git rev-parse --show-toplevel)\" -HostName codex",
+            "commandWindows": "powershell.exe -NoLogo -NoProfile -NonInteractive -EncodedCommand JABQAHIAbwBnAHIAZQBzAHMAUAByAGUAZgBlAHIAZQBuAGMAZQA9ACcAUwBpAGwAZQBuAHQAbAB5AEMAbwBuAHQAaQBuAHUAZQAnADsAJAByAG8AbwB0AD0AKAAmACAAZwBpAHQAIAByAGUAdgAtAHAAYQByAHMAZQAgAC0ALQBzAGgAbwB3AC0AdABvAHAAbABlAHYAZQBsACkALgBUAHIAaQBtACgAKQA7ACAAJgAgACgASgBvAGkAbgAtAFAAYQB0AGgAIAAkAHIAbwBvAHQAIAAnAHMAYwByAGkAcAB0AHMAXABjAG8AZABlAHgALQBnAG8AdgBlAHIAbgBhAG4AYwBlAC0AaABvAG8AawAuAGMAbQBkACcAKQAgAHAAbwBsAGkAYwB5ADsAIABlAHgAaQB0ACAAJABMAEEAUwBUAEUAWABJAFQAQwBPAEQARQA=",
             "timeout": 30
           }
         ]
@@ -25,8 +25,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pwsh -NoProfile -NonInteractive -File \"$(git rev-parse --show-toplevel)/scripts/governance-host-operation-hook.ps1\" -HostName codex",
-            "commandWindows": "\"C:\\Program Files\\PowerShell\\7\\pwsh.exe\" -NoProfile -NonInteractive -Command \"$root=(git rev-parse --show-toplevel).Trim(); & $root/scripts/governance-host-operation-hook.ps1 -HostName codex -ProjectRoot $root\"",
+            "command": "pwsh -NoProfile -NonInteractive -File \"$(git rev-parse --show-toplevel)/scripts/governance-host-operation-hook.ps1\" -HostName codex -ExpectedEventName PostToolUse",
+            "commandWindows": "powershell.exe -NoLogo -NoProfile -NonInteractive -EncodedCommand JABQAHIAbwBnAHIAZQBzAHMAUAByAGUAZgBlAHIAZQBuAGMAZQA9ACcAUwBpAGwAZQBuAHQAbAB5AEMAbwBuAHQAaQBuAHUAZQAnADsAJAByAG8AbwB0AD0AKAAmACAAZwBpAHQAIAByAGUAdgAtAHAAYQByAHMAZQAgAC0ALQBzAGgAbwB3AC0AdABvAHAAbABlAHYAZQBsACkALgBUAHIAaQBtACgAKQA7ACAAJgAgACgASgBvAGkAbgAtAFAAYQB0AGgAIAAkAHIAbwBvAHQAIAAnAHMAYwByAGkAcAB0AHMAXABjAG8AZABlAHgALQBnAG8AdgBlAHIAbgBhAG4AYwBlAC0AaABvAG8AawAuAGMAbQBkACcAKQAgAGgAbwBzAHQAIABQAG8AcwB0AFQAbwBvAGwAVQBzAGUAOwAgAGUAeABpAHQAIAAkAEwAQQBTAFQARQBYAEkAVABDAE8ARABFAA==",
             "timeout": 30
           }
         ]

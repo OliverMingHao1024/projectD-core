@@ -124,12 +124,19 @@ function Invoke-PolicyHook {
     param(
         [Parameter(Mandatory)]$Payload,
         [string]$RepoRoot = $repoRoot,
-        [string]$RegistryPath = $registryPath
+        [string]$RegistryPath = $registryPath,
+        [ValidateSet('codex', 'claude')]
+        [string]$HostName
     )
-    return Invoke-ScriptProcess -ScriptPath $hook -Arguments @(
+    $arguments = @(
         '-ProjectRoot', $RepoRoot,
         '-RegistryPath', $RegistryPath
-    ) -StandardInput ($Payload | ConvertTo-Json -Depth 32 -Compress)
+    )
+    if (-not [string]::IsNullOrWhiteSpace($HostName)) {
+        $arguments += @('-HostName', $HostName)
+    }
+    return Invoke-ScriptProcess -ScriptPath $hook -Arguments $arguments `
+        -StandardInput ($Payload | ConvertTo-Json -Depth 32 -Compress)
 }
 
 function New-Payload {
@@ -496,6 +503,13 @@ try {
         "Editing the registry file directly must be blocked: " +
             $editRegistryResult.Stderr
     )
+    $codexEditRegistryResult = Invoke-PolicyHook -Payload $editRegistryPayload `
+        -HostName codex
+    $codexEditRegistryResponse = $codexEditRegistryResult.Stdout | ConvertFrom-Json
+    Assert-True (
+        $codexEditRegistryResult.ExitCode -eq 0 -and
+        $codexEditRegistryResponse.hookSpecificOutput.permissionDecision -ceq 'deny'
+    ) 'Codex policy denials must use a successful structured hook response.'
 
     # A Bash/PowerShell command that names the registry file alongside a
     # recognizable write/redirect indicator must also be blocked.
@@ -546,11 +560,48 @@ try {
     $codexPreCommandText = (@($codexPreEntries | ForEach-Object {
         @($_.hooks) | ForEach-Object { [string]$_.command }
     })) -join "`n"
+    $codexPreWindowsCommandText = (@($codexPreEntries | ForEach-Object {
+        @($_.hooks) | ForEach-Object { [string]$_.commandWindows }
+    })) -join "`n"
     $codexHasPolicyHook = $codexPreCommandText.Contains(
         'governance-command-policy-hook.ps1'
     )
     Assert-True $codexHasPolicyHook (
         'Codex PreToolUse must also invoke the command policy hook.'
+    )
+    $codexPolicyCommand = @($codexPreEntries[0].hooks | Where-Object {
+        [string]$_.command -like '*governance-command-policy-hook.ps1*'
+    })[0].command
+    Assert-True (([string]$codexPolicyCommand).Contains('-HostName codex')) (
+        'Codex policy hooks must select structured deny on every platform.'
+    )
+    Assert-True (-not $codexPreWindowsCommandText.Contains('"')) (
+        'Codex PreToolUse commandWindows values must not contain embedded quotes.'
+    )
+    $policyWindowsCommand = @($codexPreEntries[0].hooks | Where-Object {
+        [string]$_.command -like '*governance-command-policy-hook.ps1*'
+    })[0].commandWindows
+    Assert-True (([string]$policyWindowsCommand).StartsWith('powershell.exe ')) (
+        'The Windows policy bootstrap must use Windows PowerShell.'
+    )
+    $encodedMatch = [regex]::Match(
+        [string]$policyWindowsCommand,
+        '(?i)(?:^|\s)-EncodedCommand\s+(?<payload>[A-Za-z0-9+/=]+)\s*$'
+    )
+    Assert-True $encodedMatch.Success (
+        'Codex PreToolUse must use a quote-free encoded Windows policy bootstrap.'
+    )
+    $bootstrapScript = [Text.Encoding]::Unicode.GetString(
+        [Convert]::FromBase64String($encodedMatch.Groups['payload'].Value)
+    )
+    Assert-True (
+        $bootstrapScript.Contains("`$ProgressPreference='SilentlyContinue'") -and
+        $bootstrapScript.Contains('git rev-parse --show-toplevel') -and
+        $bootstrapScript.Contains('scripts\codex-governance-hook.cmd') -and
+        $bootstrapScript.EndsWith(' policy; exit $LASTEXITCODE')
+    ) (
+        'The Windows policy bootstrap must resolve the repository root and ' +
+            'propagate the policy launcher exit code.'
     )
 
     $claude = Get-Content -Raw -LiteralPath $claudeConfig | ConvertFrom-Json

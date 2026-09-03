@@ -411,6 +411,7 @@ function Get-CiGovernanceDedupCheck {
         @(
             'governance-host-trial.contract.ps1',
             'governance-operation-log.contract.ps1',
+            'governance-runtime-policy.contract.ps1',
             'governance-host-operation-hook.contract.ps1',
             'governance-host-upgrade-gate.contract.ps1',
             'governance-host-run-plan.contract.ps1'
@@ -670,6 +671,7 @@ function ChildGroup {
 $pwsh=Get-Command pwsh -ErrorAction SilentlyContinue
 if($null -eq $pwsh){
     Add-Result 'fleet-inspect-contract' $false 'pwsh executable not found'
+    Add-Result 'knowledge-requirement-contract' $false 'pwsh executable not found'
     Add-Result 'skill-scout-contract' $false 'pwsh executable not found'
     Add-Result 'skill-update-check-contract' $false 'pwsh executable not found'
     Add-Result 'claude-switch-account-contract' $false 'pwsh executable not found'
@@ -686,6 +688,11 @@ if($null -eq $pwsh){
     Child 'fleet-inspect-contract' {
         & $pwsh.Source -NoProfile -File (
             Join-Path $core 'scripts\tests\fleet-inspect.contract.ps1'
+        )
+    }
+    Child 'knowledge-requirement-contract' {
+        & $pwsh.Source -NoProfile -File (
+            Join-Path $core 'scripts\tests\knowledge-requirement.contract.ps1'
         )
     }
     Child 'skill-scout-contract' {
@@ -786,6 +793,7 @@ if ($GovernanceEvals) {
         Add-Result 'governance-security-traces' $false 'pwsh executable not found'
         Add-Result 'governance-host-trial-contract' $false 'pwsh executable not found'
         Add-Result 'governance-operation-log-contract' $false 'pwsh executable not found'
+        Add-Result 'governance-runtime-policy-contract' $false 'pwsh executable not found'
         Add-Result 'governance-host-operation-hook-contract' $false 'pwsh executable not found'
         Add-Result 'governance-host-upgrade-gate-contract' $false 'pwsh executable not found'
         Add-Result 'governance-host-run-plan-contract' $false 'pwsh executable not found'
@@ -821,6 +829,12 @@ if ($GovernanceEvals) {
                 name = 'governance-operation-log-contract'
                 path = Join-Path $core (
                     'scripts\tests\governance-operation-log.contract.ps1'
+                )
+            }
+            [pscustomobject]@{
+                name = 'governance-runtime-policy-contract'
+                path = Join-Path $core (
+                    'scripts\tests\governance-runtime-policy.contract.ps1'
                 )
             }
             [pscustomobject]@{

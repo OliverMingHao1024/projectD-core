@@ -15,7 +15,7 @@ the cross-project workflow.
 2. Read `<core>/.local/knowledge-workspaces.json` and resolve
    `workspaces.projectd-knowledge`.
 3. Read the KnowledgeWorkspace `README.md` and
-   `docs/specs/spec-source-and-evolution.md` completely.
+   `specs/spec-source-and-evolution.md` completely.
 4. Fail closed when the registry or approved specification is unavailable. Never
    substitute an absolute path in committed content.
 

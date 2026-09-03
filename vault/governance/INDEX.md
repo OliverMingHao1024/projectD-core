@@ -28,6 +28,7 @@
 - System Feature Wiki 核心邊界：`../../docs/specs/knowledge-workspace-boundary.md`；正式規格與專屬 ADR 位於 `projectD-knowledge`
 - Governance Evals：`../../docs/specs/governance-evals-v2.md`、
   `../../docs/specs/governance-evals-v2-phase-3.md`、`../../evals/`
+- Agent runtime 治理：`../../docs/specs/agent-runtime-governance.md`；L0–L6 保留原則權威，Phase 3 evidence contracts 可演進；runtime authorization 以 provider-neutral capability/effect policy contract 表達，不把 host framework 升格為治理權威；本機 Codex live pilot：`../../docs/operations/runtime-governance-v2-codex-live-pilot.md`
 - 跨專案歷程：`../../core/skills/query-project-history/SKILL.md`
 - 決策與踩坑：`../../docs/history/`、`../after-action/`
 

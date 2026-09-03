@@ -40,6 +40,10 @@ param(
     [Parameter(ParameterSetName = 'Register')]
     [string]$RegistryPath,
 
+    [Parameter(ParameterSetName = 'Hook')]
+    [ValidateSet('codex', 'claude')]
+    [string]$HostName,
+
     [Parameter(ParameterSetName = 'Register')]
     [switch]$RegisterCurrentRepo,
 
@@ -77,6 +81,24 @@ function Read-BoundedStandardInput {
     } finally {
         $memory.Dispose()
     }
+}
+
+function Stop-HookOperation {
+    param([Parameter(Mandatory)][string]$Reason)
+
+    if ($HostName -ceq 'codex') {
+        $response = [pscustomobject][ordered]@{
+            hookSpecificOutput = [pscustomobject][ordered]@{
+                hookEventName = 'PreToolUse'
+                permissionDecision = 'deny'
+                permissionDecisionReason = $Reason
+            }
+        }
+        [Console]::Out.WriteLine(($response | ConvertTo-Json -Compress -Depth 4))
+        exit 0
+    }
+    [Console]::Error.WriteLine($Reason)
+    exit 2
 }
 
 function Get-NormalizedOriginHash {
@@ -508,13 +530,9 @@ function Register-Classification {
 
 if ($PSCmdlet.ParameterSetName -eq 'Register') {
     <#
-    Security review finding: nothing previously stopped an agent session
-    from self-elevating by invoking -RegisterCurrentRepo/
-    -RegisterCurrentMachine via the same Bash/PowerShell tool this whole
-    hook exists to police, or by editing project-classification.json
-    directly (the latter is still unaddressed -- there is no general
-    defense against direct file edits). This closes the former: registration
-    now requires a real interactive terminal. Tool-driven invocations
+    Registration requires a real interactive terminal, while direct edits
+    and recognized command writes to project-classification.json are denied
+    by the hook below. Tool-driven registration invocations
     (Claude Code's Bash tool, Codex, or any other non-interactive runner)
     have stdin redirected rather than attached to a console, so
     [Console]::IsInputRedirected is $true for them and $false for a human
@@ -563,35 +581,32 @@ try {
 
     if (Test-AnonymousTunnelViolation -CommandText $commandText `
         -RepoRoot $root -RegistryPathOverride $RegistryPath) {
-        [Console]::Error.WriteLine(
+        Stop-HookOperation -Reason (
             'projectD 規則：禁止使用匿名公開 Tunnel（如 devtunnel ' +
                 '--allow-anonymous）。已知例外：此 repository/機器登記為 ' +
                 'personal 且透過 containers/devspace-isolation/ 隔離時可用；' +
                 '其餘一律擋下，請改用已驗證的 Secure Tunnel 或受控 ' +
                 'reverse proxy。'
         )
-        exit 2
     }
 
     if (Test-TfsWorkflowViolation -CommandText $commandText -RepoRoot $root) {
-        [Console]::Error.WriteLine(
+        Stop-HookOperation -Reason (
             'projectD 規則：此 repository 的 remote 為 GitHub，不得使用 ' +
                 'TFS/Azure DevOps 工作流程指令（tf/az repos/az boards）。' +
                 '請先用「git remote -v」確認，改用 GitHub 工作流程。'
         )
-        exit 2
     }
 
     if (Test-RegistryTamperViolation -ToolName $toolName -ToolInput $toolInput `
         -CommandText $commandText -RepoRoot $root `
         -RegistryPathOverride $RegistryPath) {
-        [Console]::Error.WriteLine(
+        Stop-HookOperation -Reason (
             'projectD 規則：不得直接編輯或寫入 personal/work 登記檔 ' +
                 '（project-classification.json）。請用 ' +
                 'governance-command-policy-hook.ps1 -RegisterCurrentRepo ' +
                 '或 -RegisterCurrentMachine 在真正的互動式終端機登記。'
         )
-        exit 2
     }
 
     $isDevSpaceCall = ($toolName -match '(?i)devspace') -or
@@ -599,13 +614,12 @@ try {
     if ($isDevSpaceCall) {
         if (-not (Test-DevSpaceToolAllowed -RepoRoot $root `
             -RegistryPathOverride $RegistryPath)) {
-            [Console]::Error.WriteLine(
+            Stop-HookOperation -Reason (
                 'projectD 規則：DevSpace（含其容器/tunnel 啟動指令）只能在 ' +
                     '登記為個人專案的 repository 或機器使用；目前未登記為 ' +
                     'personal，一律擋下。可用 -RegisterCurrentRepo 或 ' +
                     '-RegisterCurrentMachine 登記。'
             )
-            exit 2
         }
     }
 
