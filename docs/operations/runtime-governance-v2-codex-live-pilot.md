@@ -1,6 +1,6 @@
 # Runtime Governance v2 — Codex 本機 Live Pilot Runbook
 
-- 狀態：2026-09-03 current-policy Codex single-host live authorization enforcement verified；2026-09-02 舊 policy pilot 僅保留為 host transport 歷史證據
+- 狀態：2026-09-04 current-policy Codex single-host live authorization enforcement revalidation verified；legacy authorization projection 與 pre-effect deny 均已在更新後 policy bundle 上實測；2026-09-03／09-02 舊 digest pilots 保留為歷史比較／host transport 證據
 - Host：Codex CLI
 - Pilot 類型：single-host、低風險、repository-local
 - 目標：驗證 Runtime Governance v2 的真實 hook loading、task-scoped authorization、pre-effect allow/deny 與 metadata-only evidence
@@ -187,7 +187,7 @@ JSON parsing                 PASS
 git diff --check             PASS
 ```
 
-在本 runbook 初次撰寫時，DevSpace 沒有 `pwsh`、`powershell`、`codex`、`claude`，因此 PowerShell contracts 與 live host loading 當時只能由本機補證。該本機 current-policy revalidation 已於 2026-09-03 完成；本段保留為執行環境邊界與重跑前提。
+在本 runbook 初次撰寫時，DevSpace 沒有 `pwsh`、`powershell`、`codex`、`claude`，因此 PowerShell contracts 與 live host loading 當時只能由本機補證。該本機 current-policy revalidation 已於 2026-09-04 完成；本段保留為執行環境邊界與重跑前提。
 
 ## 3. Pilot 前提
 
@@ -626,6 +626,29 @@ pwsh -NoProfile -File scripts/governance-operation-log-eval.ps1 `
   -Json
 ```
 
+對 verified v2 allow，legacy operation log 也必須一致顯示：
+
+```text
+records[0].authorization       = explicit-current-task
+records[1].authorized          = true
+records[1].authorization_basis = explicit-current-task
+```
+
+若舊 source/read logs 因 host 未送達 PostToolUse 而留在 `requires-reconciliation`，不要修改舊
+record。先 preview 只處理至少 5 分鐘前的 Source-classified orphan：
+
+```powershell
+pwsh -NoProfile -File scripts/governance-reconcile-orphaned-logs.ps1 `
+  -HostName codex `
+  -SourceOnly `
+  -MinimumAgeSeconds 300 `
+  -Outcome aborted `
+  -WhatIf
+```
+
+確認清單只包含已結束 session 的 read/source intents 後，再移除 `-WhatIf`。此流程只追加
+`operation-finished`，保留原始 intent，不把缺失 PostToolUse 偽造成 succeeded。
+
 ### 11.4 Privacy check
 
 Runtime decision / authorization / operation log 都不得保存：
@@ -655,6 +678,7 @@ $deny.privacy | Format-List
   decision 與 completed operation evidence。
 - [ ] Authorization envelope 綁定同一個 `task_ref` / `host_run_id`。
 - [ ] `workspace-write` 在 envelope scope 內得到 `enforced allow`。
+- [ ] Verified allow 的 legacy operation log 同步投影 `explicit-current-task / authorized=true`。
 - [ ] Allow marker 真正寫入 `.local`。
 - [ ] 未授權 `command-execute` 得到 `enforced deny`。
 - [ ] Deny 發生於 effect 前。

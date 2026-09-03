@@ -60,7 +60,8 @@ CI 去重、Fleet catalog、文字掃描與 wiring。`-GovernanceEvals` 再執�
 7. host trial contract；
 8. paired upgrade gate；
 9. durable operation-log contract；
-10. Runtime Governance v2 policy-decision contract。
+10. orphaned operation-log reconciliation contract；
+11. Runtime Governance v2 policy-decision contract。
 
 所有檢查均為 deterministic/offline；contract 通過不代表真實模型、live hook 或完整 host
 coverage 已驗證。Runtime Governance v2 的 capability/effect/authorization envelope 見

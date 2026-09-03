@@ -1,7 +1,7 @@
 ---
 type: memory-summary
 readAt: session-start
-lastUpdated: 2026-09-03
+lastUpdated: 2026-09-04
 ---
 
 # projectD-core 工作記憶
@@ -24,10 +24,14 @@ lastUpdated: 2026-09-03
 - 執行採 TaskScopedProposalLoop：Understand → Propose → Authorize → Execute → Verify →
   Report → Learn；不包含背景監控或未授權擴張。
 - memory 只作索引，不以摘要取代原始證據。
-- Governance Evals Phase 1–2 已完成；Phase 3 只有 deterministic contracts、manual-import
-  adapters、operation log、hooks 與 upgrade/run-plan gate。Live runner、observers、pilot、
-  paired evidence、Copilot/cross-host matrix 尚未完成，不得宣稱已 live interception。
-- Runtime Governance v2：host permission 不等於 task authorization；read 為 advisory，effectful／unclassified 無 envelope 時 pre-effect deny，issuance 要真人互動確認。2026-09-03 Codex CLI 0.152.1（gpt-5.6-luna／medium）已驗證 current-policy bootstrap、workspace allow、shell deny；其他模型／工具、Claude、recovery、observer／cross-host 未驗證。Pi runtime 仍是 optional experiment。
+- Governance Evals Phase 1–2 已完成。Phase 3 已有 contracts、adapters、logs／hooks／gates
+  與 bounded single-host evidence；live runner、observers、broader pilots、paired authorization、
+  Copilot／cross-host 尚未完成，不得宣稱完整 live interception。
+- Runtime Governance v2：host permission 不等於 task authorization；read 為 advisory，
+  effectful／unclassified 無 envelope 時 pre-effect deny。2026-09-04 Codex／Claude
+  current-policy revalidation 已涵蓋 read、workspace allow、legacy authorization projection、
+  command deny 與 metadata-only evidence；其他模型／工具、recovery、observer／cross-host
+  未驗證，Pi 仍是 optional。
 
 ## 瘦身護欄
 
@@ -46,4 +50,3 @@ lastUpdated: 2026-09-03
   `docs/specs/governance-evals-v2-phase-3.md`
 - 決策與實作歷程：`docs/history/`、`docs/adr/`
 - 可重複踩坑：`vault/after-action/`
-
