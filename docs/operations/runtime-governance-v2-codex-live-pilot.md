@@ -187,7 +187,7 @@ JSON parsing                 PASS
 git diff --check             PASS
 ```
 
-但 DevSpace 沒有 `pwsh`、`powershell`、`codex`、`claude`，所以**PowerShell contracts 與 live host loading 尚未在該環境執行**。這正是本 runbook 要在你的本機補上的證據。
+在本 runbook 初次撰寫時，DevSpace 沒有 `pwsh`、`powershell`、`codex`、`claude`，因此 PowerShell contracts 與 live host loading 當時只能由本機補證。該本機 current-policy revalidation 已於 2026-09-03 完成；本段保留為執行環境邊界與重跑前提。
 
 ## 3. Pilot 前提
 

@@ -1,6 +1,6 @@
 # Governance Evals v2 Phase 3 — 跨 Host 與長任務證據
 
-- 狀態：approved；durable operation log、Codex／Claude hooks、adapters、run-plan integrity 與 paired upgrade gate complete；Codex host transport 曾完成 bounded pilot，但 security-hardened policy 尚待 live revalidation；live runner、observers、broader pilots、Copilot 與 cross-host matrix pending
+- 狀態：approved；durable operation log、Codex／Claude hooks、adapters、run-plan integrity 與 paired upgrade gate complete；2026-09-03 current-policy Codex single-host bounded authorization pilot verified；live runner、observers、broader pilots、Copilot 與 cross-host matrix pending
 - 核准日期：2026-08-21
 - Parent：[`governance-evals-v2.md`](governance-evals-v2.md)
 - 完整採用與實作歷程：[projectD-knowledge archive](https://github.com/OliverMingHao1024/projectD-knowledge/blob/main/archive/projectd-core/design/governance-evals-v2-phase-3-full-history.md)
@@ -18,7 +18,7 @@ runtime、hook coverage 或跨 host compatibility 已驗證。
 
 Phase 3 的 durable operation log、checkpoint、host trial 與 upgrade gate 繼續作為 evidence/recovery contracts。Runtime capability classification 與 task-scoped authorization 的新權威邊界改由 [`agent-runtime-governance.md`](agent-runtime-governance.md) 與 `evals/schemas/governance-runtime-policy-decisions.schema.json` 表達。
 
-既有 operation-log `classification` 欄位保留相容性，不再視為完整 runtime authorization taxonomy。Host hook 現在先以 Runtime Governance v2 normalizer 產生 capability/effect decision，再投影成 legacy operation-log classification；只有 payload 無法提供足夠語意時才使用 tool-name fallback 或 `unclassified-effect`。Local/network read 維持 advisory observe-only，且不會因不相關 envelope 升格成 verified authorization；effectful／unclassified operation 沒有 task envelope 時會 pre-effect enforced deny，有 validated、unexpired、current-policy task envelope 與 matching grant 時才 deterministic allow。Codex 曾有一次真實使用者授權的 repository-local allow/deny evidence，但 security hardening 已改變 policy digest；其他 host、capability、recovery 與不可觀測路徑也不得沿用該次結果宣稱 verified。
+既有 operation-log `classification` 欄位保留相容性，不再視為完整 runtime authorization taxonomy。Host hook 現在先以 Runtime Governance v2 normalizer 產生 capability/effect decision，再投影成 legacy operation-log classification；只有 payload 無法提供足夠語意時才使用 tool-name fallback 或 `unclassified-effect`。Local/network read 維持 advisory observe-only，且不會因不相關 envelope 升格成 verified authorization；effectful／unclassified operation 沒有 task envelope 時會 pre-effect enforced deny，有 validated、unexpired、current-policy task envelope 與 matching grant 時才 deterministic allow。2026-09-03 trusted interactive Codex CLI `0.152.1`／Windows current-policy pilot 已在同一 task/run identity 下驗證 bounded metadata bootstrap、built-in `apply_patch` 的 `workspace-write` enforced allow，以及未授權 shell `command-execute` 的 pre-effect enforced deny；decision、authorization、operation evidence 與 metadata-only privacy checks 均通過。此 evidence 只涵蓋該次 Codex model/effort 與實際 tool paths，不能外推到 Claude、其他 Codex model／tool path、recovery 或不可觀測路徑。
 
 ## Host evidence 契約
 
@@ -70,7 +70,7 @@ harness、adapter、catalog digest、case set 與每 case trial count。Candidat
 
 ## 未完成邊界
 
-- Codex 已完成過一次 bounded same-session runtime hook loading、task authorization、workspace-write allow 與 command-execute pre-effect deny；該 evidence 保留為 transport／structured-deny 歷史證據，現行 hardened policy 尚待重跑。Claude pilot、Codex 其他 capability/tool path 與 failure payload matrix 亦未完成。
+- Codex current-policy 已完成 bounded same-session runtime hook loading、task authorization、workspace-write allow 與 command-execute pre-effect deny；2026-09-02 舊 policy evidence 只保留為 Windows transport／structured-deny 歷史證據，2026-09-03 hardened policy revalidation 才是現行 live authorization evidence。Claude pilot、Codex 其他 capability/tool path 與 failure payload matrix 仍未完成。
 - 尚未完成 filesystem／smoke-test live observers 與 live runner。
 - Copilot adapter、三 host compatibility matrix 與授權 paired evidence 尚未完成。
 - Hosted／specialized tool paths 未被官方 hooks 覆蓋時，必須明示 coverage exclusion。
