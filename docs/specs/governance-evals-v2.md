@@ -15,7 +15,7 @@ credential、MCP、sandbox、approval 或 egress 已通過驗證。
 |---|---|---|
 | Phase 1 | complete | Behavior catalog、asset inventory、validator、grader、CI wiring。 |
 | Phase 2 | complete | Metadata-only security traces、control drills、verified incident intake。 |
-| Phase 3 | in progress | Host adapters、durable operation log、hook contracts 與 upgrade gate 已完成；Runtime Governance v2 policy decision 與 policy-bound task authorization envelope 已接入 Codex／Claude pre-effect hook。2026-09-03 current-policy Codex CLI `0.152.1`／Windows bounded single-host pilot 已驗證 metadata bootstrap、built-in `apply_patch` workspace allow 與 out-of-scope shell deny；2026-09-02 舊 policy run 僅保留為 transport 歷史證據。Claude、recovery/live observers、其他 tool paths 與 cross-host evidence 仍未完成。 |
+| Phase 3 | in progress | Host adapters、durable operation log、hook contracts 與 upgrade gate 已完成；Runtime Governance v2 policy decision 與 policy-bound task authorization envelope 已接入 Codex／Claude pre-effect hook。2026-09-04 current policy bundle 已分別完成 bounded Codex 與 Claude single-host revalidation：read/bootstrap、workspace allow、legacy `explicit-current-task` authorization projection 與 out-of-scope command pre-effect deny 均有 live evidence。2026-09-03／09-02 舊 digest runs 保留為歷史比較／transport 證據。Recovery/live observers、其他 tool paths 與 cross-host evidence 仍未完成。 |
 | Phase 4 | not started | Skill routing、context budget、stale/conflict detection 與 evidence-driven gardening。 |
 
 ## Behavior 與 trace 契約

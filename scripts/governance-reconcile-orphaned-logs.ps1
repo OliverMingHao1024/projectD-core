@@ -8,6 +8,7 @@ param(
     [ValidateSet('completed', 'failed', 'aborted')]
     [string]$Outcome = 'aborted',
     [int]$MinimumAgeSeconds = 300,
+    [switch]$SourceOnly,
     [switch]$WhatIf
 )
 
@@ -26,7 +27,9 @@ PostToolUse is still in flight races that delivery: the late PostToolUse
 then finds the operation already closed and fails with "Post event
 conflicts with its durable result." -MinimumAgeSeconds (default 300)
 skips any intent younger than that, so only logs from sessions that are
-genuinely gone get reconciled.
+genuinely gone get reconciled. -SourceOnly restricts cleanup to legacy
+Source-classified intents, which is the preferred bounded cleanup after a
+live pilot when read hooks did not receive a matching PostToolUse event.
 #>
 
 $ErrorActionPreference = 'Stop'
@@ -121,6 +124,7 @@ if (-not (Test-Path -LiteralPath $logDirectory -PathType Container)) {
 $candidates = Get-ChildItem -LiteralPath $logDirectory -Filter '*.json' -File
 $reconciled = 0
 $skipped = 0
+$filtered = 0
 
 foreach ($file in $candidates) {
     $logPath = $file.FullName
@@ -138,6 +142,16 @@ foreach ($file in $candidates) {
             continue
         }
         $records = @($document.records)
+        if ($SourceOnly) {
+            if (
+                $records.Count -lt 2 -or
+                [string]$records[1].type -cne 'effect-intended' -or
+                [string]$records[1].classification -cne 'source'
+            ) {
+                $filtered++
+                continue
+            }
+        }
         $intentAge = [DateTimeOffset]::UtcNow -
             [DateTimeOffset]$records[1].occurred_at
         if ($intentAge.TotalSeconds -lt $MinimumAgeSeconds) {
@@ -177,4 +191,7 @@ foreach ($file in $candidates) {
     }
 }
 
-Write-Output "Done. Reconciled: $reconciled. Skipped (schema issues): $skipped. Scanned: $($candidates.Count)."
+Write-Output (
+    "Done. Reconciled: $reconciled. Skipped: $skipped. " +
+    "Filtered: $filtered. Scanned: $($candidates.Count)."
+)

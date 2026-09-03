@@ -793,6 +793,7 @@ if ($GovernanceEvals) {
         Add-Result 'governance-security-traces' $false 'pwsh executable not found'
         Add-Result 'governance-host-trial-contract' $false 'pwsh executable not found'
         Add-Result 'governance-operation-log-contract' $false 'pwsh executable not found'
+        Add-Result 'governance-reconcile-operation-log-contract' $false 'pwsh executable not found'
         Add-Result 'governance-runtime-policy-contract' $false 'pwsh executable not found'
         Add-Result 'governance-host-operation-hook-contract' $false 'pwsh executable not found'
         Add-Result 'governance-host-upgrade-gate-contract' $false 'pwsh executable not found'
@@ -829,6 +830,12 @@ if ($GovernanceEvals) {
                 name = 'governance-operation-log-contract'
                 path = Join-Path $core (
                     'scripts\tests\governance-operation-log.contract.ps1'
+                )
+            }
+            [pscustomobject]@{
+                name = 'governance-reconcile-operation-log-contract'
+                path = Join-Path $core (
+                    'scripts\tests\governance-reconcile-orphaned-logs.contract.ps1'
                 )
             }
             [pscustomobject]@{

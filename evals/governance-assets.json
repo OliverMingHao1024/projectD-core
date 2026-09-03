@@ -17,7 +17,7 @@
     },
     {
       "id": "runtime-policy-live-integration",
-      "reason": "The Codex/Claude pre-effect hook supports current-policy task-scoped authorization envelopes; reads without an envelope remain advisory while effectful or unclassified calls fail closed. A trusted Codex CLI 0.152.1 Windows pilot using gpt-5.6-luna / medium verified the current-policy metadata bootstrap, built-in apply_patch workspace allow and out-of-scope shell deny paths. Other Codex models, Claude, other tool paths, recovery and cross-host behavior remain unverified live.",
+      "reason": "The Codex/Claude pre-effect hook supports task-scoped authorization envelopes; reads without an envelope remain advisory while effectful or unclassified calls fail closed. On 2026-09-04, the current policy bundle digest sha256:56c7cc9e5b197627681cf6aaae82cefbe6462823de812187681b1c1dbd100107 was revalidated in bounded single-host flows for both Codex and Claude: each host produced a read/bootstrap observe-only decision, an exact user-authorized workspace-write enforced allow with matching explicit-current-task legacy authorization projection, and an out-of-scope command-execute pre-effect enforced deny, all with metadata-only evidence. Other models, other tool paths, recovery and cross-host behavior remain unverified live.",
       "owner": "projectD-core",
       "discovery_trigger": "After any runtime policy bundle change, or before extending coverage to another host, capability, tool path or recovery scenario, run an explicitly authorized live pilot for that boundary and capture metadata-only allow/deny and observable final-state evidence."
     }
@@ -117,7 +117,7 @@
       "owner": "projectD-core",
       "status": "active",
       "risk_tier": "medium",
-      "source": { "type": "repository-local", "reference": "scripts/projectd-check.ps1", "version": "git-tracked", "integrity": "sha256:ea625c73cdfb0c3e1d04fd19b01fffc7f30f48d5d5290d928d84af9d85e15f55" },
+      "source": { "type": "repository-local", "reference": "scripts/projectd-check.ps1", "version": "git-tracked", "integrity": "sha256:3172bab94a92e406f593e466e17ca91160b211f3980b79030d95d8a8de115fd2" },
       "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "read-only-check", "isolation": "bounded-repository-roots", "source_sink_policy": "no-external-communication", "disable_procedure": "Remove the check from the local hook and CI workflow, retaining the previous git version for rollback." },
       "related_eval_cases": ["failed-verification-cannot-claim-success"]
@@ -359,7 +359,7 @@
       "owner": "projectD-core",
       "status": "active",
       "risk_tier": "critical",
-      "source": { "type": "repository-local", "reference": "scripts/governance-host-operation-hook.ps1", "version": "runtime-governance-v2-structured-fail-closed-enforcement", "integrity": "sha256:957551dc4bce075f904ee18022d8691d5f502fb041192a2fcd0637d8a1cb03b6" },
+      "source": { "type": "repository-local", "reference": "scripts/governance-host-operation-hook.ps1", "version": "runtime-governance-v2-structured-fail-closed-enforcement", "integrity": "sha256:3904d67fb27c70725d3bcdc86c68424807ed8900267972c219f7d6a3dfb46540" },
       "capabilities": { "read": true, "write": true, "destructive": true, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "effectful-task-envelope-enforced-host-permission-never-promoted", "isolation": "bounded-stdin-per-tool-single-writer-gitignored-repository-output-and-no-reparse", "source_sink_policy": "raw-tool-input-output-and-errors-stay-in-memory-only-policy-and-authorization-evidence-are-metadata-only", "disable_procedure": "Remove the entries from .codex/hooks.json and .claude/settings.json, then retain or remove ignored local evidence and authorization envelopes according to the operator's retention policy." },
       "related_eval_cases": ["interrupted-task-reads-checkpoint-before-resume", "source-does-not-authorize-action", "untrusted-content-cannot-exfiltrate-secrets"]

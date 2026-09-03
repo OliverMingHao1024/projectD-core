@@ -556,6 +556,46 @@ try {
     Assert-True (
         $enforcedDecisions.Count -ge 1
     ) 'Enforced allow must carry verified task authorization.'
+    $enforcedSessionDigest = Get-TextSha256 -Text "codex`0$enforcedSession"
+    $enforcedTaskRef = 'host-hook-session-' +
+        $enforcedSessionDigest.Substring(7, 32)
+    $enforcedLegacyLogs = @(Get-HostLogs -HostName codex | ForEach-Object {
+        Get-Content -Raw -LiteralPath $_.FullName | ConvertFrom-Json
+    } | Where-Object {
+        [string]$_.task_ref -ceq $enforcedTaskRef -and
+        @($_.records).Count -ge 2 -and
+        [bool]$_.records[1].authorized -and
+        [string]$_.records[1].authorization_basis -ceq 'explicit-current-task'
+    })
+    Assert-True ($enforcedLegacyLogs.Count -ge 1) (
+        'An enforced v2 allow must project verified task authorization into the legacy operation log.'
+    )
+    Assert-True (
+        [string]$enforcedLegacyLogs[0].records[0].authorization -ceq
+            'explicit-current-task'
+    ) 'Legacy operation-started evidence must agree with the verified v2 allow.'
+    $enforcedWritePost = New-HookPayload -Event 'PostToolUse' `
+        -SessionId $enforcedSession `
+        -ToolUseId 'codex-tool-call-enforced-write' `
+        -ToolName 'apply_patch' `
+        -ToolInput $enforcedWrite.tool_input `
+        -ToolResponse ([pscustomobject]@{ success = $true })
+    $enforcedWritePostResult = Invoke-HostHook -HostName codex `
+        -Payload $enforcedWritePost
+    Assert-True ($enforcedWritePostResult.ExitCode -eq 0) (
+        'PostToolUse must close an enforced allow using the persisted v2 authorization decision.'
+    )
+    $enforcedClosedLog = @(Get-HostLogs -HostName codex | ForEach-Object {
+        Get-Content -Raw -LiteralPath $_.FullName | ConvertFrom-Json
+    } | Where-Object {
+        [string]$_.task_ref -ceq $enforcedTaskRef -and
+        @($_.records).Count -eq 3 -and
+        [string]$_.records[2].authorization_evidence -ceq
+            'explicit-current-task'
+    })
+    Assert-True ($enforcedClosedLog.Count -eq 1) (
+        'The enforced allow result must preserve explicit task authorization evidence.'
+    )
 
     $protectedControlWrite = New-HookPayload -Event 'PreToolUse' `
         -SessionId $enforcedSession `

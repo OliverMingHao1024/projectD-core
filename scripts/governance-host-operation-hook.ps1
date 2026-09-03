@@ -321,6 +321,31 @@ function Enter-LogLock {
     } while ($true)
 }
 
+function Get-LegacyAuthorizationProjection {
+    param(
+        [Parameter(Mandatory)]$Authorization,
+        [Parameter(Mandatory)]$Decision
+    )
+
+    $taskAuthorized = (
+        [string]$Authorization.state -ceq 'verified' -and
+        [string]$Authorization.basis -ceq 'explicit-current-task' -and
+        [string]$Decision.outcome -ceq 'allow'
+    )
+    return [pscustomobject][ordered]@{
+        operation_authorization = if ($taskAuthorized) {
+            'explicit-current-task'
+        } else { 'host-hook-policy' }
+        authorized = $taskAuthorized
+        authorization_basis = if ($taskAuthorized) {
+            'explicit-current-task'
+        } else { 'host-policy-pending' }
+        result_authorization_evidence = if ($taskAuthorized) {
+            'explicit-current-task'
+        } else { 'host-permitted' }
+    }
+}
+
 function Test-IntentDocumentIdentity {
     param(
         [Parameter(Mandatory)]$Document,
@@ -331,6 +356,7 @@ function Test-IntentDocumentIdentity {
         [Parameter(Mandatory)][string]$EffectId,
         [Parameter(Mandatory)]$ArgumentIntegrity,
         [Parameter(Mandatory)]$Classification,
+        [Parameter(Mandatory)]$AuthorizationProjection,
         [switch]$AllowAdditionalArgumentKeys
     )
 
@@ -349,7 +375,8 @@ function Test-IntentDocumentIdentity {
         [string]$records[0].operation_id -ceq $OperationId -and
         [string]$records[0].type -ceq 'operation-started' -and
         [string]$records[0].operation_kind -ceq 'run' -and
-        [string]$records[0].authorization -ceq 'host-hook-policy' -and
+        [string]$records[0].authorization -ceq
+            [string]$AuthorizationProjection.operation_authorization -and
         [string]$records[1].record_id -ceq 'record-2' -and
         [int]$records[1].sequence -eq 2 -and
         [string]$records[1].previous_record_id -ceq 'record-1' -and
@@ -361,9 +388,10 @@ function Test-IntentDocumentIdentity {
         [string]$records[1].target -ceq [string]$Classification.target -and
         [string]$records[1].classification -ceq
             [string]$Classification.classification -and
-        -not [bool]$records[1].authorized -and
+        [bool]$records[1].authorized -eq
+            [bool]$AuthorizationProjection.authorized -and
         [string]$records[1].authorization_basis -ceq
-            'host-policy-pending' -and
+            [string]$AuthorizationProjection.authorization_basis -and
         [bool]$records[1].external -eq [bool]$Classification.external -and
         [bool]$records[1].destructive -eq
             [bool]$Classification.destructive -and
@@ -644,6 +672,9 @@ try {
             }
             Write-ImmutablePolicyDecision -Document $policyDecision -Path $policyPath `
                 -Schema $runtimePolicySchemaPath
+            $legacyAuthorization = Get-LegacyAuthorizationProjection `
+                -Authorization $policyDecision.authorization `
+                -Decision $policyDecision.decision
             if (
                 [string]$runtimeAuthorization.enforcement -ceq 'enforced' -and
                 [string]$runtimeAuthorization.outcome -ceq 'deny'
@@ -666,7 +697,8 @@ try {
                         -HostRunId $hostRunId -OperationId $operationId `
                         -EffectId $effectId `
                         -ArgumentIntegrity $argumentIntegrity `
-                        -Classification $classification) -and
+                        -Classification $classification `
+                        -AuthorizationProjection $legacyAuthorization) -and
                     [string]$existing.runner_state.status -ceq
                         'requires-reconciliation' -and
                     [string]$existing.runner_state.pending_effect_id -ceq
@@ -709,7 +741,7 @@ try {
                         operation_id = $operationId
                         type = 'operation-started'
                         operation_kind = 'run'
-                        authorization = 'host-hook-policy'
+                        authorization = $legacyAuthorization.operation_authorization
                     }
                     [pscustomobject][ordered]@{
                         record_id = 'record-2'
@@ -722,8 +754,8 @@ try {
                         effect_kind = $classification.effect_kind
                         target = $classification.target
                         classification = $classification.classification
-                        authorized = $false
-                        authorization_basis = 'host-policy-pending'
+                        authorized = $legacyAuthorization.authorized
+                        authorization_basis = $legacyAuthorization.authorization_basis
                         external = $classification.external
                         destructive = $classification.destructive
                         replay = 'never'
@@ -739,12 +771,21 @@ try {
         if ($null -eq $existing) {
             throw 'Post event has no durable PreToolUse intent.'
         }
+        if (-not (Test-Path -LiteralPath $policyPath -PathType Leaf)) {
+            throw 'Post event has no durable runtime policy decision.'
+        }
+        $persistedPolicyDecision = Read-ExistingLog -Path $policyPath `
+            -Schema $runtimePolicySchemaPath
+        $legacyAuthorization = Get-LegacyAuthorizationProjection `
+            -Authorization $persistedPolicyDecision.authorization `
+            -Decision $persistedPolicyDecision.decision
         $records = @($existing.records)
         if (-not (Test-IntentDocumentIdentity -Document $existing `
             -LogId $logId -TaskRef $taskRef -HostRunId $hostRunId `
             -OperationId $operationId -EffectId $effectId `
             -ArgumentIntegrity $argumentIntegrity `
             -Classification $classification `
+            -AuthorizationProjection $legacyAuthorization `
             -AllowAdditionalArgumentKeys)) {
             throw 'Post event identity does not match its durable intent.'
         }
@@ -773,7 +814,7 @@ try {
                 [string]$records[2].result -ceq $resultValue -and
                 [string]$records[2].evidence_code -ceq $evidenceCode -and
                 [string]$records[2].authorization_evidence -ceq
-                    'host-permitted' -and
+                    [string]$legacyAuthorization.result_authorization_evidence -and
                 [string]$existing.runner_state.status -ceq
                     $expectedRunnerStatus -and
                 $pendingEffectMatches -and
@@ -810,7 +851,7 @@ try {
             effect_id = $effectId
             result = $resultValue
             evidence_code = $evidenceCode
-            authorization_evidence = 'host-permitted'
+            authorization_evidence = $legacyAuthorization.result_authorization_evidence
         }
         $existing.runner_state.status = if ($resultValue -ceq 'succeeded') {
             'open'
