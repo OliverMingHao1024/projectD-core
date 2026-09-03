@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://projectd.local/schemas/governance-runtime-policy-decisions.schema.json",
+  "title": "projectD runtime governance policy decision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "decision_id",
+    "task_ref",
+    "host_run_id",
+    "operation_ref",
+    "policy",
+    "request",
+    "authorization",
+    "decision",
+    "coverage",
+    "privacy"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "decision_id": { "$ref": "#/$defs/slug" },
+    "task_ref": { "$ref": "#/$defs/slug" },
+    "host_run_id": { "$ref": "#/$defs/slug" },
+    "operation_ref": { "$ref": "#/$defs/slug" },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy_id", "policy_version", "policy_digest"],
+      "properties": {
+        "policy_id": { "$ref": "#/$defs/slug" },
+        "policy_version": { "type": "integer", "minimum": 1 },
+        "policy_digest": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capability", "target_class", "effect"],
+      "properties": {
+        "capability": {
+          "enum": [
+            "local-read",
+            "workspace-write",
+            "command-execute",
+            "network-read",
+            "external-write",
+            "repository-mutate",
+            "credential-use",
+            "production-mutate",
+            "unclassified-effect"
+          ]
+        },
+        "target_class": { "$ref": "#/$defs/slug" },
+        "effect": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["durable", "external", "destructive", "reversible"],
+          "properties": {
+            "durable": { "type": "boolean" },
+            "external": { "type": "boolean" },
+            "destructive": { "type": "boolean" },
+            "reversible": { "enum": ["yes", "no", "unknown"] }
+          }
+        }
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "basis", "scope_match"],
+      "properties": {
+        "state": {
+          "enum": ["verified", "pending", "not-authorized", "unavailable"]
+        },
+        "basis": {
+          "enum": [
+            "explicit-current-task",
+            "task-derived-low-risk",
+            "host-permission-only",
+            "contract-fixture",
+            "none",
+            "unavailable"
+          ]
+        },
+        "scope_match": { "enum": ["exact", "derived", "mismatch", "unknown"] }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome", "reason_codes"],
+      "properties": {
+        "outcome": {
+          "enum": ["allow", "deny", "require-authorization", "observe-only"]
+        },
+        "reason_codes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/slug" }
+        }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["classification_source", "enforcement", "host_observable"],
+      "properties": {
+        "classification_source": {
+          "enum": ["operation-payload", "deterministic-rule", "tool-name-fallback", "unclassified"]
+        },
+        "enforcement": { "enum": ["enforced", "advisory", "unobserved"] },
+        "host_observable": { "type": "boolean" }
+      }
+    },
+    "privacy": { "$ref": "#/$defs/privacy" }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "request": {
+            "properties": { "capability": { "const": "unclassified-effect" } },
+            "required": ["capability"]
+          }
+        },
+        "required": ["request"]
+      },
+      "then": {
+        "properties": {
+          "decision": {
+            "properties": {
+              "outcome": { "enum": ["deny", "require-authorization", "observe-only"] }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "authorization": {
+            "properties": { "basis": { "const": "host-permission-only" } },
+            "required": ["basis"]
+          }
+        },
+        "required": ["authorization"]
+      },
+      "then": {
+        "properties": {
+          "authorization": {
+            "properties": {
+              "state": { "enum": ["pending", "not-authorized", "unavailable"] }
+            }
+          },
+          "decision": {
+            "properties": {
+              "outcome": { "enum": ["deny", "require-authorization", "observe-only"] }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "properties": { "outcome": { "const": "allow" } },
+            "required": ["outcome"]
+          }
+        },
+        "required": ["decision"]
+      },
+      "then": {
+        "properties": {
+          "authorization": {
+            "properties": {
+              "state": { "const": "verified" },
+              "scope_match": { "enum": ["exact", "derived"] }
+            }
+          },
+          "coverage": {
+            "properties": { "enforcement": { "const": "enforced" } }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "request": {
+            "properties": { "capability": { "const": "production-mutate" } },
+            "required": ["capability"]
+          },
+          "decision": {
+            "properties": { "outcome": { "const": "allow" } },
+            "required": ["outcome"]
+          }
+        },
+        "required": ["request", "decision"]
+      },
+      "then": {
+        "properties": {
+          "authorization": {
+            "properties": {
+              "state": { "const": "verified" },
+              "basis": { "const": "explicit-current-task" },
+              "scope_match": { "const": "exact" }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[A-Fa-f0-9]{64}$"
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "content_mode",
+        "contains_raw_prompt",
+        "contains_chain_of_thought",
+        "contains_secret_values",
+        "contains_tool_arguments",
+        "contains_tool_output"
+      ],
+      "properties": {
+        "content_mode": { "const": "metadata-only" },
+        "contains_raw_prompt": { "const": false },
+        "contains_chain_of_thought": { "const": false },
+        "contains_secret_values": { "const": false },
+        "contains_tool_arguments": { "const": false },
+        "contains_tool_output": { "const": false }
+      }
+    }
+  }
+}

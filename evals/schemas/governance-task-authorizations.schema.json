@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://projectd.local/schemas/governance-task-authorizations.schema.json",
+  "title": "projectD task-scoped runtime authorization envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "authorization_id",
+    "source_decision_id",
+    "task_ref",
+    "host_run_id",
+    "issued_at",
+    "expires_at",
+    "policy",
+    "authorization",
+    "grants",
+    "privacy"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "authorization_id": { "$ref": "#/$defs/slug" },
+    "source_decision_id": { "$ref": "#/$defs/slug" },
+    "task_ref": { "$ref": "#/$defs/slug" },
+    "host_run_id": { "$ref": "#/$defs/slug" },
+    "issued_at": { "type": "string", "format": "date-time" },
+    "expires_at": { "type": "string", "format": "date-time" },
+    "policy": { "$ref": "#/$defs/policy" },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["basis", "scope_match", "authorized_by"],
+      "properties": {
+        "basis": { "enum": ["explicit-current-task", "task-derived-low-risk"] },
+        "scope_match": { "enum": ["exact", "derived"] },
+        "authorized_by": { "enum": ["user", "contract-fixture"] }
+      }
+    },
+    "grants": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": { "$ref": "#/$defs/grant" }
+    },
+    "privacy": { "$ref": "#/$defs/privacy" }
+  },
+  "$defs": {
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "capability": {
+      "enum": [
+        "workspace-write",
+        "command-execute",
+        "external-write",
+        "repository-mutate",
+        "credential-use",
+        "production-mutate"
+      ]
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy_id", "policy_version", "policy_digest"],
+      "properties": {
+        "policy_id": { "$ref": "#/$defs/slug" },
+        "policy_version": { "type": "integer", "minimum": 1 },
+        "policy_digest": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[A-Fa-f0-9]{64}$"
+    },
+    "grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "capability",
+        "target_class",
+        "allow_destructive",
+        "allow_external"
+      ],
+      "properties": {
+        "capability": { "$ref": "#/$defs/capability" },
+        "target_class": { "$ref": "#/$defs/slug" },
+        "allow_destructive": { "type": "boolean", "default": false },
+        "allow_external": { "type": "boolean", "default": false }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "content_mode",
+        "contains_raw_prompt",
+        "contains_chain_of_thought",
+        "contains_secret_values",
+        "contains_tool_arguments",
+        "contains_tool_output"
+      ],
+      "properties": {
+        "content_mode": { "const": "metadata-only" },
+        "contains_raw_prompt": { "const": false },
+        "contains_chain_of_thought": { "const": false },
+        "contains_secret_values": { "const": false },
+        "contains_tool_arguments": { "const": false },
+        "contains_tool_output": { "const": false }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "grants": {
+            "contains": {
+              "properties": { "capability": { "const": "production-mutate" } },
+              "required": ["capability"]
+            }
+          }
+        },
+        "required": ["grants"]
+      },
+      "then": {
+        "properties": {
+          "authorization": {
+            "properties": {
+              "basis": { "const": "explicit-current-task" },
+              "scope_match": { "const": "exact" },
+              "authorized_by": { "const": "user" }
+            }
+          },
+          "grants": {
+            "contains": {
+              "type": "object",
+              "properties": {
+                "capability": { "const": "production-mutate" },
+                "allow_external": { "const": true },
+                "allow_destructive": { "const": true }
+              },
+              "required": [
+                "capability",
+                "allow_external",
+                "allow_destructive"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
+}

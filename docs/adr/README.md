@@ -16,6 +16,7 @@ current executable contract.
 | [0015](0015-isolate-ai-agent-mcp-server-execution.md) — Isolate privileged MCP execution | DevSpace security | amended by 0017 | [DevSpace security boundary](../specs/devspace-security-boundary.md) |
 | [0016](0016-targeted-skill-intake.md) — Govern external Skill intake | Skill governance | accepted | ADR |
 | [0017](0017-allow-anonymous-devtunnel-for-isolated-devspace-on-personal-registrations.md) — Narrow tunnel exception | DevSpace security | accepted; amends 0015 | [DevSpace security boundary](../specs/devspace-security-boundary.md) |
+| [0018](0018-separate-runtime-policy-from-operation-evidence.md) — Separate runtime policy from operation evidence | Agent runtime governance | accepted | [Agent runtime governance](../specs/agent-runtime-governance.md) |
 
 KnowledgeWorkspace-owned ADRs are maintained in
 [projectD-knowledge](https://github.com/OliverMingHao1024/projectD-knowledge/tree/main/adr).

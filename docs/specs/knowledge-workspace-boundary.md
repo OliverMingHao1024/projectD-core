@@ -46,6 +46,7 @@ fixtures, indexes, FeaturePages, research, and workspace-specific ADRs.
 ## Workspace authority
 
 - [Active specification](https://github.com/OliverMingHao1024/projectD-knowledge/blob/main/specs/external-knowledge-wiki.md)
+- [Requirement source and evolution](https://github.com/OliverMingHao1024/projectD-knowledge/blob/main/specs/spec-source-and-evolution.md)
 - [KnowledgeWorkspace ADRs](https://github.com/OliverMingHao1024/projectD-knowledge/tree/main/adr)
 - [Research and archive](https://github.com/OliverMingHao1024/projectD-knowledge/tree/main/research)
 

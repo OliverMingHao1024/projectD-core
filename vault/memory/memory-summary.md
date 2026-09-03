@@ -1,7 +1,7 @@
 ---
 type: memory-summary
 readAt: session-start
-lastUpdated: 2026-08-26
+lastUpdated: 2026-09-03
 ---
 
 # projectD-core 工作記憶
@@ -15,7 +15,6 @@ lastUpdated: 2026-08-26
 - Canonical Skills 只在 `core/skills/` 與 `packs/` 維護；外部候選必須經來源、授權、
   digest、staging 與人工採納流程。
 - 通用 core Skills 可全域發現；技術棧 packs 只由 Fleet 接到匹配專案，不進全域 catalog。
-- 角色鏈為 PM → SA → UX → SD → PG → QA，依任務風險選用，不強迫完整流水線。
 - projectD repositories 使用 Git/GitHub；F25B 專案才依證據路由 TFS。
 - 跨專案知識內容屬於獨立 `projectD-knowledge`；core 只保留 portable contract、adapter
   與治理決策。
@@ -24,13 +23,11 @@ lastUpdated: 2026-08-26
 
 - 執行採 TaskScopedProposalLoop：Understand → Propose → Authorize → Execute → Verify →
   Report → Learn；不包含背景監控或未授權擴張。
-- 重要理由使用 verified／user-confirmed／inferred／unknown 分級；memory 只作索引，
-  不以摘要取代原始證據。
+- memory 只作索引，不以摘要取代原始證據。
 - Governance Evals Phase 1–2 已完成；Phase 3 只有 deterministic contracts、manual-import
   adapters、operation log、hooks 與 upgrade/run-plan gate。Live runner、observers、pilot、
   paired evidence、Copilot/cross-host matrix 尚未完成，不得宣稱已 live interception。
-- 在單一授權 host pilot 證明增量價值前，凍結新增 Phase 3/4 schema；Pi runtime 只能是
-  optional experiment，不是 mandatory core。
+- Runtime Governance v2：host permission 不等於 task authorization；read 為 advisory，effectful／unclassified 無 envelope 時 pre-effect deny，issuance 要真人互動確認。2026-09-03 Codex CLI 0.152.1（gpt-5.6-luna／medium）已驗證 current-policy bootstrap、workspace allow、shell deny；其他模型／工具、Claude、recovery、observer／cross-host 未驗證。Pi runtime 仍是 optional experiment。
 
 ## 瘦身護欄
 

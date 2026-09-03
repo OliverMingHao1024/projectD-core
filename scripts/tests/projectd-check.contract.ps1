@@ -48,6 +48,10 @@ try {
         @($json.checks |
             Where-Object name -EQ 'fleet-inspect-contract').Count -eq 1
     ) 'Unified check must validate the bounded Fleet inspector.'
+    Assert-True (
+        @($json.checks |
+            Where-Object name -EQ 'knowledge-requirement-contract').Count -eq 1
+    ) 'Unified check must validate the KnowledgeWorkspace requirement adapter.'
     $checkContent = Get-Content -Raw -LiteralPath $check
     Assert-True (
         $checkContent.Contains('[switch]$SkipFleet')
@@ -94,6 +98,7 @@ try {
         'governance-security-traces',
         'governance-host-trial-contract',
         'governance-operation-log-contract',
+        'governance-runtime-policy-contract',
         'governance-host-operation-hook-contract',
         'governance-host-upgrade-gate-contract',
         'governance-host-run-plan-contract'

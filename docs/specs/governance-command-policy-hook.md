@@ -41,7 +41,8 @@ not grant filesystem isolation by itself.
 ## Hook contract
 
 - Input is a PreToolUse event.
-- A denied operation exits with code 2 and a specific explanation.
+- A denied Codex operation returns a structured `PreToolUse` deny with exit 0;
+  Claude uses a specific stderr explanation and exit 2.
 - Unrelated tools and commands pass through.
 - Rule-specific failure direction is preserved; one outer catch must not turn
   fail-closed rules into fail-open behavior.

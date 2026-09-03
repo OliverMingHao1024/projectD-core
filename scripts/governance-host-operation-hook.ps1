@@ -4,7 +4,12 @@ param(
     [ValidateSet('codex', 'claude')]
     [string]$HostName,
     [string]$ProjectRoot = (Split-Path -Parent $PSScriptRoot),
-    [string]$SchemaPath
+    [string]$SchemaPath,
+    [string]$RuntimePolicySchemaPath,
+    [string]$TaskAuthorizationSchemaPath,
+    [ValidateSet('PreToolUse', 'PostToolUse', 'PostToolUseFailure')]
+    [string]$ExpectedEventName,
+    [switch]$AllowContractAuthorizationFixture
 )
 
 $ErrorActionPreference = 'Stop'
@@ -30,6 +35,20 @@ function Read-BoundedStandardInput {
     } finally {
         $memory.Dispose()
     }
+}
+
+function Stop-CodexPreToolUse {
+    param([Parameter(Mandatory)][string]$Reason)
+
+    $response = [pscustomobject][ordered]@{
+        hookSpecificOutput = [pscustomobject][ordered]@{
+            hookEventName = 'PreToolUse'
+            permissionDecision = 'deny'
+            permissionDecisionReason = $Reason
+        }
+    }
+    [Console]::Out.WriteLine(($response | ConvertTo-Json -Compress -Depth 4))
+    exit 0
 }
 
 function Get-RequiredStringProperty {
@@ -195,55 +214,6 @@ function Get-PrivateSlug {
     return "$Prefix-$($digest.Substring(7, 32))"
 }
 
-function Get-ToolClassification {
-    param([Parameter(Mandatory)][string]$ToolName)
-
-    $name = $ToolName.ToLowerInvariant()
-    if ($name -match '^(read|glob|grep|list|search_files|find)$') {
-        return [pscustomobject][ordered]@{
-            effect_kind = 'tool'
-            target = 'local-source'
-            classification = 'source'
-            external = $false
-            destructive = $false
-        }
-    }
-    if ($name -match '^(apply_patch|edit|write|notebookedit)$') {
-        return [pscustomobject][ordered]@{
-            effect_kind = 'durable-write'
-            target = 'workspace-file'
-            classification = 'action'
-            external = $false
-            destructive = $true
-        }
-    }
-    if ($name -match '(web|fetch|http|browser|mcp|connector)') {
-        return [pscustomobject][ordered]@{
-            effect_kind = 'external-action'
-            target = 'external-service'
-            classification = 'action'
-            external = $true
-            destructive = $true
-        }
-    }
-    if ($name -match '(bash|shell|powershell|exec|command|terminal)') {
-        return [pscustomobject][ordered]@{
-            effect_kind = 'external-action'
-            target = 'command-environment'
-            classification = 'action'
-            external = $true
-            destructive = $true
-        }
-    }
-    return [pscustomobject][ordered]@{
-        effect_kind = 'tool'
-        target = 'unclassified-tool'
-        classification = 'action'
-        external = $true
-        destructive = $true
-    }
-}
-
 function Read-ExistingLog {
     param(
         [Parameter(Mandatory)][string]$Path,
@@ -299,6 +269,33 @@ function Write-DurableLog {
             Remove-Item -LiteralPath $temporary -Force
         }
     }
+}
+
+function Write-ImmutablePolicyDecision {
+    param(
+        [Parameter(Mandatory)]$Document,
+        [Parameter(Mandatory)][string]$Path,
+        [Parameter(Mandatory)][string]$Schema
+    )
+
+    if (Test-Path -LiteralPath $Path -PathType Leaf) {
+        if ((Get-Item -LiteralPath $Path -Force).Length -gt $maximumLogBytes) {
+            throw 'Existing runtime policy decision exceeds its size limit.'
+        }
+        $existingJson = $utf8.GetString([IO.File]::ReadAllBytes($Path))
+        if (-not (Test-Json -Json $existingJson -SchemaFile $Schema `
+            -ErrorAction Stop)) {
+            throw 'Existing runtime policy decision does not conform to its schema.'
+        }
+        $existing = $existingJson | ConvertFrom-Json
+        $existingCanonical = $existing | ConvertTo-Json -Compress -Depth 32
+        $currentCanonical = $Document | ConvertTo-Json -Compress -Depth 32
+        if ($existingCanonical -cne $currentCanonical) {
+            throw 'Runtime policy decision conflicts with existing call evidence.'
+        }
+        return
+    }
+    Write-DurableLog -Document $Document -Path $Path -Schema $Schema
 }
 
 function Enter-LogLock {
@@ -378,7 +375,11 @@ function Test-IntentDocumentIdentity {
 }
 
 try {
-    Import-Module (Join-Path $PSScriptRoot 'lib\GovernanceCommon.psm1') -Force
+    $governanceCommonModule = Join-Path $PSScriptRoot `
+        'lib\GovernanceCommon.psm1'
+    Import-Module $governanceCommonModule -Force
+    $runtimePolicyModule = Join-Path $PSScriptRoot 'lib\RuntimePolicy.psm1'
+    Import-Module $runtimePolicyModule -Force
     $root = [IO.Path]::GetFullPath($ProjectRoot).TrimEnd(
         [IO.Path]::DirectorySeparatorChar,
         [IO.Path]::AltDirectorySeparatorChar
@@ -389,6 +390,22 @@ try {
     if (Test-PathHasReparsePoint -Root $root -ResolvedPath $root) {
         throw 'ProjectRoot must not be a reparse point.'
     }
+    if ($AllowContractAuthorizationFixture) {
+        $temporaryRoot = [IO.Path]::GetFullPath(
+            [IO.Path]::GetTempPath()
+        ).TrimEnd(
+            [IO.Path]::DirectorySeparatorChar,
+            [IO.Path]::AltDirectorySeparatorChar
+        ) + [IO.Path]::DirectorySeparatorChar
+        if (-not $root.StartsWith(
+            $temporaryRoot, [StringComparison]::OrdinalIgnoreCase
+        )) {
+            throw (
+                'Contract authorization fixtures are accepted only under ' +
+                'the system temporary directory.'
+            )
+        }
+    }
 
     if ([string]::IsNullOrWhiteSpace($SchemaPath)) {
         $SchemaPath = Join-Path $root (
@@ -396,6 +413,18 @@ try {
         )
     }
     $schemaFullPath = [IO.Path]::GetFullPath($SchemaPath)
+    if ([string]::IsNullOrWhiteSpace($RuntimePolicySchemaPath)) {
+        $RuntimePolicySchemaPath = Join-Path $root (
+            'evals\schemas\governance-runtime-policy-decisions.schema.json'
+        )
+    }
+    if ([string]::IsNullOrWhiteSpace($TaskAuthorizationSchemaPath)) {
+        $TaskAuthorizationSchemaPath = Join-Path $root (
+            'evals\schemas\governance-task-authorizations.schema.json'
+        )
+    }
+    $runtimePolicySchemaPath = [IO.Path]::GetFullPath($RuntimePolicySchemaPath)
+    $taskAuthorizationSchemaPath = [IO.Path]::GetFullPath($TaskAuthorizationSchemaPath)
     if (
         -not (Test-Path -LiteralPath $schemaFullPath -PathType Leaf) -or
         (Get-Item -LiteralPath $schemaFullPath -Force).Length -gt 1MB
@@ -408,6 +437,38 @@ try {
     ) {
         throw 'SchemaPath must not be a reparse point.'
     }
+    if (
+        -not (Test-Path -LiteralPath $runtimePolicySchemaPath -PathType Leaf) -or
+        (Get-Item -LiteralPath $runtimePolicySchemaPath -Force).Length -gt 1MB
+    ) {
+        throw 'Runtime policy schema is missing or too large.'
+    }
+    if (
+        (Get-Item -LiteralPath $runtimePolicySchemaPath -Force).Attributes -band
+            [IO.FileAttributes]::ReparsePoint
+    ) {
+        throw 'Runtime policy schema must not be a reparse point.'
+    }
+    if (
+        -not (Test-Path -LiteralPath $taskAuthorizationSchemaPath -PathType Leaf) -or
+        (Get-Item -LiteralPath $taskAuthorizationSchemaPath -Force).Length -gt 1MB
+    ) {
+        throw 'Task authorization schema is missing or too large.'
+    }
+    if (
+        (Get-Item -LiteralPath $taskAuthorizationSchemaPath -Force).Attributes -band
+            [IO.FileAttributes]::ReparsePoint
+    ) {
+        throw 'Task authorization schema must not be a reparse point.'
+    }
+    $runtimePolicyDigest = Get-ProjectDRuntimePolicyDigest `
+        -GovernanceCommonPath $governanceCommonModule `
+        -RuntimePolicyPath $runtimePolicyModule `
+        -HostHookPath $PSCommandPath `
+        -AuthorizationIssuerPath (Join-Path $PSScriptRoot `
+            'governance-task-authorization.ps1') `
+        -RuntimePolicySchemaPath $runtimePolicySchemaPath `
+        -TaskAuthorizationSchemaPath $taskAuthorizationSchemaPath
 
     $payloadText = Read-BoundedStandardInput -MaximumBytes $maximumInputBytes
     $jsonOptions = [Text.Json.JsonDocumentOptions]::new()
@@ -422,6 +483,12 @@ try {
         }
         $eventName = Get-RequiredStringProperty -Root $payload `
             -Name 'hook_event_name' -MaximumLength 64
+        if (
+            -not [string]::IsNullOrWhiteSpace($ExpectedEventName) -and
+            $eventName -cne $ExpectedEventName
+        ) {
+            throw 'Hook event does not match the configured hook phase.'
+        }
         $sessionId = Get-RequiredStringProperty -Root $payload `
             -Name 'session_id' -MaximumLength 1024
         $toolUseId = Get-RequiredStringProperty -Root $payload `
@@ -441,6 +508,8 @@ try {
         $toolInput = $payload.GetProperty('tool_input')
         $argumentIntegrity = Get-ArgumentIntegrity -Element $toolInput `
             -Salt "$callIdentity`0$toolName"
+        $runtimeRequest = Get-ProjectDRuntimeRequest -ToolName $toolName `
+            -ToolInput $toolInput -ProjectRoot $root
     } finally {
         $payloadDocument.Dispose()
     }
@@ -450,7 +519,8 @@ try {
     $logId = "$HostName-$callSlug"
     $operationId = "operation-$callSlug"
     $effectId = "effect-$callSlug"
-    $classification = Get-ToolClassification -ToolName $toolName
+    $classification = ConvertTo-LegacyOperationClassification `
+        -RuntimeRequest $runtimeRequest
     $taskRef = "host-hook-$sessionSlug"
     $hostRunId = "$HostName-$sessionSlug"
 
@@ -472,7 +542,27 @@ try {
     }
     $logPath = Join-Path $logDirectory "$logId.json"
     $lockPath = "$logPath.lock"
-    foreach ($candidate in @($logPath, $lockPath)) {
+    $policyDirectory = [IO.Path]::GetFullPath((Join-Path $root (
+        ".local\governance\runtime-policy\$HostName"
+    )))
+    if (-not $policyDirectory.StartsWith(
+        $rootPrefix, [StringComparison]::OrdinalIgnoreCase
+    )) {
+        throw 'Runtime-policy directory resolves outside ProjectRoot.'
+    }
+    if (Test-PathHasReparsePoint -Root $root -ResolvedPath $policyDirectory) {
+        throw 'Runtime-policy directory must not cross a reparse point.'
+    }
+    New-Item -ItemType Directory -Path $policyDirectory -Force | Out-Null
+    if (Test-PathHasReparsePoint -Root $root -ResolvedPath $policyDirectory) {
+        throw 'Runtime-policy directory must not cross a reparse point.'
+    }
+    $policyPath = Join-Path $policyDirectory "decision-$callSlug.json"
+    $authorizationDirectory = [IO.Path]::GetFullPath((Join-Path $root (
+        ".local\governance\task-authorizations\$HostName"
+    )))
+    $authorizationPath = Join-Path $authorizationDirectory "$taskRef.json"
+    foreach ($candidate in @($logPath, $lockPath, $policyPath, $authorizationPath)) {
         if (
             (Test-Path -LiteralPath $candidate) -and
             (Test-PathHasReparsePoint -Root $root -ResolvedPath $candidate)
@@ -488,6 +578,85 @@ try {
         } else { $null }
 
         if ($eventName -ceq 'PreToolUse') {
+            $authorizationEnvelope = $null
+            if (Test-Path -LiteralPath $authorizationPath -PathType Leaf) {
+                if (Test-PathHasReparsePoint -Root $root -ResolvedPath $authorizationPath) {
+                    throw 'Task authorization path must not cross a reparse point.'
+                }
+                if ((Get-Item -LiteralPath $authorizationPath -Force).Length -gt 256KB) {
+                    throw 'Task authorization envelope exceeds its size limit.'
+                }
+                $authorizationJson = $utf8.GetString(
+                    [IO.File]::ReadAllBytes($authorizationPath)
+                )
+                if (-not (Test-Json -Json $authorizationJson `
+                    -SchemaFile $taskAuthorizationSchemaPath -ErrorAction Stop)) {
+                    throw 'Task authorization envelope does not conform to its schema.'
+                }
+                $authorizationEnvelope = $authorizationJson | ConvertFrom-Json
+            }
+            $runtimeAuthorization = Resolve-ProjectDRuntimeAuthorization `
+                -RuntimeRequest $runtimeRequest `
+                -Envelope $authorizationEnvelope `
+                -TaskRef $taskRef `
+                -HostRunId $hostRunId `
+                -PolicyDigest $runtimePolicyDigest `
+                -AllowContractAuthorizationFixture:$AllowContractAuthorizationFixture
+
+            $policyDecision = [pscustomobject][ordered]@{
+                schema_version = 1
+                decision_id = "decision-$callSlug"
+                task_ref = $taskRef
+                host_run_id = $hostRunId
+                operation_ref = $operationId
+                policy = [pscustomobject][ordered]@{
+                    policy_id = 'runtime-governance-v2'
+                    policy_version = 1
+                    policy_digest = $runtimePolicyDigest
+                }
+                request = [pscustomobject][ordered]@{
+                    capability = $runtimeRequest.capability
+                    target_class = $runtimeRequest.target_class
+                    effect = $runtimeRequest.effect
+                }
+                authorization = [pscustomobject][ordered]@{
+                    state = $runtimeAuthorization.state
+                    basis = $runtimeAuthorization.basis
+                    scope_match = $runtimeAuthorization.scope_match
+                }
+                decision = [pscustomobject][ordered]@{
+                    outcome = $runtimeAuthorization.outcome
+                    reason_codes = @($runtimeAuthorization.reason_codes)
+                }
+                coverage = [pscustomobject][ordered]@{
+                    classification_source = $runtimeRequest.classification_source
+                    enforcement = $runtimeAuthorization.enforcement
+                    host_observable = $true
+                }
+                privacy = [pscustomobject][ordered]@{
+                    content_mode = 'metadata-only'
+                    contains_raw_prompt = $false
+                    contains_chain_of_thought = $false
+                    contains_secret_values = $false
+                    contains_tool_arguments = $false
+                    contains_tool_output = $false
+                }
+            }
+            Write-ImmutablePolicyDecision -Document $policyDecision -Path $policyPath `
+                -Schema $runtimePolicySchemaPath
+            if (
+                [string]$runtimeAuthorization.enforcement -ceq 'enforced' -and
+                [string]$runtimeAuthorization.outcome -ceq 'deny'
+            ) {
+                $denyReason = 'projectD runtime policy denied this operation: ' +
+                    (@($runtimeAuthorization.reason_codes) -join ', ')
+                if ($HostName -ceq 'codex') {
+                    Stop-CodexPreToolUse -Reason $denyReason
+                }
+                [Console]::Error.WriteLine($denyReason)
+                exit 2
+            }
+
             if ($null -ne $existing) {
                 $records = @($existing.records)
                 if (
@@ -687,6 +856,17 @@ try {
     } catch {
         # Diagnostic logging is best-effort only; never let it mask the
         # original rejection below.
+    }
+    if (
+        $HostName -ceq 'codex' -and
+        (
+            $ExpectedEventName -ceq 'PreToolUse' -or
+            $eventName -ceq 'PreToolUse'
+        )
+    ) {
+        Stop-CodexPreToolUse -Reason (
+            'projectD governance hook denied this operation: internal-error'
+        )
     }
     [Console]::Error.WriteLine(
         'projectD governance hook rejected the host event.'

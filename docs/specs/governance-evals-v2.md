@@ -15,7 +15,7 @@ credential、MCP、sandbox、approval 或 egress 已通過驗證。
 |---|---|---|
 | Phase 1 | complete | Behavior catalog、asset inventory、validator、grader、CI wiring。 |
 | Phase 2 | complete | Metadata-only security traces、control drills、verified incident intake。 |
-| Phase 3 | in progress | Host adapters、durable operation log、hook contracts 與 upgrade gate 已完成；live evidence 尚未完成。 |
+| Phase 3 | in progress | Host adapters、durable operation log、hook contracts 與 upgrade gate 已完成；Runtime Governance v2 policy decision 與 policy-bound task authorization envelope 已接入 Codex／Claude pre-effect hook。先前 Codex bounded live flow 為 host transport 歷史證據；security hardening 後的現行 policy digest 尚待重跑。Claude、recovery/live observers、其他 tool paths 與 cross-host evidence 亦未完成。 |
 | Phase 4 | not started | Skill routing、context budget、stale/conflict detection 與 evidence-driven gardening。 |
 
 ## Behavior 與 trace 契約
@@ -52,7 +52,7 @@ CRLF／LF checkout 差異不得造成誤判，其他內容變更仍必須失敗�
 ## Canonical assets
 
 - Behavior 與 trace catalogs：`evals/catalogs/`
-- Schemas：`evals/schemas/`
+- Schemas：`evals/schemas/`；runtime capability/effect/authorization decision 使用 `governance-runtime-policy-decisions.schema.json`
 - Validators／graders：`scripts/governance-*.ps1`
 - Unified entry point：`scripts/projectd-check.ps1 -GovernanceEvals`
 - CI：`.github/workflows/governance.yml`

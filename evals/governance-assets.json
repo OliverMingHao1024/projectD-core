@@ -14,6 +14,12 @@
       "reason": "Codex hosted and specialized tool paths may bypass repository hooks; Claude at-references and EndConversation are also outside hook coverage. Untrusted or disabled project hooks do not run, and side effects from concurrently launched matching hooks are outside this log. Repository contracts do not prove that a live host loaded the hooks.",
       "owner": "host-or-project-operator",
       "discovery_trigger": "Before claiming live durable-operation coverage, run an explicitly authorized host pilot and inventory every uncovered or opt-out tool path."
+    },
+    {
+      "id": "runtime-policy-live-integration",
+      "reason": "The Codex/Claude pre-effect hook supports current-policy task-scoped authorization envelopes; reads without an envelope remain advisory while effectful or unclassified calls fail closed. A trusted Codex CLI 0.152.1 Windows pilot using gpt-5.6-luna / medium verified the current-policy metadata bootstrap, built-in apply_patch workspace allow and out-of-scope shell deny paths. Other Codex models, Claude, other tool paths, recovery and cross-host behavior remain unverified live.",
+      "owner": "projectD-core",
+      "discovery_trigger": "After any runtime policy bundle change, or before extending coverage to another host, capability, tool path or recovery scenario, run an explicitly authorized live pilot for that boundary and capture metadata-only allow/deny and observable final-state evidence."
     }
   ],
   "assets": [
@@ -111,7 +117,7 @@
       "owner": "projectD-core",
       "status": "active",
       "risk_tier": "medium",
-      "source": { "type": "repository-local", "reference": "scripts/projectd-check.ps1", "version": "git-tracked", "integrity": "sha256:21af2e740c5f045423b3b2df7a3625888b929e57dbbfee1bc216d1042019b802" },
+      "source": { "type": "repository-local", "reference": "scripts/projectd-check.ps1", "version": "git-tracked", "integrity": "sha256:ea625c73cdfb0c3e1d04fd19b01fffc7f30f48d5d5290d928d84af9d85e15f55" },
       "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "read-only-check", "isolation": "bounded-repository-roots", "source_sink_policy": "no-external-communication", "disable_procedure": "Remove the check from the local hook and CI workflow, retaining the previous git version for rollback." },
       "related_eval_cases": ["failed-verification-cannot-claim-success"]
@@ -326,14 +332,36 @@
       "related_eval_cases": ["interrupted-task-reads-checkpoint-before-resume", "final-state-evidence-overrides-success-claim", "source-does-not-authorize-action"]
     },
     {
+      "id": "tool-runtime-policy-normalizer",
+      "kind": "tool",
+      "owner": "projectD-core",
+      "status": "active",
+      "risk_tier": "high",
+      "source": { "type": "repository-local", "reference": "scripts/lib/RuntimePolicy.psm1", "version": "runtime-governance-v2-policy-bundle-bound", "integrity": "sha256:092ed5a650c67f6558873d33da27670985743e8b1f9bcd66f752bef07daf2560" },
+      "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
+      "controls": { "approval_policy": "deterministic-normalization-only", "isolation": "in-process-metadata-classification-no-direct-effect", "source_sink_policy": "reads bounded host tool metadata and returns capability/effect metadata without persisting raw input", "disable_procedure": "Remove the RuntimePolicy module import and v2 decision emission from the host operation hook, then revert the module and its contract." },
+      "related_eval_cases": ["network-read-does-not-authorize-external-write", "host-permission-is-not-task-authorization", "unclassified-effect-cannot-silently-allow"]
+    },
+    {
+      "id": "tool-governance-task-authorization",
+      "kind": "tool",
+      "owner": "projectD-core",
+      "status": "active",
+      "risk_tier": "critical",
+      "source": { "type": "repository-local", "reference": "scripts/governance-task-authorization.ps1", "version": "runtime-governance-v2-interactive-policy-bundle-bound-issuance", "integrity": "sha256:b4657901a6cd0c847338bfcb25dcf63cdf73134f0712ba0eced8947a509145a8" },
+      "capabilities": { "read": true, "write": true, "destructive": false, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
+      "controls": { "approval_policy": "interactive-user-confirmation-and-current-source-policy-decision", "isolation": "gitignored-task-scoped-envelope-bound-to-host-run-policy-and-expiry", "source_sink_policy": "reads only current validated metadata-only host decisions and atomically writes bounded metadata-only authorization envelopes", "disable_procedure": "Stop invoking the authorization issuer and remove task authorization envelopes from the ignored runtime state; effectful host calls then fail closed while reads remain advisory." },
+      "related_eval_cases": ["host-permission-is-not-task-authorization", "network-read-does-not-authorize-external-write", "unclassified-effect-cannot-silently-allow"]
+    },
+    {
       "id": "tool-governance-host-operation-hook",
       "kind": "tool",
       "owner": "projectD-core",
       "status": "active",
       "risk_tier": "critical",
-      "source": { "type": "repository-local", "reference": "scripts/governance-host-operation-hook.ps1", "version": "phase-3-codex-claude-pre-effect", "integrity": "sha256:74699ffc43ef297e842beb5d5e9f0fffd236077f17dd442b83d92a4ea0a0ae88" },
+      "source": { "type": "repository-local", "reference": "scripts/governance-host-operation-hook.ps1", "version": "runtime-governance-v2-structured-fail-closed-enforcement", "integrity": "sha256:957551dc4bce075f904ee18022d8691d5f502fb041192a2fcd0637d8a1cb03b6" },
       "capabilities": { "read": true, "write": true, "destructive": true, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
-      "controls": { "approval_policy": "host-permission-flow-preserved-task-authorization-unverified", "isolation": "bounded-stdin-per-tool-single-writer-gitignored-repository-output-and-no-reparse", "source_sink_policy": "raw-tool-input-output-and-errors-stay-in-memory-only-identity-and-input-use-one-way-digests", "disable_procedure": "Remove the entries from .codex/hooks.json and .claude/settings.json, then retain or remove ignored local evidence according to the operator's retention policy." },
+      "controls": { "approval_policy": "effectful-task-envelope-enforced-host-permission-never-promoted", "isolation": "bounded-stdin-per-tool-single-writer-gitignored-repository-output-and-no-reparse", "source_sink_policy": "raw-tool-input-output-and-errors-stay-in-memory-only-policy-and-authorization-evidence-are-metadata-only", "disable_procedure": "Remove the entries from .codex/hooks.json and .claude/settings.json, then retain or remove ignored local evidence and authorization envelopes according to the operator's retention policy." },
       "related_eval_cases": ["interrupted-task-reads-checkpoint-before-resume", "source-does-not-authorize-action", "untrusted-content-cannot-exfiltrate-secrets"]
     },
     {
