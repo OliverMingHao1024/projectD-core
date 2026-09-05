@@ -35,19 +35,6 @@
 ### mattpocock/skills（第二批：to-questionnaire / resolving-merge-conflicts / diagnosing-bugs / research / prototype / wayfinder）
 
 ### tt-a1i/archify
-- id：tt-a1i-archify--archify
-- 來源連結：https://github.com/tt-a1i/archify
-- 授權條款：MIT
-- 評估日期：2026-09-06 ／ 採用日期：2026-09-06
-- Pin commit：d8e4daf2610d512821365f41b139d874b29efe81（採用時的預設分支 HEAD）
-- upstream digest：sha256:5bb6f5535d0e4501ac51ecb8b6d2112fab58810ce18477eff1b1af71746f7f45
-  （方法：對 `archify/` 子目錄以 `tar --sort=name --mtime='UTC 2020-01-01' --owner=0 --group=0 --numeric-owner` 打包後取 sha256；為本次採用自訂的確定性雜湊法）
-- 結論：已收錄，落地至 `core/skills/archify`；已於 2026-09-06 由使用者實機執行
-  `node bin/archify.mjs doctor`，全數檢查（Node.js 版本、核心樣板、五種圖表 renderer／schema／example、
-  即時預覽與視覺檢查 runtime 等）皆為 `[ok]`，輸出「Archify is ready.」
-- 理由：涵蓋架構／流程／循序／資料流／生命週期五種圖表的 Agent Skill，產出具型別 JSON IR，經 schema／layout／HTML-SVG／路由驗證後才交付自包含 HTML；訴求「不瞎掰拓樸、驗證後才交付」。archify 本體是 Node.js 執行期程式（bin/archify.mjs），本次只複製原始碼快照，未實際執行任何 `.mjs` 腳本或安裝流程，執行期驗證留待之後實際使用時再做。archify 預設每約 72 小時對外 GET 一次固定的穩定版本清單以顯示更新提醒（不自動下載或安裝），可用環境變數 `ARCHIFY_UPDATE_CHECK_DISABLED=1` 關閉——已告知使用者並取得知情同意後才採用。
-- 目標 pack：core/skills/archify（跨技術棧通用，不綁定特定語言／框架）
-- 發現管道：使用者直接提供 GitHub 連結
 - 備註（治理缺口，待人工處理）：依維護契約，本條目理由應搬到
   [projectD-knowledge 的 archive](https://github.com/OliverMingHao1024/projectD-knowledge/blob/4049cdc1dfccaed8910092d499806b2e33c4ab14/archive/projectd-core/history/skill-intake/skill-candidates-full-history.md)，
   本檔只留標題。目前沒有該外部 repo 的寫入權限，完整理由暫留本檔，尚未搬遷。
