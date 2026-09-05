@@ -160,6 +160,69 @@ $authorizationSeed = @(
 ) -join "`0"
 $authorizationDigest = Get-TextSha256 -Text $authorizationSeed
 $authorizationId = 'authorization-' + $authorizationDigest.Substring(7, 24)
+
+$directory = Join-Path $root ".local\governance\task-authorizations\$HostName"
+$directory = [IO.Path]::GetFullPath($directory)
+if (-not $directory.StartsWith(
+    $rootPrefix, [StringComparison]::OrdinalIgnoreCase
+)) {
+    throw 'Authorization directory resolves outside ProjectRoot.'
+}
+New-Item -ItemType Directory -Path $directory -Force | Out-Null
+if (Test-PathHasReparsePoint -Root $root -ResolvedPath $directory) {
+    throw 'Authorization directory must not cross a reparse point.'
+}
+$path = Join-Path $directory "$([string]$decision.task_ref).json"
+
+# Merge with any existing, still-current, still-unexpired grant envelope for
+# this task_ref instead of unconditionally overwriting it. A single-slot
+# envelope forced re-authorizing every previously granted capability each
+# time a different one was needed in the same task; merging removes that
+# friction without loosening any check below (confirmation phrase, real
+# terminal, decision provenance, and expiry all still apply per issuance).
+$carriedGrants = @()
+if (Test-Path -LiteralPath $path -PathType Leaf) {
+    if (Test-PathHasReparsePoint -Root $root -ResolvedPath $path) {
+        throw 'Authorization path must not cross a reparse point.'
+    }
+    if ((Get-Item -LiteralPath $path -Force).Length -le 256KB) {
+        $existingAuthJson = $utf8.GetString([IO.File]::ReadAllBytes($path))
+        if (Test-Json -Json $existingAuthJson -SchemaFile $authorizationSchema `
+            -ErrorAction SilentlyContinue) {
+            $existingAuth = $existingAuthJson | ConvertFrom-Json
+            $existingExpiresAt = [DateTimeOffset]::Parse(
+                [string]$existingAuth.expires_at
+            )
+            if (
+                [string]$existingAuth.task_ref -ceq [string]$decision.task_ref -and
+                [string]$existingAuth.host_run_id -ceq [string]$decision.host_run_id -and
+                [string]$existingAuth.policy.policy_id -ceq 'runtime-governance-v2' -and
+                [int]$existingAuth.policy.policy_version -eq 1 -and
+                [string]$existingAuth.policy.policy_digest -ceq $currentPolicyDigest -and
+                $existingExpiresAt -gt $issuedAt
+            ) {
+                $carriedGrants = @($existingAuth.grants | Where-Object {
+                    -not (
+                        [string]$_.capability -ceq $Capability -and
+                        [string]$_.target_class -ceq $TargetClass
+                    )
+                })
+            }
+        }
+    }
+}
+$mergedGrants = @($carriedGrants) + @(
+    [pscustomobject][ordered]@{
+        capability = $Capability
+        target_class = $TargetClass
+        allow_external = [bool]$AllowExternal
+        allow_destructive = [bool]$AllowDestructive
+    }
+)
+if ($mergedGrants.Count -gt 64) {
+    throw 'Merged task authorization would exceed the maximum grant count.'
+}
+
 $document = [pscustomobject][ordered]@{
     schema_version = 1
     authorization_id = $authorizationId
@@ -178,14 +241,7 @@ $document = [pscustomobject][ordered]@{
         scope_match = 'exact'
         authorized_by = 'user'
     }
-    grants = @(
-        [pscustomobject][ordered]@{
-            capability = $Capability
-            target_class = $TargetClass
-            allow_external = [bool]$AllowExternal
-            allow_destructive = [bool]$AllowDestructive
-        }
-    )
+    grants = $mergedGrants
     privacy = [pscustomobject][ordered]@{
         content_mode = 'metadata-only'
         contains_raw_prompt = $false
@@ -199,19 +255,6 @@ $json = $document | ConvertTo-Json -Depth 32
 if (-not (Test-Json -Json $json -SchemaFile $authorizationSchema -ErrorAction Stop)) {
     throw 'Generated task authorization envelope does not conform to its schema.'
 }
-
-$directory = Join-Path $root ".local\governance\task-authorizations\$HostName"
-$directory = [IO.Path]::GetFullPath($directory)
-if (-not $directory.StartsWith(
-    $rootPrefix, [StringComparison]::OrdinalIgnoreCase
-)) {
-    throw 'Authorization directory resolves outside ProjectRoot.'
-}
-New-Item -ItemType Directory -Path $directory -Force | Out-Null
-if (Test-PathHasReparsePoint -Root $root -ResolvedPath $directory) {
-    throw 'Authorization directory must not cross a reparse point.'
-}
-$path = Join-Path $directory "$($document.task_ref).json"
 if (
     (Test-Path -LiteralPath $path) -and
     (Test-PathHasReparsePoint -Root $root -ResolvedPath $path)
