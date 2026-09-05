@@ -281,7 +281,33 @@ function Get-ProjectDRuntimeRequest {
             $command = Get-JsonStringProperty -Element $ToolInput -Name 'cmd'
         }
         if (-not [string]::IsNullOrWhiteSpace($command)) {
-            if ($command -match '(?i)(?:^|[;&|\r\n])\s*(git\s+(add|commit|merge|rebase|cherry-pick|reset|restore|checkout|switch|branch|tag|push|pull)\b|gh\s+(pr|release)\s+(create|merge|close|edit|delete)\b)') {
+            $readOnlyVerbPattern = '(?i)^(' + (@(
+                'git\s+(status|log|diff|show|blame|describe|rev-parse|ls-files|ls-tree|cat-file|remote(\s+-v)?|branch(\s+(--list|-v|-vv))?|tag(\s+(--list|-l))?|stash\s+list|config\s+(--get|--list|-l))\b',
+                '(ls|dir|Get-ChildItem|cat|type|Get-Content|pwd|Get-Location|head|tail|wc|Select-String|grep|rg|file|stat|tree)\b',
+                '\S+\s+(--version|-v|--help|-h)\s*$'
+            ) -join '|') + ').*$'
+            $unsafeShellMetaPattern = '(?i)[<>`]|\$\('
+            $commandSegments = @(
+                [regex]::Split($command, '&&|\|\||[;|\r\n]') |
+                    ForEach-Object { $_.Trim() } |
+                    Where-Object { $_ }
+            )
+            $isReadOnlyCommand = $commandSegments.Count -gt 0
+            foreach ($commandSegment in $commandSegments) {
+                if (
+                    $commandSegment -notmatch $readOnlyVerbPattern -or
+                    $commandSegment -match $unsafeShellMetaPattern
+                ) {
+                    $isReadOnlyCommand = $false
+                    break
+                }
+            }
+            if ($isReadOnlyCommand) {
+                $capability = 'local-read'
+                $targetClass = 'workspace-source'
+                $classificationSource = 'deterministic-rule'
+                $reversible = 'yes'
+            } elseif ($command -match '(?i)(?:^|[;&|\r\n])\s*(git\s+(add|commit|merge|rebase|cherry-pick|reset|restore|checkout|switch|branch|tag|push|pull)\b|gh\s+(pr|release)\s+(create|merge|close|edit|delete)\b)') {
                 $capability = 'repository-mutate'
                 $targetClass = 'repository-state'
                 $classificationSource = 'operation-payload'

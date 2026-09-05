@@ -243,6 +243,43 @@ Assert-True (
     $genericCommandRequest.effect.destructive
 ) 'An arbitrary command grant must disclose its open-world external/destructive power.'
 
+$gitStatusRequest = Get-RuntimeRequestFromJson -ToolName 'Bash' `
+    -ToolInputJson '{"command":"git status"}'
+Assert-True (
+    $gitStatusRequest.capability -ceq 'local-read' -and
+    $gitStatusRequest.decision_outcome -ceq 'observe-only'
+) 'A plain git status must normalize as non-mutating local-read, not command-execute.'
+
+$chainedReadOnlyRequest = Get-RuntimeRequestFromJson -ToolName 'Bash' `
+    -ToolInputJson '{"command":"git status && git log -5"}'
+Assert-True (
+    $chainedReadOnlyRequest.capability -ceq 'local-read' -and
+    $chainedReadOnlyRequest.decision_outcome -ceq 'observe-only'
+) 'Every chained segment being read-only must still normalize as local-read.'
+
+$versionQueryRequest = Get-RuntimeRequestFromJson -ToolName 'Bash' `
+    -ToolInputJson '{"command":"dotnet --version"}'
+Assert-True (
+    $versionQueryRequest.capability -ceq 'local-read' -and
+    $versionQueryRequest.decision_outcome -ceq 'observe-only'
+) 'A bare --version query on any tool must normalize as local-read.'
+
+$readOnlyInjectionAttemptRequest = Get-RuntimeRequestFromJson -ToolName 'Bash' `
+    -ToolInputJson '{"command":"git status; rm -rf .git"}'
+Assert-True (
+    $readOnlyInjectionAttemptRequest.capability -ceq 'command-execute' -and
+    $readOnlyInjectionAttemptRequest.effect.external -and
+    $readOnlyInjectionAttemptRequest.effect.destructive
+) 'A read-only prefix must not launder a non-allowlisted chained segment into local-read.'
+
+$readOnlyRedirectionAttemptRequest = Get-RuntimeRequestFromJson -ToolName 'Bash' `
+    -ToolInputJson '{"command":"cat secrets.txt > /tmp/exfil.txt"}'
+Assert-True (
+    $readOnlyRedirectionAttemptRequest.capability -ceq 'command-execute' -and
+    $readOnlyRedirectionAttemptRequest.effect.external -and
+    $readOnlyRedirectionAttemptRequest.effect.destructive
+) 'Shell redirection on an otherwise read-only verb must not normalize as local-read.'
+
 $mcpMutationRequest = Get-RuntimeRequestFromJson `
     -ToolName 'mcp__threads__create' -ToolInputJson '{}'
 Assert-True (
