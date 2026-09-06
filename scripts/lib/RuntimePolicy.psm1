@@ -239,6 +239,34 @@ function Resolve-ProjectDWriteClassification {
     }
 }
 
+function Get-ProjectDCommandClassificationText {
+    <#
+    Classification regexes must not fire on literal text that only happens
+    to appear inside a quoted argument or heredoc body -- for example a
+    commit message that mentions a verb as prose, or a heredoc body whose
+    content coincidentally looks like a recognized pattern. Strip heredoc
+    bodies and quoted-string contents before any capability/external/
+    destructive pattern is evaluated, so only the shell's own command
+    structure is classified, never arbitrary literal payload text.
+    #>
+    param([Parameter(Mandatory)][string]$Command)
+
+    $heredocPattern = @'
+(?m)<<-?\s*(['"]?)(\w+)\1\s*\r?\n[\s\S]*?^\2\s*$
+'@
+    $doubleQuotedPattern = @'
+"(?:[^"\\]|\\.)*"
+'@
+    $singleQuotedPattern = @'
+'(?:[^'\\]|\\.)*'
+'@
+
+    $sanitized = [regex]::Replace($Command, $heredocPattern, ' ')
+    $sanitized = [regex]::Replace($sanitized, $doubleQuotedPattern, '""')
+    $sanitized = [regex]::Replace($sanitized, $singleQuotedPattern, "''")
+    return $sanitized
+}
+
 function Get-ProjectDRuntimeRequest {
     param(
         [Parameter(Mandatory)][string]$ToolName,
@@ -281,6 +309,8 @@ function Get-ProjectDRuntimeRequest {
             $command = Get-JsonStringProperty -Element $ToolInput -Name 'cmd'
         }
         if (-not [string]::IsNullOrWhiteSpace($command)) {
+            $classificationText = Get-ProjectDCommandClassificationText `
+                -Command $command
             $readOnlyVerbPattern = '(?i)^(' + (@(
                 'git\s+(status|log|diff|show|blame|describe|rev-parse|ls-files|ls-tree|cat-file|remote(\s+-v)?|branch(\s+(--list|-v|-vv))?|tag(\s+(--list|-l))?|stash\s+list|config\s+(--get|--list|-l))\b',
                 '(ls|dir|Get-ChildItem|cat|type|Get-Content|pwd|Get-Location|head|tail|wc|Select-String|grep|rg|file|stat|tree)\b',
@@ -300,7 +330,7 @@ function Get-ProjectDRuntimeRequest {
             $dryRunTokenPattern = '(?i)(^|\s)(--dry-run(=\S+)?|--dryrun|--what-if(=\S+)?|--whatif|-whatif)(\s|$)'
             $unsafeShellMetaPattern = '(?i)[<>`]|\$\('
             $commandSegments = @(
-                [regex]::Split($command, '&&|\|\||[;|\r\n]') |
+                [regex]::Split($classificationText, '&&|\|\||[;|\r\n]') |
                     ForEach-Object { $_.Trim() } |
                     Where-Object { $_ }
             )
@@ -323,13 +353,13 @@ function Get-ProjectDRuntimeRequest {
                 $targetClass = 'workspace-source'
                 $classificationSource = 'deterministic-rule'
                 $reversible = 'yes'
-            } elseif ($command -match '(?i)(?:^|[;&|\r\n])\s*(git\s+(add|commit|merge|rebase|cherry-pick|reset|restore|checkout|switch|branch|tag|push|pull)\b|gh\s+(pr|release)\s+(create|merge|close|edit|delete)\b)') {
+            } elseif ($classificationText -match '(?i)(?:^|[;&|\r\n])\s*(git\s+(add|commit|merge|rebase|cherry-pick|reset|restore|checkout|switch|branch|tag|push|pull)\b|gh\s+(pr|release)\s+(create|merge|close|edit|delete)\b)') {
                 $capability = 'repository-mutate'
                 $targetClass = 'repository-state'
                 $classificationSource = 'operation-payload'
                 $durable = $true
-                $external = $command -match '(?i)\bgit\s+(push|pull)\b|\bgh\s+'
-                $destructive = $command -match '(?i)\bgit\s+reset\b|\bgit\s+push\b.*(--force|-f)\b|\bgh\s+.*\b(delete|merge|close)\b'
+                $external = $classificationText -match '(?i)\bgit\s+(push|pull)\b|\bgh\s+'
+                $destructive = $classificationText -match '(?i)\bgit\s+reset\b|\bgit\s+push\b.*(--force|-f)\b|\bgh\s+.*\b(delete|merge|close)\b'
                 $reversible = 'unknown'
             } else {
                 $capability = 'command-execute'

@@ -309,6 +309,20 @@ Assert-True (
     $dryRunRedirectionAttemptRequest.effect.destructive
 ) 'A --dry-run token must not override shell redirection safety checks.'
 
+$dryRunQuotedProseRequest = Get-RuntimeRequestFromJson -ToolName 'Bash' `
+    -ToolInputJson '{"command":"git commit -m \"mentions git push for context\""}'
+Assert-True (
+    $dryRunQuotedProseRequest.capability -ceq 'repository-mutate' -and
+    -not $dryRunQuotedProseRequest.effect.external
+) 'Prose inside a quoted commit message mentioning another verb must not be misread as this command external effect.'
+
+$dryRunHeredocSanitizationRequest = Get-RuntimeRequestFromJson -ToolName 'Bash' `
+    -ToolInputJson '{"command":"git commit -m \"$(cat <<''EOF''\ngit push nonsense\nEOF\n)\""}'
+Assert-True (
+    $dryRunHeredocSanitizationRequest.capability -ceq 'repository-mutate' -and
+    -not $dryRunHeredocSanitizationRequest.effect.external
+) 'Literal text inside a heredoc body must not be misread as this command external effect.'
+
 $mcpMutationRequest = Get-RuntimeRequestFromJson `
     -ToolName 'mcp__threads__create' -ToolInputJson '{}'
 Assert-True (
