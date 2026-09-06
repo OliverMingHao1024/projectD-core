@@ -34,6 +34,11 @@
 
 ### mattpocock/skills（第二批：to-questionnaire / resolving-merge-conflicts / diagnosing-bugs / research / prototype / wayfinder）
 
+### tt-a1i/archify
+- 備註（治理缺口，待人工處理）：依維護契約，本條目理由應搬到
+  [projectD-knowledge 的 archive](https://github.com/OliverMingHao1024/projectD-knowledge/blob/4049cdc1dfccaed8910092d499806b2e33c4ab14/archive/projectd-core/history/skill-intake/skill-candidates-full-history.md)，
+  本檔只留標題。目前沒有該外部 repo 的寫入權限，完整理由暫留本檔，尚未搬遷。
+
 ### emilkowalski/skills
 
 ### humanlayer/skills — plugins/show-me/skills/show-me

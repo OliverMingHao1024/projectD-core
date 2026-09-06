@@ -239,6 +239,34 @@ function Resolve-ProjectDWriteClassification {
     }
 }
 
+function Get-ProjectDCommandClassificationText {
+    <#
+    Classification regexes must not fire on literal text that only happens
+    to appear inside a quoted argument or heredoc body -- for example a
+    commit message that mentions a verb as prose, or a heredoc body whose
+    content coincidentally looks like a recognized pattern. Strip heredoc
+    bodies and quoted-string contents before any capability/external/
+    destructive pattern is evaluated, so only the shell's own command
+    structure is classified, never arbitrary literal payload text.
+    #>
+    param([Parameter(Mandatory)][string]$Command)
+
+    $heredocPattern = @'
+(?m)<<-?\s*(['"]?)(\w+)\1\s*\r?\n[\s\S]*?^\2\s*$
+'@
+    $doubleQuotedPattern = @'
+"(?:[^"\\]|\\.)*"
+'@
+    $singleQuotedPattern = @'
+'(?:[^'\\]|\\.)*'
+'@
+
+    $sanitized = [regex]::Replace($Command, $heredocPattern, ' ')
+    $sanitized = [regex]::Replace($sanitized, $doubleQuotedPattern, '""')
+    $sanitized = [regex]::Replace($sanitized, $singleQuotedPattern, "''")
+    return $sanitized
+}
+
 function Get-ProjectDRuntimeRequest {
     param(
         [Parameter(Mandatory)][string]$ToolName,
@@ -281,13 +309,57 @@ function Get-ProjectDRuntimeRequest {
             $command = Get-JsonStringProperty -Element $ToolInput -Name 'cmd'
         }
         if (-not [string]::IsNullOrWhiteSpace($command)) {
-            if ($command -match '(?i)(?:^|[;&|\r\n])\s*(git\s+(add|commit|merge|rebase|cherry-pick|reset|restore|checkout|switch|branch|tag|push|pull)\b|gh\s+(pr|release)\s+(create|merge|close|edit|delete)\b)') {
+            $classificationText = Get-ProjectDCommandClassificationText `
+                -Command $command
+            $readOnlyVerbPattern = '(?i)^(' + (@(
+                'git\s+(status|log|diff|show|blame|describe|rev-parse|ls-files|ls-tree|cat-file|remote(\s+-v)?|branch(\s+(--list|-v|-vv))?|tag(\s+(--list|-l))?|stash\s+list|config\s+(--get|--list|-l))\b',
+                '(ls|dir|Get-ChildItem|cat|type|Get-Content|pwd|Get-Location|head|tail|wc|Select-String|grep|rg|file|stat|tree)\b',
+                '\S+\s+(--version|-v|--help|-h)\s*$'
+            ) -join '|') + ').*$'
+            # Self-reported dry-run/what-if flags are trusted only for this
+            # exact long-form spelling. This is a deliberate, narrower
+            # guarantee than the verb allowlist above: a verb like "git
+            # status" is read-only by definition, but "--dry-run" is only
+            # read-only if the target tool actually honors it -- a tool that
+            # ignores an unrecognized flag (or a destructive command with a
+            # bolted-on --dry-run it never implements) is not caught here.
+            # Known git subcommands where the same short flag means something
+            # else entirely (git commit -n is --no-verify, NOT dry-run) are
+            # intentionally excluded by only recognizing the long-form
+            # spellings below, never bare -n.
+            $dryRunTokenPattern = '(?i)(^|\s)(--dry-run(=\S+)?|--dryrun|--what-if(=\S+)?|--whatif|-whatif)(\s|$)'
+            $unsafeShellMetaPattern = '(?i)[<>`]|\$\('
+            $commandSegments = @(
+                [regex]::Split($classificationText, '&&|\|\||[;|\r\n]') |
+                    ForEach-Object { $_.Trim() } |
+                    Where-Object { $_ }
+            )
+            $isReadOnlyCommand = $commandSegments.Count -gt 0
+            foreach ($commandSegment in $commandSegments) {
+                if ($commandSegment -match $unsafeShellMetaPattern) {
+                    $isReadOnlyCommand = $false
+                    break
+                }
+                if (
+                    $commandSegment -notmatch $readOnlyVerbPattern -and
+                    $commandSegment -notmatch $dryRunTokenPattern
+                ) {
+                    $isReadOnlyCommand = $false
+                    break
+                }
+            }
+            if ($isReadOnlyCommand) {
+                $capability = 'local-read'
+                $targetClass = 'workspace-source'
+                $classificationSource = 'deterministic-rule'
+                $reversible = 'yes'
+            } elseif ($classificationText -match '(?i)(?:^|[;&|\r\n])\s*(git\s+(add|commit|merge|rebase|cherry-pick|reset|restore|checkout|switch|branch|tag|push|pull)\b|gh\s+(pr|release)\s+(create|merge|close|edit|delete)\b)') {
                 $capability = 'repository-mutate'
                 $targetClass = 'repository-state'
                 $classificationSource = 'operation-payload'
                 $durable = $true
-                $external = $command -match '(?i)\bgit\s+(push|pull)\b|\bgh\s+'
-                $destructive = $command -match '(?i)\bgit\s+reset\b|\bgit\s+push\b.*(--force|-f)\b|\bgh\s+.*\b(delete|merge|close)\b'
+                $external = $classificationText -match '(?i)\bgit\s+(push|pull)\b|\bgh\s+'
+                $destructive = $classificationText -match '(?i)\bgit\s+reset\b|\bgit\s+push\b.*(--force|-f)\b|\bgh\s+.*\b(delete|merge|close)\b'
                 $reversible = 'unknown'
             } else {
                 $capability = 'command-execute'

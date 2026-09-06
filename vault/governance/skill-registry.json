@@ -310,6 +310,15 @@
       "latest_observed_commit": "9a7b2e9c39f816d6c699c2a133e11b6d8bfdc464",
       "migration_status": "needs-review",
       "decision_records": ["freestylefly/awesome-gpt-image-2 — agents/skills/gpt-image-2-style-library"]
+    },
+    {
+      "id": "github-tt-a1i-archify",
+      "provider": "github",
+      "repository": "tt-a1i/archify",
+      "license_spdx": "MIT",
+      "latest_observed_commit": "d8e4daf2610d512821365f41b139d874b29efe81",
+      "migration_status": "complete",
+      "decision_records": ["tt-a1i/archify"]
     }
   ],
   "candidates": [
@@ -701,6 +710,18 @@
       "target": "core/skills/gpt-image-2-style-library",
       "canonical_name": "gpt-image-2-style-library",
       "decision_record": "freestylefly/awesome-gpt-image-2 — agents/skills/gpt-image-2-style-library",
+      "migration_status": "complete"
+    },
+    {
+      "id": "tt-a1i-archify--archify",
+      "source_id": "github-tt-a1i-archify",
+      "source_path": "archify",
+      "observed_commit": "d8e4daf2610d512821365f41b139d874b29efe81",
+      "upstream_digest": "sha256:5bb6f5535d0e4501ac51ecb8b6d2112fab58810ce18477eff1b1af71746f7f45",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/archify",
+      "canonical_name": "archify",
+      "decision_record": "tt-a1i/archify",
       "migration_status": "complete"
     }
   ]
