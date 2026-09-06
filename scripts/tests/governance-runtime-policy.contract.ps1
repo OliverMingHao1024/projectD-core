@@ -280,6 +280,35 @@ Assert-True (
     $readOnlyRedirectionAttemptRequest.effect.destructive
 ) 'Shell redirection on an otherwise read-only verb must not normalize as local-read.'
 
+$dryRunMutateOverrideRequest = Get-RuntimeRequestFromJson -ToolName 'Bash' `
+    -ToolInputJson '{"command":"git push origin HEAD --dry-run"}'
+Assert-True (
+    $dryRunMutateOverrideRequest.capability -ceq 'local-read' -and
+    $dryRunMutateOverrideRequest.decision_outcome -ceq 'observe-only'
+) 'An explicit --dry-run token on an otherwise mutating git verb must normalize as local-read.'
+
+$dryRunUnknownToolRequest = Get-RuntimeRequestFromJson -ToolName 'Bash' `
+    -ToolInputJson '{"command":"npm ci --dry-run"}'
+Assert-True (
+    $dryRunUnknownToolRequest.capability -ceq 'local-read' -and
+    $dryRunUnknownToolRequest.decision_outcome -ceq 'observe-only'
+) 'An explicit --dry-run token on an unrecognized tool must normalize as local-read (self-reported, accepted trust boundary -- see RuntimePolicy.psm1 comment).'
+
+$commitNoVerifyRequest = Get-RuntimeRequestFromJson -ToolName 'Bash' `
+    -ToolInputJson '{"command":"git commit -n -m wip"}'
+Assert-True (
+    $commitNoVerifyRequest.capability -ceq 'repository-mutate' -and
+    $commitNoVerifyRequest.decision_outcome -ceq 'require-authorization'
+) 'git commit -n means --no-verify, not dry-run, and must still require authorization even though -n looks like a short dry-run flag elsewhere.'
+
+$dryRunRedirectionAttemptRequest = Get-RuntimeRequestFromJson -ToolName 'Bash' `
+    -ToolInputJson '{"command":"cat secrets.txt --dry-run > /tmp/exfil.txt"}'
+Assert-True (
+    $dryRunRedirectionAttemptRequest.capability -ceq 'command-execute' -and
+    $dryRunRedirectionAttemptRequest.effect.external -and
+    $dryRunRedirectionAttemptRequest.effect.destructive
+) 'A --dry-run token must not override shell redirection safety checks.'
+
 $mcpMutationRequest = Get-RuntimeRequestFromJson `
     -ToolName 'mcp__threads__create' -ToolInputJson '{}'
 Assert-True (

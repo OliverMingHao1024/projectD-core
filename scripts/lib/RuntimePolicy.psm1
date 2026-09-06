@@ -286,6 +286,18 @@ function Get-ProjectDRuntimeRequest {
                 '(ls|dir|Get-ChildItem|cat|type|Get-Content|pwd|Get-Location|head|tail|wc|Select-String|grep|rg|file|stat|tree)\b',
                 '\S+\s+(--version|-v|--help|-h)\s*$'
             ) -join '|') + ').*$'
+            # Self-reported dry-run/what-if flags are trusted only for this
+            # exact long-form spelling. This is a deliberate, narrower
+            # guarantee than the verb allowlist above: a verb like "git
+            # status" is read-only by definition, but "--dry-run" is only
+            # read-only if the target tool actually honors it -- a tool that
+            # ignores an unrecognized flag (or a destructive command with a
+            # bolted-on --dry-run it never implements) is not caught here.
+            # Known git subcommands where the same short flag means something
+            # else entirely (git commit -n is --no-verify, NOT dry-run) are
+            # intentionally excluded by only recognizing the long-form
+            # spellings below, never bare -n.
+            $dryRunTokenPattern = '(?i)(^|\s)(--dry-run(=\S+)?|--dryrun|--what-if(=\S+)?|--whatif|-whatif)(\s|$)'
             $unsafeShellMetaPattern = '(?i)[<>`]|\$\('
             $commandSegments = @(
                 [regex]::Split($command, '&&|\|\||[;|\r\n]') |
@@ -294,9 +306,13 @@ function Get-ProjectDRuntimeRequest {
             )
             $isReadOnlyCommand = $commandSegments.Count -gt 0
             foreach ($commandSegment in $commandSegments) {
+                if ($commandSegment -match $unsafeShellMetaPattern) {
+                    $isReadOnlyCommand = $false
+                    break
+                }
                 if (
-                    $commandSegment -notmatch $readOnlyVerbPattern -or
-                    $commandSegment -match $unsafeShellMetaPattern
+                    $commandSegment -notmatch $readOnlyVerbPattern -and
+                    $commandSegment -notmatch $dryRunTokenPattern
                 ) {
                     $isReadOnlyCommand = $false
                     break
