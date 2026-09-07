@@ -44,3 +44,10 @@ contains TypeScript. Treat AngularJS and modern Angular as separate frameworks.
   directive, security, testing, performance, and migration-sensitive work.
 - Read [lodash.md](../frontend-core/references/lodash.md) for shared Lodash operation,
   import, bundle, mutation, missing-value, and lifecycle guidance.
+- Read [esoaf-platform.md](references/esoaf-platform.md) when the application is built
+  on Systex's ESOAF platform (`eSoafApp`, `BaseController`, `e-smart-*` directives, legacy
+  `ngGrid`) — covers module registration/lazy-loading mechanics, `showDialog`'s real
+  3-level scope hierarchy, `e-smart-tag`/`e-date-picker` field directives, `sendRecv` wire
+  format and gotchas, `dataIsValid`'s jQuery-based (not form-object) validation, paging and
+  auth quirks, bare global helper functions, known dead files, naming conventions, and
+  label-alignment convention.
