@@ -1,7 +1,7 @@
 ---
 type: memory-summary
 readAt: session-start
-lastUpdated: 2026-09-04
+lastUpdated: 2026-09-10
 ---
 
 # projectD-core 工作記憶
@@ -32,6 +32,9 @@ lastUpdated: 2026-09-04
   current-policy revalidation 已涵蓋 read、workspace allow、legacy authorization projection、
   command deny 與 metadata-only evidence；其他模型／工具、recovery、observer／cross-host
   未驗證，Pi 仍是 optional。
+- 2026-09-10：任何專案交付報告／分析文件（如調查報告 .docx），產出後一律依該專案的
+  vault-doc 慣例歸檔（原始檔＋說明用 dev-log 同資料夾、同編號），不得只留在暫存目錄；
+  規則見 `~/.claude/skills/vault-doc/SKILL.md`「報告／交付文件」章節。
 
 ## 瘦身護欄
 
