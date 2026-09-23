@@ -96,6 +96,7 @@ pwsh -File scripts/uninstall.ps1
 - [Agent Runtime Governance](docs/specs/agent-runtime-governance.md)
 - [Codex 本機 Live Pilot](docs/operations/runtime-governance-v2-codex-live-pilot.md)
 - [Token 用量監控操作手冊](docs/operations/token-usage-monitoring.md)
+- [Codex CLI 用量狀態列](docs/operations/codex-usage-status-line.md)
 - [外部 Skill 定向引入 ADR](docs/adr/0016-targeted-skill-intake.md)
 - [KnowledgeWorkspace 核心邊界](docs/specs/knowledge-workspace-boundary.md)
 - [KnowledgeWorkspace 正式規格](https://github.com/OliverMingHao1024/projectD-knowledge/blob/main/specs/external-knowledge-wiki.md)
