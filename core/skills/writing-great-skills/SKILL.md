@@ -55,6 +55,8 @@ Where the ladder decides _how far down_ a piece sits, **co-location** decides _w
 
 Keep each meaning in a **single source of truth**: one authoritative place, so changing the behaviour is a one-place edit.
 
+The environment is a source of truth too (`package.json` scripts, config files, directory layout, `--help` output). A skill that restates it is a **cache**: a copy of a lookup, worth its load only when the lookup is expensive. Cache what the agent cannot find by looking: the unwritten convention, the reason behind a choice, the gotcha no config confesses. Leave one-file, one-command lookups to the environment, where they cannot go stale.
+
 Check every line for **relevance**: does it still bear on what the skill does?
 
 Then hunt **no-ops** sentence by sentence, not just line by line: run the no-op test on each sentence in isolation, and when one fails, delete the whole sentence rather than trim words from it. Be aggressive — most prose that fails should go, not be rewritten.
@@ -88,4 +90,6 @@ Use these to diagnose issues the user may be having with the skill.
 Adapted for cross-agent discovery from
 <https://github.com/mattpocock/skills/tree/ed37663cc5fbef691ddfecd080dff42f7e7e350d/skills/productivity/writing-great-skills>.
 Licensed under MIT; see [LICENSE](LICENSE). The adapted version fixes a stale `tdd`
-example (that skill was not adopted into projectD) and adds a missing H1.
+example (that skill was not adopted into projectD), adds a missing H1, and adds the
+"environment is a source of truth" paragraph to Pruning, backported from upstream's
+renamed `writing-for-agents`.

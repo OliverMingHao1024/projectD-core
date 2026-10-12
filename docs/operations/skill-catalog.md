@@ -42,7 +42,6 @@ Pack。通常只要用自然語言描述工作，Agent 就會依 Skill 的 descr
 | [`improve-codebase-architecture`](../../core/skills/improve-codebase-architecture/SKILL.md) | 掃描可深化的模組並產出視覺化報告。 | 想系統性找出架構改善機會。 |
 | [`codegraph`](../../core/skills/codegraph/SKILL.md) | 透過既有 CodeGraph 查符號、呼叫者與依賴。 | Repository 已有 `.codegraph` 或明確要求使用 CodeGraph。 |
 | [`diagnosing-bugs`](../../core/skills/diagnosing-bugs/SKILL.md) | 依診斷迴圈找出困難錯誤或效能退化原因。 | 發生 broken、throwing、failing、slow 或要求 debug。 |
-| [`resolving-merge-conflicts`](../../core/skills/resolving-merge-conflicts/SKILL.md) | 解決進行中的 Git merge／rebase 衝突。 | Git 已處於合併或 rebase 衝突狀態。 |
 
 ## UI、視覺與動效
 
