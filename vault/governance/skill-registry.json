@@ -401,11 +401,11 @@
       "migration_status": "complete"
     },
     {
-      "id": "mattpocock-skills--skills-productivity-writing-great-skills",
+      "id": "mattpocock-skills--skills-productivity-writing-for-agents",
       "source_id": "github-mattpocock-skills",
-      "source_path": "skills/productivity/writing-great-skills",
-      "observed_commit": "ed37663cc5fbef691ddfecd080dff42f7e7e350d",
-      "upstream_digest": "sha256:8f191bfe5ed5a3561c5d544676b40382c496478f14974f9b176ebd583aae4b53",
+      "source_path": "skills/productivity/writing-for-agents",
+      "observed_commit": "49dd158d1076134a641b33efb035946536778336",
+      "upstream_digest": "sha256:1983c1eff574379b8603cd57144a4679416d59b39c929296bbf76a9b06ac30d6",
       "lifecycle_status": "adopted",
       "target": "core/skills/writing-great-skills",
       "canonical_name": "writing-great-skills",
