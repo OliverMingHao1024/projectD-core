@@ -70,7 +70,7 @@ class MattPocockSkillUpdateContractTests(unittest.TestCase):
         # names as an exception. Hardcoding the actual commit/digest hex here
         # would just restate today's JSON by hand and rot on the next normal
         # import.
-        known_pinned = {"writing-great-skills"}
+        known_pinned = {"writing-great-skills", "implement"}
         adopted = {
             name: candidate
             for name, candidate in candidates.items()
