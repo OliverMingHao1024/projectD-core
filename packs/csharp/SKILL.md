@@ -38,3 +38,8 @@ owns a browser UI or another technology-specific boundary.
 
 - Read [project-conventions.md](references/project-conventions.md) for structure, naming,
   review checks, tests, and build-command guidance.
+- Read [esoaf-platform.md](references/esoaf-platform.md) when the backend transaction is
+  built on Systex's ESOAF platform (`SQLHelper`/`AddInParamater`, `JSONParser`, `FlowMessage`
+  — seen across bank-client backends) — covers matching
+  `DbType.AnsiString`/`DbType.String` to whether a parameter can hold non-ASCII text, and the
+  combo "全選" sentinel's code-length-dependent padding.
