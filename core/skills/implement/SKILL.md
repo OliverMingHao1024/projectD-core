@@ -11,7 +11,9 @@ silently expand scope.
 ## Establish the contract
 
 1. Read the approved spec, ticket, acceptance criteria, and referenced decisions.
-   If a material requirement is unresolved, stop and ask rather than guessing.
+   If the user passes a ticket reference, fetch it read-only from the issue
+   tracker and state its title before starting; if the reference is ambiguous,
+   ask. If a material requirement is unresolved, stop and ask rather than guessing.
 2. Read applicable repository instructions, current code, tests, and relevant
    language or stack Skills. Reuse their rules instead of copying them here.
 3. Inspect repository status before editing. Preserve unrelated and pre-existing
@@ -38,8 +40,8 @@ complete. Report checks that could not run and why.
 Classify the result:
 
 - **Code or behavior-affecting configuration:** Invoke the `code-review` Skill
-  against the working-tree scope and approved spec. Material findings block
-  completion.
+  (call the Skill tool with "code-review" where the host has one) against the
+  working-tree scope and approved spec. Material findings block completion.
 - **Documentation-only:** Report `code-review: not applicable` and perform a
   focused diff and link check instead.
 
@@ -64,3 +66,7 @@ Adapted for cross-agent use from
 Licensed under MIT; see [LICENSE](LICENSE). The adaptation makes TDD conditional,
 loads project-specific guidance instead of prescribing coding rules, requires a
 bounded `code-review` gate for behavioral changes, and removes automatic commit.
+It also adopts two later upstream changes (reviewed at
+`49dd158d1076134a641b33efb035946536778336`): fetching a passed ticket reference
+(read-only here) and the explicit "call the Skill tool" wording. Upstream's
+`tdd` call is not adopted because that Skill is not part of projectD.
