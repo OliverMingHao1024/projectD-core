@@ -39,10 +39,9 @@ complete. Report checks that could not run and why.
 
 Classify the result:
 
-- **Code or behavior-affecting configuration:** Call the Skill tool with
-  "code-review" (where the host has no Skill tool, invoke the `code-review` Skill
-  by name) against the working-tree scope and approved spec. Material findings
-  block completion.
+- **Code or behavior-affecting configuration:** Invoke the `code-review` Skill
+  (call the Skill tool with "code-review" where the host has one) against the
+  working-tree scope and approved spec. Material findings block completion.
 - **Documentation-only:** Report `code-review: not applicable` and perform a
   focused diff and link check instead.
 
