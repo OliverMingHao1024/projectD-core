@@ -128,7 +128,7 @@ A correct seam is one where the test exercises the **real bug pattern** as it oc
 If a correct seam exists:
 
 1. Turn the minimised repro into a failing test at that seam.
-2. Watch it fail.
+2. Watch it fail. If you forced the red by mutating code or a fixture, `diff` against a pristine copy to prove the mutation landed before you trust it.
 3. Apply the fix.
 4. Watch it pass.
 5. Re-run the Phase 1 feedback loop against the original (un-minimised) scenario.
@@ -153,3 +153,8 @@ Licensed under MIT; see [LICENSE](LICENSE). The adapted version makes `CONTEXT.m
 optional rather than assumed, points the HITL script at its own skill-relative path,
 de-Claude-ifies the `improve-codebase-architecture` hand-off, and applies the upstream
 redaction requirement consistently to commands, output, and captured artifacts.
+It also adopts the later upstream "prove a forced mutation landed" check in Phase 5
+(reviewed at `49dd158d1076134a641b33efb035946536778336`). The upstream
+`GLOSSARY.md` rename and the replacement of the post-mortem hand-off by `/retro` are
+not adopted: the rename is deferred to one change across all affected Skills, and
+`retro` is not part of projectD.
