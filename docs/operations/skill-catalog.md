@@ -2,7 +2,7 @@
 
 ## 使用方式
 
-projectD 目前維護 44 個 Canonical Skill：35 個跨技術棧 Skill 與 9 個技術棧
+projectD 目前維護 46 個 Canonical Skill：37 個跨技術棧 Skill 與 9 個技術棧
 Pack。通常只要用自然語言描述工作，Agent 就會依 Skill 的 description 自動
 路由；需要明確指定時可說：
 
@@ -31,6 +31,8 @@ Pack。通常只要用自然語言描述工作，Agent 就會依 Skill 的 descr
 | [`wayfinder`](../../core/skills/wayfinder/SKILL.md) | 把跨多次工作的大型目標整理成決策地圖。 | 工作規模超過單一 Agent session。 |
 | [`query-project-history`](../../core/skills/query-project-history/SKILL.md) | 搜尋已驗證的歷史決策、除錯與失敗嘗試。 | 詢問以前是否遇過、為何這樣設計或過去如何修復。 |
 | [`implement`](../../core/skills/implement/SKILL.md) | 依核准範圍實作、測試並完成強制審查。 | 規格或票券已確定，要求正式實作。 |
+| [`minimal-implementation-ladder`](../../core/skills/minimal-implementation-ladder/SKILL.md) | 實作前依階梯判斷要做多大，避免多餘程式碼、依賴與抽象。 | 評估功能、修復或重構的範圍，或考慮新增檔案、依賴、抽象。 |
+| [`agent-team-gate`](../../core/skills/agent-team-gate/SKILL.md) | 啟動多 Agent 工作前的模式選擇、派工表與寫入邊界閘門。 | 使用者要求開 agent team、平行處理，或詢問是否該開。 |
 | [`code-review`](../../core/skills/code-review/SKILL.md) | 以 Standards 與 Spec 雙軸唯讀審查程式修改。 | 審查工作樹、分支、提交或 PR。 |
 | [`security-review`](../../core/skills/security-review/SKILL.md) | 對安全邊界做證據導向的唯讀審查。 | 修改認證、秘密、敏感資料、檔案、外部 API 或部署權限。 |
 
