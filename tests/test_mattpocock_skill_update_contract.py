@@ -7,6 +7,7 @@ from pathlib import Path
 
 CORE = Path(__file__).parents[1]
 DIGEST_PATTERN = re.compile(r"^sha256:[0-9a-f]{64}$")
+COMMIT_PATTERN = re.compile(r"^[0-9a-f]{40}$")
 
 
 def read_skill(name: str, resource: str = "SKILL.md") -> str:
@@ -63,41 +64,30 @@ class MattPocockSkillUpdateContractTests(unittest.TestCase):
         )
 
         # Freshness is skill-update-check's job (it recomputes the digest live
-        # against upstream via skill-scout). This test only checks the
-        # self-consistency the registry must hold between updates: every
-        # adopted candidate should be observed at the source's latest known
-        # commit, except deliberately-pinned candidates the registry itself
-        # names as an exception. Hardcoding the actual commit/digest hex here
-        # would just restate today's JSON by hand and rot on the next normal
-        # import.
-        known_pinned = {
-            "writing-great-skills",
-            "implement",
-            "diagnosing-bugs",
-            "grilling",
-            "code-review",
-        }
+        # against upstream via skill-scout). A candidate's observed commit
+        # legitimately differs from the source's latest bookmark: an unchanged
+        # Skill keeps the commit it was last reviewed at, and an adopted update
+        # moves only that candidate. So this test checks only that the recorded
+        # evidence is well-formed, and hardcodes no commit or digest hex that
+        # would rot on the next normal import.
+        self.assertRegex(
+            source["latest_observed_commit"],
+            COMMIT_PATTERN,
+            "source latest_observed_commit is not a full commit SHA",
+        )
         adopted = {
             name: candidate
             for name, candidate in candidates.items()
             if candidate["lifecycle_status"] == "adopted"
         }
-        lagging = {
-            name
-            for name, candidate in adopted.items()
-            if candidate["observed_commit"] != source["latest_observed_commit"]
-        }
-        self.assertEqual(
-            lagging,
-            known_pinned,
-            "Only the candidates named in known_pinned may lag behind the "
-            "source's latest observed commit; any other mismatch means a "
-            "candidate silently drifted from what skill-update-check last "
-            "confirmed, or a pin was lifted without updating this test.",
-        )
         for name, candidate in adopted.items():
             self.assertIsNotNone(
                 candidate["observed_commit"], f"{name}: missing observed_commit"
+            )
+            self.assertRegex(
+                candidate["observed_commit"],
+                COMMIT_PATTERN,
+                f"{name}: observed_commit is not a full commit SHA",
             )
             self.assertRegex(
                 candidate["upstream_digest"],

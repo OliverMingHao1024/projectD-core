@@ -36,7 +36,7 @@
       "provider": "github",
       "repository": "mattpocock/skills",
       "license_spdx": "MIT",
-      "latest_observed_commit": "6654f6b60cd9d5be8b54c6fafe44346dabeb3b76",
+      "latest_observed_commit": "49dd158d1076134a641b33efb035946536778336",
       "migration_status": "complete",
       "decision_records": [
         "mattpocock/skills（grill-with-docs）",
