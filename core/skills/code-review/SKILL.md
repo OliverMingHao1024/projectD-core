@@ -35,10 +35,11 @@ Find the specification in this order:
 If no specification exists, skip the Spec axis and state `No spec available`.
 Do not invent requirements.
 
-Load repository standards that govern the changed files: applicable `AGENTS.md`
-files, constitution or governance rules, contribution guides, language and stack
-Skills, ADRs, and documented conventions. Repository-specific rules override
-general heuristics.
+Search the repository for every file that documents how code should be written, and
+load the standards that govern the changed files: applicable `AGENTS.md` files,
+constitution or governance rules, contribution guides, language and stack Skills,
+ADRs, and documented conventions. `CODING_STANDARDS.md` and `CONTRIBUTING.md`, when
+present, must be among them. Repository-specific rules override general heuristics.
 
 ## Review independently
 
@@ -58,9 +59,10 @@ Compare the diff with the approved outcome and acceptance criteria. Find missing
 or partial requirements, unrequested scope, behavior that contradicts the spec,
 and tests that fail to demonstrate the promised outcome.
 
-Use sub-agents only when current instructions and user authorization permit it.
-Otherwise review both axes directly in the current Agent. Independence of the
-axes is required; parallel execution is not.
+Use sub-agents only when current instructions and user authorization permit it;
+when used, issue both together in the foreground and aggregate the reports they
+return. Otherwise review both axes directly in the current Agent. Independence of
+the axes is required; parallel execution is not.
 
 ## Report
 
@@ -93,3 +95,7 @@ Adapted for cross-agent use from
 Licensed under MIT; see [LICENSE](LICENSE). The adaptation adds working-tree
 review, removes the tracker setup dependency and mandatory parallel sub-agents,
 keeps both axes usable in one Agent, and makes review a read-only evidence gate.
+It also adopts two later upstream changes (reviewed at
+`49dd158d1076134a641b33efb035946536778336`): searching the repository for every
+standards file, and issuing sub-agents together in the foreground. Upstream's
+dependency on `/setup-matt-pocock-skills` for tracker setup is not adopted.
