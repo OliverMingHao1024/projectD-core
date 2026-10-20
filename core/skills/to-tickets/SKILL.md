@@ -30,6 +30,10 @@ Do not use tickets to reopen product discovery.
 6. Publish blockers before dependents. Use native blocking relationships when
    the configured tracker supports them; otherwise record `Blocked by` in each
    ticket. Never close or modify a parent issue unless separately requested.
+   When the source was an existing issue and the tracker supports parent/child
+   links, propose attaching each ticket to it as a child in step 4, so the batch
+   confirmation covers it. The link is a relationship on the new ticket; it never
+   edits or closes the parent.
 
 ## Ticket template
 
@@ -59,4 +63,8 @@ Adapted for cross-agent use from
 <https://github.com/mattpocock/skills/tree/ed37663cc5fbef691ddfecd080dff42f7e7e350d/skills/engineering/to-tickets>.
 Licensed under MIT; see [LICENSE](LICENSE). The adaptation removes
 `setup-matt-pocock-skills` and Claude-specific metadata, uses project-defined
-tracker conventions, and requires approval before local or external writes.
+tracker conventions, and requires approval before local or external writes. It also
+adopts the later upstream rule of attaching tickets to their source issue as children
+(reviewed at `49dd158d1076134a641b33efb035946536778336`), worded for any tracker with
+parent/child links and covered by the batch confirmation. Upstream's `ready-for-agent`
+label, GitLab handling, and `setup-matt-pocock-skills` dependency are not adopted.
