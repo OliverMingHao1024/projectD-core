@@ -75,6 +75,7 @@ class MattPocockSkillUpdateContractTests(unittest.TestCase):
             "implement",
             "diagnosing-bugs",
             "grilling",
+            "code-review",
         }
         adopted = {
             name: candidate
