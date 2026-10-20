@@ -7,7 +7,8 @@ description: Relentlessly stress-test an idea one question at a time when users 
 
 Interview the user relentlessly about every aspect until reaching a shared
 understanding. Walk down each branch of the decision tree, resolving dependencies
-between decisions one by one. For each question, provide a recommended answer.
+between decisions one by one. For each question, provide a recommended answer, and
+word the question so "yes" accepts that recommended answer.
 
 Ask questions one at a time and wait for feedback before continuing. Do not ask
 multiple questions at once.
@@ -38,4 +39,8 @@ precedence. Do not apply the engineering flow to non-software grilling.
 
 Adapted for cross-agent discovery from
 <https://github.com/mattpocock/skills/tree/ed37663cc5fbef691ddfecd080dff42f7e7e350d/skills/productivity/grilling>.
-Licensed under MIT; see [LICENSE](LICENSE).
+Licensed under MIT; see [LICENSE](LICENSE). It also adopts the later upstream rule
+that questions are worded so "yes" accepts the recommended answer (reviewed at
+`49dd158d1076134a641b33efb035946536778336`). Upstream's round-by-round format, which
+asks every settled-prerequisite question in one round, is not adopted: this Skill
+keeps one question at a time.
