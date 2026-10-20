@@ -67,7 +67,7 @@ Each ticket is a **child issue** of the map; the tracker's issue id is its ident
 <the decision or investigation this ticket resolves>
 ```
 
-Each ticket carries a `wayfinder:<type>` label — one of `research`, `prototype`, `grilling`, `task` (see [Ticket Types](#ticket-types)).
+Each ticket carries a `wayfinder:<type>` label — one of `research`, `prototype`, `grilling`, `task` (see [Ticket Types](#ticket-types)). `wayfinder:` labels are the only labels a map and its tickets carry, never a triage label like `ready-for-agent`: they are decisions, not implementation work.
 
 A session **claims** a ticket by assigning it to the dev driving the map, **first**, before any work, so concurrent sessions skip it. That assignee _is_ the claim: an open, unassigned ticket is unclaimed. If it isn't obvious who that is, ask — don't guess an assignee.
 
@@ -116,8 +116,8 @@ User invokes with a loose idea.
 1. **Name the destination.** Run a `grilling` and `domain-modeling` session to pin down what this map is finding its way to — the spec, decision, or change. The destination fixes the scope, so it's settled first.
 2. **Map the frontier.** Grill again, **breadth-first** this time: fan out across the whole space rather than deep on any one thread, surfacing the open decisions and the first steps takeable now. **If this surfaces no fog** — the way to the destination is already clear, the whole journey small enough for one session — you don't need a map. Stop and ask the user how they'd like to proceed.
 3. **Propose the map** (label `wayfinder:map`): Destination and Notes filled in, Decisions-so-far empty, the fog sketched into **Not yet specified**. Show it to the user before creating the issue (or the local-markdown file).
-4. **Propose the tickets you can specify now** as child issues of the map, then confirm the batch before creating them — then wire blocking edges in a **second pass** (issues need ids before they can reference each other). Wiring sorts them into the frontier and the blocked; everything you can't yet specify stays in the fog — the **Not yet specified** section.
-5. **Resolve the research tickets.** For each `research` ticket you just created, delegate it to the `research` Skill — in parallel via sub-agents if the current agent supports them, otherwise one at a time — capturing its findings; propose a throwaway `research/<name>` branch with a context pointer from the ticket, and confirm before creating it.
+4. **Propose the tickets you can specify now** as child issues of the map, then confirm the batch before creating them — then wire blocking edges in a **second pass** (issues need ids before they can reference each other). Write cross-references in that pass too, with real ids: a placeholder `#<n>` auto-links to an unrelated issue. Wiring sorts them into the frontier and the blocked; everything you can't yet specify stays in the fog — the **Not yet specified** section.
+5. **Resolve the research tickets.** For each `research` ticket you just created, delegate it to the `research` Skill — in parallel via sub-agents if the current agent supports them, otherwise one at a time — capturing its findings; propose a throwaway `research/<name>` branch with a context pointer from the ticket, and confirm before creating it. Open no pull request for it: the branch is never merged.
 6. Stop — charting is one session's work; it hand-resolves nothing.
 
 ### Work through the map
@@ -144,4 +144,7 @@ fallback inline, de-Claude-ifies every `/skill` reference and the research subag
 dispatch, replaces "update or delete" with close-and-record (tickets are never
 deleted), requires asking rather than guessing an unclear assignee, and gates every
 tracker write (map/ticket creation, claiming, commenting, closing, branch creation)
-behind explicit user confirmation.
+behind explicit user confirmation. It also adopts three later upstream changes
+(reviewed at `49dd158d1076134a641b33efb035946536778336`): `wayfinder:` labels as the
+only labels, real ids for cross-references, and no pull request for research
+branches. Upstream's dependency on `/setup-matt-pocock-skills` is not adopted.
