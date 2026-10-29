@@ -280,6 +280,59 @@ Assert-True (
     $readOnlyRedirectionAttemptRequest.effect.destructive
 ) 'Shell redirection on an otherwise read-only verb must not normalize as local-read.'
 
+$ghReadRequest = Get-RuntimeRequestFromJson -ToolName 'Bash' `
+    -ToolInputJson '{"command":"gh pr view 94 --json state"}'
+Assert-True (
+    $ghReadRequest.capability -ceq 'network-read' -and
+    $ghReadRequest.decision_outcome -ceq 'observe-only' -and
+    $ghReadRequest.effect.external -and
+    -not $ghReadRequest.effect.destructive
+) 'A read-only gh verb must normalize as network-read observe-only, not command-execute.'
+
+$ghReadChainedRequest = Get-RuntimeRequestFromJson -ToolName 'Bash' `
+    -ToolInputJson '{"command":"git status && gh pr checks 94"}'
+Assert-True (
+    $ghReadChainedRequest.capability -ceq 'network-read' -and
+    $ghReadChainedRequest.decision_outcome -ceq 'observe-only'
+) 'A chain of local-read and gh read-only segments must normalize as network-read.'
+
+$ghReadInjectionRequest = Get-RuntimeRequestFromJson -ToolName 'Bash' `
+    -ToolInputJson '{"command":"gh pr view 94; rm -rf ."}'
+Assert-True (
+    $ghReadInjectionRequest.capability -ceq 'command-execute' -and
+    $ghReadInjectionRequest.effect.external -and
+    $ghReadInjectionRequest.effect.destructive
+) 'A gh read-only prefix must not launder a non-allowlisted chained segment.'
+
+$ghApiWriteRequest = Get-RuntimeRequestFromJson -ToolName 'Bash' `
+    -ToolInputJson '{"command":"gh api -X POST repos/x/y/issues"}'
+Assert-True (
+    $ghApiWriteRequest.capability -ceq 'command-execute' -and
+    $ghApiWriteRequest.decision_outcome -ceq 'require-authorization'
+) 'gh api can write and must stay outside the read-only allowlist.'
+
+$ghAuthStatusRequest = Get-RuntimeRequestFromJson -ToolName 'Bash' `
+    -ToolInputJson '{"command":"gh auth status --show-token"}'
+Assert-True (
+    $ghAuthStatusRequest.capability -ceq 'command-execute' -and
+    $ghAuthStatusRequest.decision_outcome -ceq 'require-authorization'
+) 'gh auth status can print the token and must stay outside the read-only allowlist.'
+
+$ghReadRedirectionRequest = Get-RuntimeRequestFromJson -ToolName 'Bash' `
+    -ToolInputJson '{"command":"gh pr view 94 > out.txt"}'
+Assert-True (
+    $ghReadRedirectionRequest.capability -ceq 'command-execute' -and
+    $ghReadRedirectionRequest.decision_outcome -ceq 'require-authorization'
+) 'Shell redirection on a gh read-only verb must not normalize as network-read.'
+
+$ghMergeRequest = Get-RuntimeRequestFromJson -ToolName 'Bash' `
+    -ToolInputJson '{"command":"gh pr merge 94 --squash"}'
+Assert-True (
+    $ghMergeRequest.capability -ceq 'repository-mutate' -and
+    $ghMergeRequest.decision_outcome -ceq 'require-authorization' -and
+    $ghMergeRequest.effect.destructive
+) 'gh pr merge must remain a destructive repository-mutate requiring authorization.'
+
 $dryRunMutateOverrideRequest = Get-RuntimeRequestFromJson -ToolName 'Bash' `
     -ToolInputJson '{"command":"git push origin HEAD --dry-run"}'
 Assert-True (

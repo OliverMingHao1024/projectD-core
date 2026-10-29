@@ -316,6 +316,11 @@ function Get-ProjectDRuntimeRequest {
                 '(ls|dir|Get-ChildItem|cat|type|Get-Content|pwd|Get-Location|head|tail|wc|Select-String|grep|rg|file|stat|tree)\b',
                 '\S+\s+(--version|-v|--help|-h)\s*$'
             ) -join '|') + ').*$'
+            # GitHub CLI verbs that only read remote state. Deliberately
+            # excludes `gh api` (can send -X POST), `gh auth status`
+            # (--show-token prints the token), and every create/edit/close/
+            # merge/delete verb, which stay repository-mutate below.
+            $networkReadVerbPattern = '(?i)^gh\s+(pr\s+(view|list|checks|status|diff)|run\s+(list|view)|repo\s+view|issue\s+(view|list))\b.*$'
             # Self-reported dry-run/what-if flags are trusted only for this
             # exact long-form spelling. This is a deliberate, narrower
             # guarantee than the verb allowlist above: a verb like "git
@@ -335,10 +340,15 @@ function Get-ProjectDRuntimeRequest {
                     Where-Object { $_ }
             )
             $isReadOnlyCommand = $commandSegments.Count -gt 0
+            $hasNetworkReadSegment = $false
             foreach ($commandSegment in $commandSegments) {
                 if ($commandSegment -match $unsafeShellMetaPattern) {
                     $isReadOnlyCommand = $false
                     break
+                }
+                if ($commandSegment -match $networkReadVerbPattern) {
+                    $hasNetworkReadSegment = $true
+                    continue
                 }
                 if (
                     $commandSegment -notmatch $readOnlyVerbPattern -and
@@ -348,7 +358,13 @@ function Get-ProjectDRuntimeRequest {
                     break
                 }
             }
-            if ($isReadOnlyCommand) {
+            if ($isReadOnlyCommand -and $hasNetworkReadSegment) {
+                $capability = 'network-read'
+                $targetClass = 'external-source'
+                $classificationSource = 'deterministic-rule'
+                $external = $true
+                $reversible = 'yes'
+            } elseif ($isReadOnlyCommand) {
                 $capability = 'local-read'
                 $targetClass = 'workspace-source'
                 $classificationSource = 'deterministic-rule'
