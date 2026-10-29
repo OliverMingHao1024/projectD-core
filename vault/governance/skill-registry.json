@@ -249,6 +249,15 @@
       "decision_records": ["nexu-io/html-anything（僅留痕，偏工具型）"]
     },
     {
+      "id": "github-graphify-labs-graphify",
+      "provider": "github",
+      "repository": "Graphify-Labs/graphify",
+      "license_spdx": "Apache-2.0",
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["Graphify-Labs/graphify（使用者否決，與 codegraph 重疊）"]
+    },
+    {
       "id": "github-vercel-labs-agent-skills",
       "provider": "github",
       "repository": "vercel-labs/agent-skills",
