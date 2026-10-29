@@ -337,7 +337,7 @@
       "owner": "projectD-core",
       "status": "active",
       "risk_tier": "high",
-      "source": { "type": "repository-local", "reference": "scripts/lib/RuntimePolicy.psm1", "version": "runtime-governance-v2-policy-bundle-bound", "integrity": "sha256:93fb00ff6f001599796a1588661e8d94197da1beaad7a38b53e92204c0d55658" },
+      "source": { "type": "repository-local", "reference": "scripts/lib/RuntimePolicy.psm1", "version": "runtime-governance-v2-policy-bundle-bound", "integrity": "sha256:5ed14fde27c5f61005b88012d81708a554d5ea3335d5e12d19ef03f3a6b1fa69" },
       "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "deterministic-normalization-only", "isolation": "in-process-metadata-classification-no-direct-effect", "source_sink_policy": "reads bounded host tool metadata and returns capability/effect metadata without persisting raw input", "disable_procedure": "Remove the RuntimePolicy module import and v2 decision emission from the host operation hook, then revert the module and its contract." },
       "related_eval_cases": ["network-read-does-not-authorize-external-write", "host-permission-is-not-task-authorization", "unclassified-effect-cannot-silently-allow"]
