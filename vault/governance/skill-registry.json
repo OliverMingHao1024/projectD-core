@@ -258,6 +258,15 @@
       "decision_records": ["Graphify-Labs/graphify（使用者否決，與 codegraph 重疊）"]
     },
     {
+      "id": "github-shiyu-coder-kronos",
+      "provider": "github",
+      "repository": "shiyu-coder/Kronos",
+      "license_spdx": "MIT",
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["shiyu-coder/Kronos（使用者否決，金融預測模型非 Skill）"]
+    },
+    {
       "id": "github-vercel-labs-agent-skills",
       "provider": "github",
       "repository": "vercel-labs/agent-skills",
