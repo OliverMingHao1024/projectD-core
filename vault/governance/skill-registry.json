@@ -324,8 +324,8 @@
       "id": "github-tt-a1i-archify",
       "provider": "github",
       "repository": "tt-a1i/archify",
-      "license_spdx": "MIT",
-      "latest_observed_commit": "d8e4daf2610d512821365f41b139d874b29efe81",
+      "license_spdx": "Apache-2.0",
+      "latest_observed_commit": "a4065941f12be7967436261d9934784e381d423c",
       "migration_status": "complete",
       "decision_records": ["tt-a1i/archify"]
     }
@@ -725,8 +725,8 @@
       "id": "tt-a1i-archify--archify",
       "source_id": "github-tt-a1i-archify",
       "source_path": "archify",
-      "observed_commit": "d8e4daf2610d512821365f41b139d874b29efe81",
-      "upstream_digest": "sha256:5bb6f5535d0e4501ac51ecb8b6d2112fab58810ce18477eff1b1af71746f7f45",
+      "observed_commit": "a4065941f12be7967436261d9934784e381d423c",
+      "upstream_digest": "sha256:1f8af657564a70b2db7c4b697b70d1e01159937e0468847eeca4100472e16899",
       "lifecycle_status": "adopted",
       "target": "core/skills/archify",
       "canonical_name": "archify",
