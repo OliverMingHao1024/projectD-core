@@ -35,6 +35,10 @@
 ### mattpocock/skills（第二批：to-questionnaire / resolving-merge-conflicts / diagnosing-bugs / research / prototype / wayfinder）
 
 ### tt-a1i/archify
+- 2026-11-02 升級至上游 3.2.0（a4065941f12be7967436261d9934784e381d423c）。授權由 MIT 轉為 Apache-2.0
+  （NOTICE 保留 pre-transition commit 25cf370 以前的 MIT；LICENSE-MIT 已隨附）。
+  本地 `SKILL.md` 僅修改標頭（只留 name/description）並加註修改聲明；其餘檔案與上游一致。
+  新增 `explainer/vendor/pele` 為壓縮後第三方 JS，未能逐行審查；`bin/finalize.mjs` 會啟動子程序與 Chrome 視覺檢查。
 - 備註（治理缺口，待人工處理）：依維護契約，本條目理由應搬到
   [projectD-knowledge 的 archive](https://github.com/OliverMingHao1024/projectD-knowledge/blob/4049cdc1dfccaed8910092d499806b2e33c4ab14/archive/projectd-core/history/skill-intake/skill-candidates-full-history.md)，
   本檔只留標題。目前沒有該外部 repo 的寫入權限，完整理由暫留本檔，尚未搬遷。

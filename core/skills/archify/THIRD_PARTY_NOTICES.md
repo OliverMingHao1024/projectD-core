@@ -5,7 +5,8 @@ are provided only to identify technologies and services in user-authored
 diagrams. Their inclusion does not imply sponsorship, endorsement, partnership,
 or affiliation with Archify.
 
-The Archify MIT license applies to Archify's own code and content. It does not
+Archify's license and historical MIT grants are described in LICENSE, NOTICE,
+and LICENSE-MIT. The software license does not
 replace the copyright licenses, trademark policies, or brand guidelines that
 apply to third-party marks. Users are responsible for confirming that their
 particular use is permitted.
@@ -47,6 +48,27 @@ The OpenAI vector path is recorded from the
 [OpenAI brand guidelines](https://openai.com/brand/), not from Simple Icons.
 Use remains subject to those current guidelines and any applicable trademark
 rights. Its inclusion does not state or imply endorsement by OpenAI.
+
+## JetBrains Mono
+
+Delivered Archify viewer artifacts embed the JetBrains Mono variable font
+subsets served by Google Fonts. For characters covered by these subsets, font
+selection does not depend on a network request or a locally installed copy.
+Uncovered characters (including CJK) still use the system fallback stack;
+browser and operating-system rasterization can differ.
+JetBrains Mono is maintained at
+[github.com/JetBrains/JetBrainsMono](https://github.com/JetBrains/JetBrainsMono)
+and is distributed under the SIL Open Font License 1.1. The complete license
+text is preserved in `assets/JetBrainsMono-OFL.txt` in the packaged Skill and
+in the font CSS carried by standalone HTML and SVG exports.
+
+## Pele
+
+The explainer renders Mermaid chart fences with an unmodified subset of
+[Pele 1.3.0](https://github.com/obsidianmd/pele), copyright (c) 2026 kepano,
+distributed under the MIT License. The subset and its license text are in
+`explainer/vendor/pele/` in the packaged Skill. Charts are rendered to static
+SVG when a page is built; delivered pages contain no Pele code.
 
 ## No additional rights granted
 
