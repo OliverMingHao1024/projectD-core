@@ -144,3 +144,5 @@
 ### fucha1122/minimalist-bw-logo-skill
 
 ### Graphify-Labs/graphify（使用者否決，與 codegraph 重疊）
+
+### shiyu-coder/Kronos（使用者否決，金融預測模型非 Skill）

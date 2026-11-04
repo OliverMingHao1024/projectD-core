@@ -36,7 +36,7 @@
       "provider": "github",
       "repository": "mattpocock/skills",
       "license_spdx": "MIT",
-      "latest_observed_commit": "49dd158d1076134a641b33efb035946536778336",
+      "latest_observed_commit": "4ae2317ddb22b046e26455e4f9c9b3aaaf62212d",
       "migration_status": "complete",
       "decision_records": [
         "mattpocock/skills（grill-with-docs）",
@@ -256,6 +256,15 @@
       "latest_observed_commit": null,
       "migration_status": "needs-review",
       "decision_records": ["Graphify-Labs/graphify（使用者否決，與 codegraph 重疊）"]
+    },
+    {
+      "id": "github-shiyu-coder-kronos",
+      "provider": "github",
+      "repository": "shiyu-coder/Kronos",
+      "license_spdx": "MIT",
+      "latest_observed_commit": null,
+      "migration_status": "needs-review",
+      "decision_records": ["shiyu-coder/Kronos（使用者否決，金融預測模型非 Skill）"]
     },
     {
       "id": "github-vercel-labs-agent-skills",
@@ -509,8 +518,8 @@
       "id": "mattpocock-skills--skills-productivity-grilling",
       "source_id": "github-mattpocock-skills",
       "source_path": "skills/productivity/grilling",
-      "observed_commit": "49dd158d1076134a641b33efb035946536778336",
-      "upstream_digest": "sha256:55fc5b899fa6099ca749f282ee12e793492ad08606761686de2a50fe9b2c6083",
+      "observed_commit": "4ae2317ddb22b046e26455e4f9c9b3aaaf62212d",
+      "upstream_digest": "sha256:44cc04bac530ad47a39dbb98f4e12c310dad00f205f6b3abbdcefebda50551ab",
       "lifecycle_status": "adopted",
       "target": "core/skills/grilling",
       "canonical_name": "grilling",
@@ -653,8 +662,8 @@
       "id": "mattpocock-skills--skills-engineering-code-review",
       "source_id": "github-mattpocock-skills",
       "source_path": "skills/engineering/code-review",
-      "observed_commit": "49dd158d1076134a641b33efb035946536778336",
-      "upstream_digest": "sha256:b1e67b70731b87535a34a2d1dfe0d5d648a4c7fa33b42313542ffea79ed28a92",
+      "observed_commit": "4ae2317ddb22b046e26455e4f9c9b3aaaf62212d",
+      "upstream_digest": "sha256:3eeef344830e9e6b75744496c6a5e58633b59070a2f695654068ad35e57101aa",
       "lifecycle_status": "adopted",
       "target": "core/skills/code-review",
       "canonical_name": "code-review",
