@@ -60,8 +60,8 @@ or partial requirements, unrequested scope, behavior that contradicts the spec,
 and tests that fail to demonstrate the promised outcome.
 
 Use sub-agents only when current instructions and user authorization permit it;
-when used, issue both together in the foreground and aggregate the reports they
-return. Otherwise review both axes directly in the current Agent. Independence of
+when used, issue both together in the foreground, start each with a fresh context
+window, and aggregate the reports they return. Otherwise review both axes directly in the current Agent. Independence of
 the axes is required; parallel execution is not.
 
 ## Report
@@ -95,7 +95,8 @@ Adapted for cross-agent use from
 Licensed under MIT; see [LICENSE](LICENSE). The adaptation adds working-tree
 review, removes the tracker setup dependency and mandatory parallel sub-agents,
 keeps both axes usable in one Agent, and makes review a read-only evidence gate.
-It also adopts two later upstream changes (reviewed at
-`49dd158d1076134a641b33efb035946536778336`): searching the repository for every
-standards file, and issuing sub-agents together in the foreground. Upstream's
+It also adopts three later upstream changes (reviewed at
+`4ae2317ddb22b046e26455e4f9c9b3aaaf62212d`): searching the repository for every
+standards file, issuing sub-agents together in the foreground, and starting each
+sub-agent with a fresh context window. Upstream's
 dependency on `/setup-matt-pocock-skills` for tracker setup is not adopted.

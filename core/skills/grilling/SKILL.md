@@ -41,6 +41,8 @@ Adapted for cross-agent discovery from
 <https://github.com/mattpocock/skills/tree/ed37663cc5fbef691ddfecd080dff42f7e7e350d/skills/productivity/grilling>.
 Licensed under MIT; see [LICENSE](LICENSE). It also adopts the later upstream rule
 that questions are worded so "yes" accepts the recommended answer (reviewed at
-`49dd158d1076134a641b33efb035946536778336`). Upstream's round-by-round format, which
+`4ae2317ddb22b046e26455e4f9c9b3aaaf62212d`). Upstream's later rule to start
+fact-finding sub-agents with a fresh context window does not apply: this Skill looks
+facts up directly and does not dispatch sub-agents. Upstream's round-by-round format, which
 asks every settled-prerequisite question in one round, is not adopted: this Skill
 keeps one question at a time.
