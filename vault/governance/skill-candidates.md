@@ -34,6 +34,12 @@
 
 ### mattpocock/skills（第二批：to-questionnaire / resolving-merge-conflicts / diagnosing-bugs / research / prototype / wayfinder）
 
+### mattpocock/skills（pr / handoff）
+- 2026-11-04 採用 `pr`、`handoff`（上游 4ae2317）。同批評估後未採用：`retro`（暫不，描述預算與讀取本機對話紀錄）、
+  `wait-what`、`wizard`（處理憑證與 CI 秘密）、`teach`、`implement-spec`（與 agent-team-gate 重疊）、`triage`（寫入 issue tracker）、
+  `ask-matt`、`setup-matt-pocock-skills`（綁定上游自有流程，未讀內文）。
+  `pr` 的視覺範本源自 Dex Horthy 的 `show-me`，其原始授權未獨立驗證，已在 CREDITS.md 註明。
+
 ### tt-a1i/archify
 - 2026-11-02 升級至上游 3.2.0（a4065941f12be7967436261d9934784e381d423c）。授權由 MIT 轉為 Apache-2.0
   （NOTICE 保留 pre-transition commit 25cf370 以前的 MIT；LICENSE-MIT 已隨附）。

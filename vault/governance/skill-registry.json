@@ -44,7 +44,8 @@
         "mattpocock/skills（implement / code-review review gate）",
         "mattpocock/skills（codebase-design / domain-modeling / improve-codebase-architecture / writing-great-skills）",
         "mattpocock/skills（第二批：to-questionnaire / resolving-merge-conflicts / diagnosing-bugs / research / prototype / wayfinder）",
-        "mattpocock/skills（tdd / code-review 兩個 skill，此為舊評估範圍）"
+        "mattpocock/skills（tdd / code-review 兩個 skill，此為舊評估範圍）",
+        "mattpocock/skills（pr / handoff）"
       ]
     },
     {
@@ -668,6 +669,30 @@
       "target": "core/skills/code-review",
       "canonical_name": "code-review",
       "decision_record": "mattpocock/skills（implement / code-review review gate）",
+      "migration_status": "complete"
+    },
+    {
+      "id": "mattpocock-skills--skills-engineering-pr",
+      "source_id": "github-mattpocock-skills",
+      "source_path": "skills/engineering/pr",
+      "observed_commit": "4ae2317ddb22b046e26455e4f9c9b3aaaf62212d",
+      "upstream_digest": "sha256:9c7cd359e7bb3e03ac87038b4b022e8b953b159bb6d2e9e574655d57517a07f5",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/pr",
+      "canonical_name": "pr",
+      "decision_record": "mattpocock/skills（pr / handoff）",
+      "migration_status": "complete"
+    },
+    {
+      "id": "mattpocock-skills--skills-productivity-handoff",
+      "source_id": "github-mattpocock-skills",
+      "source_path": "skills/productivity/handoff",
+      "observed_commit": "4ae2317ddb22b046e26455e4f9c9b3aaaf62212d",
+      "upstream_digest": "sha256:a3ff7fde71a23b12f63593baba3ed6d6b9697d42affe7314005d6e9242a71621",
+      "lifecycle_status": "adopted",
+      "target": "core/skills/handoff",
+      "canonical_name": "handoff",
+      "decision_record": "mattpocock/skills（pr / handoff）",
       "migration_status": "complete"
     },
     {
