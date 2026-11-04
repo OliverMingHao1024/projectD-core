@@ -19,12 +19,12 @@ function Assert-Equal {
 
 $tempRoot = Join-Path ([IO.Path]::GetTempPath()) ('projectd-core-requirement-contract-' + [guid]::NewGuid().ToString('N'))
 $knowledgeRoot = Join-Path $tempRoot 'knowledge'
-[IO.Directory]::CreateDirectory((Join-Path $knowledgeRoot 'specs')) | Out-Null
+[IO.Directory]::CreateDirectory((Join-Path $knowledgeRoot 'docs\specs')) | Out-Null
 [IO.Directory]::CreateDirectory((Join-Path $knowledgeRoot 'scripts')) | Out-Null
 [IO.Directory]::CreateDirectory((Join-Path $knowledgeRoot 'templates\requirements')) | Out-Null
 $registryPath = Join-Path $tempRoot 'registry.json'
 try {
-    [IO.File]::WriteAllText((Join-Path $knowledgeRoot 'specs\spec-source-and-evolution.md'), '# contract', [Text.UTF8Encoding]::new($false))
+    [IO.File]::WriteAllText((Join-Path $knowledgeRoot 'docs\specs\spec-source-and-evolution.md'), '# contract', [Text.UTF8Encoding]::new($false))
     [IO.File]::WriteAllText((Join-Path $knowledgeRoot 'templates\requirements\spec-amendment.md'), '# template', [Text.UTF8Encoding]::new($false))
     [IO.File]::WriteAllText((Join-Path $knowledgeRoot 'templates\requirements\debug-record.md'), '# template', [Text.UTF8Encoding]::new($false))
     [IO.File]::WriteAllText((Join-Path $knowledgeRoot 'scripts\register-spec.ps1'), @'
@@ -49,7 +49,7 @@ param($System, $FeatureId, $RequirementId, $SourcePath, $WorkspaceRoot)
     Assert-Equal $newResult.workspace_root $knowledgeRoot 'adapter passes the resolved workspace root'
 
     $amend = & $adapter -Mode amend -System projectd -FeatureId runtime-governance -RequirementId rg-001 -RegistryPath $registryPath
-    Assert-Equal $amend.specification_path (Join-Path $knowledgeRoot 'specs\spec-source-and-evolution.md') 'adapter reports the approved specification'
+    Assert-Equal $amend.specification_path (Join-Path $knowledgeRoot 'docs\specs\spec-source-and-evolution.md') 'adapter reports the approved specification'
     Assert-Equal $amend.template_path (Join-Path $knowledgeRoot 'templates\requirements\spec-amendment.md') 'amend mode reports the workspace template'
     Assert-Equal $amend.requirement_root (Join-Path $knowledgeRoot 'requirements\projectd\runtime-governance\rg-001') 'amend mode reports the portable requirement location'
 
@@ -62,7 +62,7 @@ param($System, $FeatureId, $RequirementId, $SourcePath, $WorkspaceRoot)
     }
     Assert-True $traversalBlocked 'portable identifiers reject path traversal'
 
-    Remove-Item -LiteralPath (Join-Path $knowledgeRoot 'specs\spec-source-and-evolution.md') -Force
+    Remove-Item -LiteralPath (Join-Path $knowledgeRoot 'docs\specs\spec-source-and-evolution.md') -Force
     $missingSpecBlocked = $false
     try { & $adapter -Mode debug -RegistryPath $registryPath | Out-Null } catch {
         $missingSpecBlocked = $_.Exception.Message -match 'approved requirement specification is unavailable'
