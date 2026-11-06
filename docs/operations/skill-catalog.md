@@ -2,7 +2,7 @@
 
 ## 使用方式
 
-projectD 目前維護 47 個 Canonical Skill：38 個跨技術棧 Skill 與 9 個技術棧
+projectD 目前維護 52 個 Canonical Skill：43 個跨技術棧 Skill 與 9 個技術棧
 Pack。通常只要用自然語言描述工作，Agent 就會依 Skill 的 description 自動
 路由；需要明確指定時可說：
 
@@ -36,6 +36,9 @@ Pack。通常只要用自然語言描述工作，Agent 就會依 Skill 的 descr
 | [`agent-team-gate`](../../core/skills/agent-team-gate/SKILL.md) | 啟動多 Agent 工作前的模式選擇、派工表與寫入邊界閘門。 | 使用者要求開 agent team、平行處理，或詢問是否該開。 |
 | [`code-review`](../../core/skills/code-review/SKILL.md) | 以 Standards 與 Spec 雙軸唯讀審查程式修改。 | 審查工作樹、分支、提交或 PR。 |
 | [`security-review`](../../core/skills/security-review/SKILL.md) | 對安全邊界做證據導向的唯讀審查。 | 修改認證、秘密、敏感資料、檔案、外部 API 或部署權限。 |
+| [`git-commit`](../../core/skills/git-commit/SKILL.md) | 依刻意 stage 的變更撰寫 Conventional Commits 訊息。 | 要求 commit 或寫 commit message。 |
+| [`doc-writer`](../../core/skills/doc-writer/SKILL.md) | 為程式、模組、功能或 API 撰寫文件，預設繁體中文。 | 要求寫文件、註解或說明程式。 |
+| [`vault-doc`](../../core/skills/vault-doc/SKILL.md) | 在專案 Obsidian Vault 建立有編號的 issue、dev-log、spec 與報告。 | 寫 Vault 筆記、開／結 issue、記錄開發或歸檔交付報告。 |
 
 ## 程式結構、探索與除錯
 
@@ -45,6 +48,8 @@ Pack。通常只要用自然語言描述工作，Agent 就會依 Skill 的 descr
 | [`improve-codebase-architecture`](../../core/skills/improve-codebase-architecture/SKILL.md) | 掃描可深化的模組並產出視覺化報告。 | 想系統性找出架構改善機會。 |
 | [`codegraph`](../../core/skills/codegraph/SKILL.md) | 透過既有 CodeGraph 查符號、呼叫者與依賴。 | Repository 已有 `.codegraph` 或明確要求使用 CodeGraph。 |
 | [`diagnosing-bugs`](../../core/skills/diagnosing-bugs/SKILL.md) | 依診斷迴圈找出困難錯誤或效能退化原因。 | 發生 broken、throwing、failing、slow 或要求 debug。 |
+| [`refactor`](../../core/skills/refactor/SKILL.md) | 在測試保護下調整結構，不改變行為。 | 要求重構、整理、拆分或改名。 |
+| [`test-gen`](../../core/skills/test-gen/SKILL.md) | 依專案測試框架與慣例，替既有程式補單元測試。 | 要求寫測試或補測試覆蓋。 |
 
 ## UI、視覺與動效
 

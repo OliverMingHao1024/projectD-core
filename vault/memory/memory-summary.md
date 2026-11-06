@@ -33,12 +33,12 @@ lastUpdated: 2026-09-10
   command deny 與 metadata-only evidence；其他模型／工具、recovery、observer／cross-host
   未驗證，Pi 仍是 optional。
 - 2026-09-10：專案交付報告／分析文件（如 .docx）產出後依 vault-doc 慣例歸檔（原始檔＋
-  dev-log 同資料夾同編號），不得只留暫存目錄；規則見 `~/.claude/skills/vault-doc/SKILL.md`。
+  dev-log 同資料夾同編號），不得只留暫存目錄；規則見 `core/skills/vault-doc/SKILL.md`。
 
 ## 瘦身護欄
 
 - Session init 總量上限 10 KiB；本頁只留活躍決策與回讀路徑。
-- 全域 Skill discovery metadata 上限 6,500 characters；description 要短且保留觸發語意。
+- 全域 Skill discovery metadata 上限 7,000 characters；description 要短且保留觸發語意。
 - `_staging` 只保存仍在審查或暫留的候選；adopted/rejected 工作副本必須清出。
 - CI 不得同時個別與 aggregate 重跑同一批重型 governance contracts。
 - 刪除個別 Skill 前需有使用或品質證據；先合併可證明的薄 wrapper。
