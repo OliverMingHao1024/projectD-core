@@ -6,6 +6,22 @@ Read this reference when the C# backend transaction is layered on Systex's ESOAF
 conventions traced through actual usage across many existing transactions, not generic
 ADO.NET advice.
 
+## Impact map for a new ESOAF transaction (carried over, not yet traced)
+
+Carried over from the earlier shared `new-feature` Skill. Unlike the sections
+below, it has not been traced against existing transactions yet; confirm each
+item in the target repository before relying on it.
+
+When a feature adds a back-end transaction, list each of these before coding:
+
+- The new Handler class file, and its entry in the solution or project file.
+- The FunctionType routing entries that dispatch requests to the Handler.
+- The SQL stored procedures it calls.
+
+Build in dependency order so no layer waits on another: SQL and schema, then the
+Handler or service, then the front-end data layer, then the front-end UI. Settle
+the request and response shape before coding either side.
+
 ## Match `DbType` to whether the value can ever contain non-ASCII text (confirmed)
 
 `db.AddInParamater(name, value, dbType, cmd)` takes a `System.Data.DbType` that should match

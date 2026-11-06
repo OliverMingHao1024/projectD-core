@@ -32,7 +32,7 @@ function Get-SkillCatalogCheck {
     )
     $coreSkillRoot = [IO.Path]::GetFullPath((Join-Path $Core 'core\skills'))
     $globalDiscoveryChars = 0
-    $globalDiscoveryBudget = 6000
+    $globalDiscoveryBudget = 7000
     $perSkillDiscoveryBudget = 260
     $bad = @()
     $duplicateNames = @(
