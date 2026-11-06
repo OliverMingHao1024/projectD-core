@@ -120,7 +120,7 @@ pwsh -File scripts/uninstall.ps1
 ## 瘦身護欄
 
 - Session init 總量不得超過 10 KiB。
-- 全域 Skill discovery metadata 不得超過 6,000 characters。
+- 全域 Skill discovery metadata 不得超過 6,500 characters。
 - `_staging` 不保存 adopted/rejected 候選的完整工作副本。
 - CI 不得在 individual steps 與 aggregate check 重跑同一重型 contract。
 - 沒有使用或品質證據時，不因名稱相似大量刪除專門 Skills 或 safety evals。

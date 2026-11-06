@@ -38,7 +38,7 @@ lastUpdated: 2026-09-10
 ## 瘦身護欄
 
 - Session init 總量上限 10 KiB；本頁只留活躍決策與回讀路徑。
-- 全域 Skill discovery metadata 上限 6,000 characters；description 要短且保留觸發語意。
+- 全域 Skill discovery metadata 上限 6,500 characters；description 要短且保留觸發語意。
 - `_staging` 只保存仍在審查或暫留的候選；adopted/rejected 工作副本必須清出。
 - CI 不得同時個別與 aggregate 重跑同一批重型 governance contracts。
 - 刪除個別 Skill 前需有使用或品質證據；先合併可證明的薄 wrapper。
