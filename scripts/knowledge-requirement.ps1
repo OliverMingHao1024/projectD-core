@@ -15,9 +15,17 @@ if ([string]::IsNullOrWhiteSpace($knowledgeRoot) -or -not (Test-Path -LiteralPat
     throw 'KnowledgeWorkspaceRegistry cannot resolve projectd-knowledge.'
 }
 $knowledgeRoot = [IO.Path]::GetFullPath($knowledgeRoot)
-$specificationPath = Join-Path $knowledgeRoot 'docs\specs\spec-source-and-evolution.md'
-if (-not (Test-Path -LiteralPath $specificationPath -PathType Leaf)) {
-    throw "KnowledgeWorkspace approved requirement specification is unavailable: $specificationPath"
+# The workspace keeps the specification under specs\; older workspace layouts used docs\specs\.
+$specificationPath = $null
+foreach ($relativePath in @('specs\spec-source-and-evolution.md', 'docs\specs\spec-source-and-evolution.md')) {
+    $candidatePath = Join-Path $knowledgeRoot $relativePath
+    if (Test-Path -LiteralPath $candidatePath -PathType Leaf) {
+        $specificationPath = $candidatePath
+        break
+    }
+}
+if (-not $specificationPath) {
+    throw "KnowledgeWorkspace approved requirement specification is unavailable: $(Join-Path $knowledgeRoot 'specs\spec-source-and-evolution.md')"
 }
 
 if ($Mode -eq 'new') {
