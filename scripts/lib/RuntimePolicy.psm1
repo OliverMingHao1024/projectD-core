@@ -314,6 +314,10 @@ function Get-ProjectDRuntimeRequest {
             $readOnlyVerbPattern = '(?i)^(' + (@(
                 'git\s+(status|log|diff|show|blame|describe|rev-parse|ls-files|ls-tree|cat-file|remote(\s+-v)?|branch(\s+(--list|-v|-vv))?|tag(\s+(--list|-l))?|stash\s+list|config\s+(--get|--list|-l))\b',
                 '(ls|dir|Get-ChildItem|cat|type|Get-Content|pwd|Get-Location|head|tail|wc|Select-String|grep|rg|file|stat|tree)\b',
+                # CodeGraph query verbs only read an existing local index.
+                # init/index/sync/uninit/daemon/unlock/upgrade/install/
+                # telemetry stay command-execute.
+                'codegraph\s+(explore|query|context|node|files|status|callers|callees|impact)\b',
                 '\S+\s+(--version|-v|--help|-h)\s*$'
             ) -join '|') + ').*$'
             # GitHub CLI verbs that only read remote state. Deliberately

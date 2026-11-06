@@ -264,6 +264,26 @@ Assert-True (
     $versionQueryRequest.decision_outcome -ceq 'observe-only'
 ) 'A bare --version query on any tool must normalize as local-read.'
 
+$codegraphQueryRequest = Get-RuntimeRequestFromJson -ToolName 'PowerShell' `
+    -ToolInputJson '{"command":"codegraph explore \"payment flow\""}'
+Assert-True (
+    $codegraphQueryRequest.capability -ceq 'local-read' -and
+    $codegraphQueryRequest.decision_outcome -ceq 'observe-only'
+) 'A CodeGraph query verb must normalize as local-read.'
+
+$codegraphIndexRequest = Get-RuntimeRequestFromJson -ToolName 'PowerShell' `
+    -ToolInputJson '{"command":"codegraph init -y ."}'
+Assert-True (
+    $codegraphIndexRequest.capability -ceq 'command-execute'
+) 'CodeGraph index-mutating verbs must stay command-execute.'
+
+$codegraphInjectionRequest = Get-RuntimeRequestFromJson -ToolName 'PowerShell' `
+    -ToolInputJson '{"command":"codegraph explore x; rm -rf ."}'
+Assert-True (
+    $codegraphInjectionRequest.capability -ceq 'command-execute' -and
+    $codegraphInjectionRequest.effect.destructive
+) 'A CodeGraph query prefix must not launder a chained segment into local-read.'
+
 $readOnlyInjectionAttemptRequest = Get-RuntimeRequestFromJson -ToolName 'Bash' `
     -ToolInputJson '{"command":"git status; rm -rf .git"}'
 Assert-True (
