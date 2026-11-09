@@ -30,7 +30,7 @@
   `../../docs/specs/governance-evals-v2-phase-3.md`、`../../evals/`
 - Agent runtime 治理：`../../docs/specs/agent-runtime-governance.md`（內含本機 live pilot 證據連結）；L0–L6 保留原則權威，runtime authorization 以 provider-neutral capability/effect policy contract 表達，不把 host framework 升格為治理權威
 - 跨專案歷程：`../../core/skills/query-project-history/SKILL.md`
-- 決策與踩坑：`../../docs/history/`、`../after-action/`
+- 決策與踩坑：`../../docs/adr/`、`../after-action/`
 
 ## 載入規則
 
