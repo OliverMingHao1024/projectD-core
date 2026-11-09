@@ -16,26 +16,23 @@
 
 - L0：`../../core/constitution/rules.md`
 - L1–L6、外部整合、MCP 與 repository hosting：`operating-model.md`
-- 需求驅動開發路由（需求書開發／功能維護／debug 與常見例外）：
-  `requirement-driven-routing.md`
+- 需求驅動開發（需求書／維護／debug）：`requirement-driven-routing.md`
 - 角色：`../../core/agents/{pm,sa,ux,sd,pg,qa}.md`
-- 通用 Skills：`../../core/skills/*/SKILL.md`
+- 通用 Skills（含 security-review、select-frontend-capability）：`../../core/skills/*/SKILL.md`
 - 技術棧 packs：`../../packs/*/SKILL.md`
-- 安全審查：`../../core/skills/security-review/SKILL.md`
-- 前端選型：`../../core/skills/select-frontend-capability/SKILL.md`
 - Skill 引入：`../../docs/adr/0016-targeted-skill-intake.md`、`skill-registry.json`、
   `skill-candidates.md`
-- System Feature Wiki 核心邊界：`../../docs/specs/knowledge-workspace-boundary.md`；正式規格與專屬 ADR 位於 `projectD-knowledge`
+- System Feature Wiki 邊界：`../../docs/specs/knowledge-workspace-boundary.md`（正式規格在 `projectD-knowledge`）
 - Governance Evals：`../../docs/specs/governance-evals-v2.md`、
   `../../docs/specs/governance-evals-v2-phase-3.md`、`../../evals/`
-- Agent runtime 治理：`../../docs/specs/agent-runtime-governance.md`（內含本機 live pilot 證據連結）；L0–L6 保留原則權威，runtime authorization 以 provider-neutral capability/effect policy contract 表達，不把 host framework 升格為治理權威
+- Agent runtime 治理：`../../docs/specs/agent-runtime-governance.md`（L0–L6 仍是原則權威）
 - 跨專案歷程：`../../core/skills/query-project-history/SKILL.md`
 - 決策與踩坑：`../../docs/adr/`、`../after-action/`
 
 ## 載入規則
 
 - 先用上表選一個主要層級，再讀單一必要入口；不要預載全部 agents、Skills 或歷史。
-- 使用者用自然語句表達意圖即可；較近的專案規則與當次明確指令仍須符合 L0。
+- 較近的專案規則與當次明確指令仍須符合 L0。
 - 新增治理文件必須更新本頁，但入口只放路由與狀態，不複製正文。
-- Governance Evals 的 catalog／synthetic/contract 通過不代表真實模型或 live hooks 已通過；
-  必須有具 provenance 的 host evidence 才能升級宣稱。
+- Governance Evals／Runtime v2 的 contract 通過不代表 live hooks 已通過；完成範圍以
+  specs 為準，需具 provenance 的 host evidence 才能升級宣稱，不得宣稱完整 live interception。
