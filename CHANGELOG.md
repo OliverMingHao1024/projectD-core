@@ -7,6 +7,17 @@ internal baseline marker, not a compatibility promise.
 
 ## [Unreleased]
 
+### Added
+- `core/mods/statusbar`: Claude Code mod drawing a status bar above the prompt (model, folder and
+  git branch, context %, 5h / 7d plan usage, tokens, session cost), Apple-style capsules on desktop.
+- `core/mods/open-todos`: Claude Code mod with a side pane of open todos and active sessions across
+  every local session, grouped by project (`/todos`).
+- `statusbar`: dark capsule style, shortcut buttons (`/compact`, `/grilling`) on row two, and per-repo
+  branch capsules on their own row when the folder is a workspace root (e.g. a TFS root) rather than a repo.
+- `open-todos`: project colour spine, status palette, per-todo `Chat` button, and
+  `~/.claude/open-todos-ignore.txt` to hide projects.
+- Global wiring links each `core/mods/<name>` into `~/.claude/mods/<name>` (junction).
+
 ## [0.1.0] - 2026-08-26
 
 Initial tagged baseline. Prior history (2026-07-24 onward, ~90 commits / 31
