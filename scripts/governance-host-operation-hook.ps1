@@ -453,41 +453,21 @@ try {
     }
     $runtimePolicySchemaPath = [IO.Path]::GetFullPath($RuntimePolicySchemaPath)
     $taskAuthorizationSchemaPath = [IO.Path]::GetFullPath($TaskAuthorizationSchemaPath)
-    if (
-        -not (Test-Path -LiteralPath $schemaFullPath -PathType Leaf) -or
-        (Get-Item -LiteralPath $schemaFullPath -Force).Length -gt 1MB
-    ) {
-        throw 'SchemaPath is missing or too large.'
-    }
-    if (
-        (Get-Item -LiteralPath $schemaFullPath -Force).Attributes -band
-            [IO.FileAttributes]::ReparsePoint
-    ) {
-        throw 'SchemaPath must not be a reparse point.'
-    }
-    if (
-        -not (Test-Path -LiteralPath $runtimePolicySchemaPath -PathType Leaf) -or
-        (Get-Item -LiteralPath $runtimePolicySchemaPath -Force).Length -gt 1MB
-    ) {
-        throw 'Runtime policy schema is missing or too large.'
-    }
-    if (
-        (Get-Item -LiteralPath $runtimePolicySchemaPath -Force).Attributes -band
-            [IO.FileAttributes]::ReparsePoint
-    ) {
-        throw 'Runtime policy schema must not be a reparse point.'
-    }
-    if (
-        -not (Test-Path -LiteralPath $taskAuthorizationSchemaPath -PathType Leaf) -or
-        (Get-Item -LiteralPath $taskAuthorizationSchemaPath -Force).Length -gt 1MB
-    ) {
-        throw 'Task authorization schema is missing or too large.'
-    }
-    if (
-        (Get-Item -LiteralPath $taskAuthorizationSchemaPath -Force).Attributes -band
-            [IO.FileAttributes]::ReparsePoint
-    ) {
-        throw 'Task authorization schema must not be a reparse point.'
+    foreach ($schemaCheck in @(
+        @($schemaFullPath, 'SchemaPath is missing or too large.',
+            'SchemaPath must not be a reparse point.'),
+        @($runtimePolicySchemaPath, 'Runtime policy schema is missing or too large.',
+            'Runtime policy schema must not be a reparse point.'),
+        @($taskAuthorizationSchemaPath, 'Task authorization schema is missing or too large.',
+            'Task authorization schema must not be a reparse point.')
+    )) {
+        $schemaInfo = [IO.FileInfo]::new($schemaCheck[0])
+        if (-not $schemaInfo.Exists -or $schemaInfo.Length -gt 1MB) {
+            throw $schemaCheck[1]
+        }
+        if ($schemaInfo.Attributes -band [IO.FileAttributes]::ReparsePoint) {
+            throw $schemaCheck[2]
+        }
     }
     $runtimePolicyDigest = Get-ProjectDRuntimePolicyDigest `
         -GovernanceCommonPath $governanceCommonModule `
@@ -564,7 +544,7 @@ try {
     if (Test-PathHasReparsePoint -Root $root -ResolvedPath $logDirectory) {
         throw 'Operation-log directory must not cross a reparse point.'
     }
-    New-Item -ItemType Directory -Path $logDirectory -Force | Out-Null
+    [void][IO.Directory]::CreateDirectory($logDirectory)
     if (Test-PathHasReparsePoint -Root $root -ResolvedPath $logDirectory) {
         throw 'Operation-log directory must not cross a reparse point.'
     }
@@ -581,7 +561,7 @@ try {
     if (Test-PathHasReparsePoint -Root $root -ResolvedPath $policyDirectory) {
         throw 'Runtime-policy directory must not cross a reparse point.'
     }
-    New-Item -ItemType Directory -Path $policyDirectory -Force | Out-Null
+    [void][IO.Directory]::CreateDirectory($policyDirectory)
     if (Test-PathHasReparsePoint -Root $root -ResolvedPath $policyDirectory) {
         throw 'Runtime-policy directory must not cross a reparse point.'
     }
@@ -592,7 +572,7 @@ try {
     $authorizationPath = Join-Path $authorizationDirectory "$taskRef.json"
     foreach ($candidate in @($logPath, $lockPath, $policyPath, $authorizationPath)) {
         if (
-            (Test-Path -LiteralPath $candidate) -and
+            ([IO.File]::Exists($candidate) -or [IO.Directory]::Exists($candidate)) -and
             (Test-PathHasReparsePoint -Root $root -ResolvedPath $candidate)
         ) {
             throw 'Operation-log paths must not cross a reparse point.'
