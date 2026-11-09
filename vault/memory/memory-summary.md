@@ -7,7 +7,7 @@ lastUpdated: 2026-09-10
 # projectD-core 工作記憶
 
 本頁只保存跨 session 仍會影響決策的短索引；完整推導與時間線在
-`docs/history/`、`docs/adr/`、`vault/governance/` 與 Git history，命中任務時才回讀。
+`docs/adr/`、`vault/governance/` 與 Git history，命中任務時才回讀。
 
 ## 穩定事實
 
@@ -50,5 +50,5 @@ lastUpdated: 2026-09-10
   `vault/governance/skill-candidates.md`
 - Governance Evals：`docs/specs/governance-evals-v2.md`、
   `docs/specs/governance-evals-v2-phase-3.md`
-- 決策與實作歷程：`docs/history/`、`docs/adr/`
+- 決策與實作歷程：`docs/adr/`、Git history
 - 可重複踩坑：`vault/after-action/`

@@ -2,7 +2,7 @@
 
 ## 使用方式
 
-projectD 目前維護 46 個 Canonical Skill：37 個跨技術棧 Skill 與 9 個技術棧
+projectD 目前維護 48 個 Canonical Skill：39 個跨技術棧 Skill 與 9 個技術棧
 Pack。通常只要用自然語言描述工作，Agent 就會依 Skill 的 description 自動
 路由；需要明確指定時可說：
 
@@ -33,6 +33,8 @@ Pack。通常只要用自然語言描述工作，Agent 就會依 Skill 的 descr
 | [`implement`](../../core/skills/implement/SKILL.md) | 依核准範圍實作、測試並完成強制審查。 | 規格或票券已確定，要求正式實作。 |
 | [`minimal-implementation-ladder`](../../core/skills/minimal-implementation-ladder/SKILL.md) | 實作前依階梯判斷要做多大，避免多餘程式碼、依賴與抽象。 | 評估功能、修復或重構的範圍，或考慮新增檔案、依賴、抽象。 |
 | [`agent-team-gate`](../../core/skills/agent-team-gate/SKILL.md) | 啟動多 Agent 工作前的模式選擇、派工表與寫入邊界閘門。 | 使用者要求開 agent team、平行處理，或詢問是否該開。 |
+| [`handoff`](../../core/skills/handoff/SKILL.md) | 把目前對話整理成交接文件給下一個 Agent。 | 只在使用者明確要求交接時。 |
+| [`pr`](../../core/skills/pr/SKILL.md) | 撰寫含摘要圖、驗證證據與合併風險的 PR 內文。 | 準備開 PR、需要寫 PR body。 |
 | [`code-review`](../../core/skills/code-review/SKILL.md) | 以 Standards 與 Spec 雙軸唯讀審查程式修改。 | 審查工作樹、分支、提交或 PR。 |
 | [`security-review`](../../core/skills/security-review/SKILL.md) | 對安全邊界做證據導向的唯讀審查。 | 修改認證、秘密、敏感資料、檔案、外部 API 或部署權限。 |
 
@@ -57,6 +59,7 @@ Pack。通常只要用自然語言描述工作，Agent 就會依 Skill 的 descr
 | [`review-animations`](../../core/skills/review-animations/SKILL.md) | 專門審查動效目的、連續性、中斷性、無障礙與效能。 | 已有動效 diff、元件或原型需要審查。 |
 | [`select-frontend-capability`](../../core/skills/select-frontend-capability/SKILL.md) | 以需求選擇或替換前端能力與依賴。 | 選 UI primitive、表單、狀態、動效、圖表或 styling 方案。 |
 | [`show-me`](../../core/skills/show-me/SKILL.md) | 用最小且忠實的視覺呈現流程、結構、比較或狀態變化。 | 明確要求看圖、流程或關係，或短文無法清楚表達時。 |
+| [`archify`](../../core/skills/archify/SKILL.md) | 從文字或 Mermaid 產生互動式 HTML 圖表（架構、流程、序列、ERD 等）或說明頁。 | 要把系統、資料結構或答案視覺化成獨立 HTML。 |
 | [`visual-direction`](../../core/skills/visual-direction/SKILL.md) | 在實作前建立或審查有證據的視覺方向。 | 新介面、改版或視覺過於普通且不一致。 |
 | [`gpt-image-2-style-library`](../../core/skills/gpt-image-2-style-library/SKILL.md) | 從 awesome-gpt-image-2 style library 選定 GPT-Image2 視覺風格與提示詞模板。 | 需要撰寫、改寫或分類 GPT-Image2（或相容模型）的圖像生成提示詞。 |
 
