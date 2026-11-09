@@ -9,3 +9,5 @@ __pycache__/
 .claude/settings.local.json
 containers/*/.env
 containers/devspace-isolation/scripts/devtunnel-watchdog-hidden.vbs
+# types the Claude Code mod engine writes into a loaded mod
+core/mods/*/.claude-plugin/types/

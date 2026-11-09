@@ -193,6 +193,12 @@ Assert-True (
     (Get-Item (Join-Path $GlobalRoot 'agents\skills\research')).LinkType -eq
         'Junction'
 ) 'Global desired state must expose core Skill junctions.'
+foreach ($ModName in @('statusbar', 'open-todos')) {
+    Assert-True (
+        (Get-Item (Join-Path $GlobalRoot "claude\mods\$ModName")).LinkType -eq
+            'Junction'
+    ) "Global desired state must link the $ModName mod into ~/.claude/mods."
+}
 Assert-True (
     -not (Test-Path (Join-Path $GlobalRoot 'agents\skills\python'))
 ) 'Global desired state must keep stack packs out of the global catalog.'

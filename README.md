@@ -49,6 +49,7 @@ Debug 的具體分流見 [需求驅動開發路由](vault/governance/requirement
 | `core/constitution/rules.md` | L0 憲法 |
 | `core/agents/` | 六個可選角色 |
 | `core/skills/` | 跨技術棧通用 Skills |
+| `core/mods/` | Claude Code 介面 mod（狀態列、待辦面板），由 setup 接到 `~/.claude/mods/` |
 | `packs/` | 專案範圍技術棧 Skills；`_staging` 不可信、不可載入 |
 | `vault/` | 身份、短工作記憶、治理路由與決策索引 |
 | `fleet/` | 專案清單與 scoped pack 接線 |

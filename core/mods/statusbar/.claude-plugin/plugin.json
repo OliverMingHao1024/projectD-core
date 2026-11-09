@@ -1,0 +1,6 @@
+{
+  "name": "statusbar",
+  "version": "1.0.0",
+  "description": "輸入框上方的狀態列：模型、資料夾與 git 分支、上下文、5h/7d 用量、token 與本次花費",
+  "author": { "name": "OliverMingHao1024" }
+}

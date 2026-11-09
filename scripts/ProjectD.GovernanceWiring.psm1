@@ -193,6 +193,24 @@ function New-GlobalGovernanceWiring {
             -Owner $owner `
             -DesiredState $desiredState))
     }
+    # Claude Code mods (core/mods/<name> with .claude-plugin/plugin.json) are linked
+    # into ~/.claude/mods/<name>; settings.json env CLAUDE_CODE_PLUGIN_DIRS names them.
+    $modRoot = Join-Path $resolvedCore 'core\mods'
+    if (Test-Path -LiteralPath $modRoot -PathType Container) {
+        foreach ($mod in @(
+            Get-ChildItem -LiteralPath $modRoot -Directory |
+                Where-Object {
+                    Test-Path -LiteralPath (
+                        Join-Path $_.FullName '.claude-plugin\plugin.json'
+                    )
+                }
+        )) {
+            $resources.Add((New-JunctionResource `
+                -Path (Join-Path (Join-Path $ClaudeHome 'mods') $mod.Name) `
+                -Target $mod.FullName `
+                -Owner $owner))
+        }
+    }
     foreach ($retiredSkill in @('grill-me')) {
         $retiredTarget = Join-Path $resolvedCore "core\skills\$retiredSkill"
         foreach ($skillRoot in @($claudeSkills, $SharedAgentSkills)) {
