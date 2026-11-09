@@ -72,7 +72,14 @@ function Invoke-ProjectDGovernanceHook {
             -PassThru `
             -WindowStyle Hidden
         if (-not $process.WaitForExit($TimeoutSeconds * 1000)) {
-            Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
+            # Kill the whole tree: the check starts child pwsh processes that
+            # inherit the redirected output files, and killing only the
+            # direct child left them running and holding those files open.
+            try {
+                $process.Kill($true)
+            } catch [InvalidOperationException] {
+                # Already exited between the wait and the kill.
+            }
             $process.WaitForExit()
             return [pscustomobject]@{
                 event = $normalizedEvent
