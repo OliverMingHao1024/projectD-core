@@ -128,7 +128,8 @@ Session 只常駐 [`vault/governance/INDEX.md`](vault/governance/INDEX.md) 的�
 
 ### 角色
 
-六個角色是可選能力，不是固定流水線。定義在 [`core/agents/`](core/agents/)。
+PM／SA／UX／SD／PG／QA 依任務風險選用，不強迫低風險工作跑完整角色鏈。定義在
+[`core/agents/`](core/agents/)。
 
 | 角色 | 何時用 |
 |---|---|
