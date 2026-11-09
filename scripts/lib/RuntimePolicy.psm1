@@ -283,6 +283,10 @@ function Get-ProjectDRuntimeRequest {
     $destructive = $false
     $reversible = 'unknown'
 
+    $agentIsolation = if ($name -match '^(agent|task)$') {
+        Get-JsonStringProperty -Element $ToolInput -Name 'isolation'
+    } else { $null }
+
     if ($name -match '^(read|glob|grep|list|search_files|find)$') {
         $capability = 'local-read'
         $targetClass = 'workspace-source'
@@ -291,6 +295,39 @@ function Get-ProjectDRuntimeRequest {
     } elseif ($name -match '^(askuserquestion|elicitation)$') {
         $capability = 'local-read'
         $targetClass = 'user-input'
+        $classificationSource = 'deterministic-rule'
+        $reversible = 'yes'
+    } elseif (
+        $name -match '^(agent|task)$' -and
+        [string]::IsNullOrWhiteSpace($agentIsolation)
+    ) {
+        # Spawning a local subagent is delegation, not an effect: every tool
+        # call the subagent makes passes through these same hooks. Remote
+        # (cloud, outside local hooks) and worktree (creates repository
+        # state) isolation stay unclassified.
+        $capability = 'local-read'
+        $targetClass = 'agent-delegation'
+        $classificationSource = 'deterministic-rule'
+        $reversible = 'yes'
+    } elseif ($name -ceq 'subagenthandback') {
+        # Returns the subagent's report text to its parent only.
+        $capability = 'local-read'
+        $targetClass = 'agent-delegation'
+        $classificationSource = 'deterministic-rule'
+        $reversible = 'yes'
+    } elseif ($name -ceq 'toolsearch') {
+        $capability = 'local-read'
+        $targetClass = 'host-tool-schema'
+        $classificationSource = 'deterministic-rule'
+        $reversible = 'yes'
+    } elseif ($name -cin @(
+        'mcp__ccd_turn__update_plan',
+        'mcp__ccd_turn__wrap_up'
+    )) {
+        # Exact desktop-app task-list and wrap-up UI tools only; any other
+        # MCP name keeps the token rules below.
+        $capability = 'local-read'
+        $targetClass = 'host-ui'
         $classificationSource = 'deterministic-rule'
         $reversible = 'yes'
     } elseif ($name -match '^(apply_patch|edit|write|notebookedit)$') {
@@ -312,7 +349,9 @@ function Get-ProjectDRuntimeRequest {
             $classificationText = Get-ProjectDCommandClassificationText `
                 -Command $command
             $readOnlyVerbPattern = '(?i)^(' + (@(
-                'git\s+(status|log|diff|show|blame|describe|rev-parse|ls-files|ls-tree|cat-file|remote(\s+-v)?|branch(\s+(--list|-v|-vv))?|tag(\s+(--list|-l))?|stash\s+list|config\s+(--get|--list|-l))\b',
+                # Optional case-sensitive -C <path>; lowercase -c sets inline
+                # config (pager/alias can run commands) and stays excluded.
+                'git\s+((?-i:-C)\s+\S+\s+)?(status|log|diff|show|blame|describe|rev-parse|ls-files|ls-tree|cat-file|remote(\s+-v)?|branch(\s+(--list|-v|-vv))?|tag(\s+(--list|-l))?|stash\s+list|config\s+(--get|--list|-l))\b',
                 '(ls|dir|Get-ChildItem|cat|type|Get-Content|pwd|Get-Location|head|tail|wc|Select-String|grep|rg|file|stat|tree)\b',
                 # CodeGraph query verbs only read an existing local index.
                 # init/index/sync/uninit/daemon/unlock/upgrade/install/

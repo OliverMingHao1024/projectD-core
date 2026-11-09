@@ -284,6 +284,82 @@ Assert-True (
     $codegraphInjectionRequest.effect.destructive
 ) 'A CodeGraph query prefix must not launder a chained segment into local-read.'
 
+$gitDashCReadRequest = Get-RuntimeRequestFromJson -ToolName 'Bash' `
+    -ToolInputJson '{"command":"git -C \"D:/workspaces/other repo\" log --oneline -5"}'
+Assert-True (
+    $gitDashCReadRequest.capability -ceq 'local-read' -and
+    $gitDashCReadRequest.decision_outcome -ceq 'observe-only'
+) 'git -C <path> followed by a read-only verb must normalize as local-read.'
+
+$gitDashCMutateRequest = Get-RuntimeRequestFromJson -ToolName 'Bash' `
+    -ToolInputJson '{"command":"git -C repo commit -m wip"}'
+Assert-True (
+    $gitDashCMutateRequest.capability -cne 'local-read'
+) 'git -C <path> followed by a mutating verb must not become local-read.'
+
+$gitLowerCConfigRequest = Get-RuntimeRequestFromJson -ToolName 'Bash' `
+    -ToolInputJson '{"command":"git -c core.pager=evil log"}'
+Assert-True (
+    $gitLowerCConfigRequest.capability -cne 'local-read'
+) 'git -c (inline config, can run commands via pager/alias) must not become local-read.'
+
+$gitDashCInjectionRequest = Get-RuntimeRequestFromJson -ToolName 'Bash' `
+    -ToolInputJson '{"command":"git -C repo status; rm -rf ."}'
+Assert-True (
+    $gitDashCInjectionRequest.capability -ceq 'command-execute' -and
+    $gitDashCInjectionRequest.effect.destructive
+) 'A git -C read prefix must not launder a chained segment into local-read.'
+
+$agentDelegationRequest = Get-RuntimeRequestFromJson -ToolName 'Agent' `
+    -ToolInputJson '{"description":"Read docs","prompt":"Summarize docs/","subagent_type":"Explore"}'
+Assert-True (
+    $agentDelegationRequest.capability -ceq 'local-read' -and
+    $agentDelegationRequest.target_class -ceq 'agent-delegation' -and
+    $agentDelegationRequest.decision_outcome -ceq 'observe-only'
+) 'Spawning a local subagent must normalize as local-read delegation; its own tool calls are hooked separately.'
+
+$agentRemoteRequest = Get-RuntimeRequestFromJson -ToolName 'Agent' `
+    -ToolInputJson '{"description":"x","prompt":"y","isolation":"remote"}'
+Assert-True (
+    $agentRemoteRequest.capability -ceq 'unclassified-effect'
+) 'A remote subagent runs outside local hooks and must stay unclassified.'
+
+$agentWorktreeRequest = Get-RuntimeRequestFromJson -ToolName 'Agent' `
+    -ToolInputJson '{"description":"x","prompt":"y","isolation":"worktree"}'
+Assert-True (
+    $agentWorktreeRequest.capability -ceq 'unclassified-effect'
+) 'A worktree subagent creates repository state and must stay unclassified.'
+
+$subagentHandbackRequest = Get-RuntimeRequestFromJson `
+    -ToolName 'SubagentHandback' -ToolInputJson '{"report":"done"}'
+Assert-True (
+    $subagentHandbackRequest.capability -ceq 'local-read' -and
+    $subagentHandbackRequest.target_class -ceq 'agent-delegation' -and
+    $subagentHandbackRequest.decision_outcome -ceq 'observe-only'
+) 'A subagent returning its report to the parent must normalize as local-read delegation.'
+
+$toolSearchRequest = Get-RuntimeRequestFromJson -ToolName 'ToolSearch' `
+    -ToolInputJson '{"query":"select:WebFetch","max_results":1}'
+Assert-True (
+    $toolSearchRequest.capability -ceq 'local-read' -and
+    $toolSearchRequest.decision_outcome -ceq 'observe-only'
+) 'Loading a deferred tool schema must normalize as local-read.'
+
+foreach ($hostUiTool in @('mcp__ccd_turn__update_plan', 'mcp__ccd_turn__wrap_up')) {
+    $hostUiRequest = Get-RuntimeRequestFromJson -ToolName $hostUiTool `
+        -ToolInputJson '{"recap":"x"}'
+    Assert-True (
+        $hostUiRequest.capability -ceq 'local-read' -and
+        $hostUiRequest.target_class -ceq 'host-ui'
+    ) "The host task-list UI tool $hostUiTool must normalize as local-read host-ui."
+}
+
+$similarMcpRequest = Get-RuntimeRequestFromJson `
+    -ToolName 'mcp__other__update_plan' -ToolInputJson '{}'
+Assert-True (
+    $similarMcpRequest.capability -ceq 'external-write'
+) 'Only the exact host UI tool names are allowlisted; similar MCP names keep their classification.'
+
 $readOnlyInjectionAttemptRequest = Get-RuntimeRequestFromJson -ToolName 'Bash' `
     -ToolInputJson '{"command":"git status; rm -rf .git"}'
 Assert-True (
