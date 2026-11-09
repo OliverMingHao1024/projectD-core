@@ -789,11 +789,29 @@ try {
     }
 
     $claude = Get-Content -Raw -LiteralPath $claudeConfig | ConvertFrom-Json
+    # Pure local read tools are an explicit, documented coverage exclusion
+    # (they are always advisory observe-only); every other tool name,
+    # including unknown ones, must still match.
+    $claudeMatcher = '^(?!(Read|Glob|Grep)$).*'
+    foreach ($excluded in @('Read', 'Glob', 'Grep')) {
+        Assert-True (-not [regex]::IsMatch($excluded, $claudeMatcher)) (
+            "The Claude matcher must exclude exactly $excluded."
+        )
+    }
+    foreach ($covered in @(
+        'Write', 'Edit', 'Bash', 'PowerShell', 'Agent', 'WebFetch',
+        'NotebookEdit', 'ReadMe', 'Reader', 'GrepX', 'read', 'mcp__x__read',
+        'mcp__ccd_turn__update_plan', 'UnknownFutureTool'
+    )) {
+        Assert-True ([regex]::IsMatch($covered, $claudeMatcher)) (
+            "The Claude matcher must still cover $covered."
+        )
+    }
     foreach ($event in @('PreToolUse', 'PostToolUse', 'PostToolUseFailure')) {
         $entries = @($claude.hooks.$event)
         Assert-True ($entries.Count -eq 1) "Claude must register $event once."
-        Assert-True ($entries[0].matcher -ceq '*') (
-            "Claude $event must cover every hook-visible tool path."
+        Assert-True ($entries[0].matcher -ceq $claudeMatcher) (
+            "Claude $event must cover every hook-visible tool path except the documented pure reads."
         )
         Assert-True (-not [bool]$entries[0].hooks[0].async) (
             "Claude $event durability hook must be synchronous."
