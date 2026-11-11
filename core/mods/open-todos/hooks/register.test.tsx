@@ -83,6 +83,32 @@ test('a failed collect says why', async ($, on) => {
   await ui.unmount()
 })
 
+for (const surface of ['terminal', 'desktop'] as const) {
+  test(`done buttons mark a todo or the whole session on ${surface}`, async ($, on) => {
+    const runs: string[][] = []
+    on('command.register', () => ({ value: { command: 'todos' } }))
+    on('ui.open', () => ({ value: { isPlaced: true } }))
+    on('clock.every', () => ({ value: {} }))
+    on('process.run', (_: any, e: any) => {
+      runs.push(e.argv)
+      return { value: { exitCode: 0, stdout: JSON.stringify(SESSIONS), stderr: '' } }
+    })
+    on('session.start', (_: any, e: any) => ({ cwd: e.cwd }))
+    await $.session.start({ cwd: '/', surface, isInteractive: true })
+    await $.command.run({ command: 'todos', args: '' } as any)
+    const ui = await $.ui.mount({ ...PANE, surface })
+
+    await ui.press({ key: 'done-aaaa1111-0000-寫測試' })
+    const one = runs.find(argv => argv.includes('--done') && argv.length === 5)
+    expect(one?.slice(-3)).toEqual(['--done', 'aaaa1111-0000', '寫測試'])
+
+    await ui.press({ key: 'done-all-aaaa1111-0000' })
+    const all = runs.find(argv => argv.includes('--done') && argv.length === 4)
+    expect(all?.slice(-2)).toEqual(['--done', 'aaaa1111-0000'])
+    await ui.unmount()
+  })
+}
+
 test('grouping and labels', () => {
   expect(projectName('D:\\a\\b\\')).toBe('b')
   expect(projectName('C:/x/scratch-workspaces/1/2')).toBe('無資料夾')
