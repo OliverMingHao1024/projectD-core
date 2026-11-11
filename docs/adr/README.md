@@ -23,6 +23,12 @@ KnowledgeWorkspace-owned ADRs are maintained in
 Their former core copies remain available through Git history and the knowledge
 repository; they are not current projectD-core decisions.
 
+## Numbering gaps
+
+ADR 0004, 0006–0009, 0011–0014 are absent on purpose. They were
+KnowledgeWorkspace decisions and were removed from core in commit `7628d69`
+(#63); see the knowledge repository above or Git history. Numbers are not reused.
+
 ## Reading rules
 
 1. Read the current specification first when an ADR names

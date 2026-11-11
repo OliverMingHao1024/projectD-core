@@ -17,6 +17,14 @@ internal baseline marker, not a compatibility promise.
 - `open-todos`: project colour spine, status palette, per-todo `Chat` button, and
   `~/.claude/open-todos-ignore.txt` to hide projects.
 - Global wiring links each `core/mods/<name>` into `~/.claude/mods/<name>` (junction).
+- `implement`: strict verification evidence rules (#108).
+- Governance: skill catalog coverage check and stale vault-doc memory removed (#110); subagents,
+  tool search, host UI and `git -C` reads allowed, plus local evidence pruning (#111);
+  Claude hooks skipped for pure Read/Glob/Grep (#112); hook path speedup, prune schedule,
+  init trim and timeout fix (#113).
+- `open-todos`: reads desktop step lists and adds done buttons (#114).
+
+> Entries after 0.1.0 are abridged from PR titles; `git log` is authoritative.
 
 ## [0.1.0] - 2026-08-26
 
