@@ -12,13 +12,7 @@ Import-Module (Join-Path $core 'scripts\lib\GovernanceCommon.psm1') -Force
 Import-Module $runtimePolicyModule -Force
 $runtimePolicyDigest = Get-ProjectDRuntimePolicyDigest -ProjectRoot $core
 
-function Assert-True {
-    param(
-        [Parameter(Mandatory)][bool]$Condition,
-        [Parameter(Mandatory)][string]$Message
-    )
-    if (-not $Condition) { throw "Assertion failed: $Message" }
-}
+. (Join-Path $PSScriptRoot 'TestAssertions.ps1')
 
 Assert-True ($runtimePolicyDigest -match '^sha256:[a-f0-9]{64}$') (
     'The current policy bundle must have a deterministic SHA-256 identity.'

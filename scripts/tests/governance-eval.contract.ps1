@@ -7,10 +7,7 @@ $eval = Join-Path $core 'scripts\governance-eval.ps1'
 $baseline = Join-Path $core 'evals\governance-baseline.json'
 $tempRoot = Join-Path ([IO.Path]::GetTempPath()) "governance-eval-$PID"
 
-function Assert-True {
-    param([Parameter(Mandatory)][bool]$Condition, [Parameter(Mandatory)][string]$Message)
-    if (-not $Condition) { throw "Assertion failed: $Message" }
-}
+. (Join-Path $PSScriptRoot 'TestAssertions.ps1')
 
 try {
     $healthy = & $eval -ProjectRoot $core -BaselinePath $baseline -Json |

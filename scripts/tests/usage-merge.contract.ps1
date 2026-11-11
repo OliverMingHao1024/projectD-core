@@ -10,13 +10,7 @@ $stateSchemaPath = Join-Path $core (
 )
 $tempRoot = Join-Path ([IO.Path]::GetTempPath()) "usage-merge-$PID"
 
-function Assert-True {
-    param(
-        [Parameter(Mandatory)][bool]$Condition,
-        [Parameter(Mandatory)][string]$Message
-    )
-    if (-not $Condition) { throw "Assertion failed: $Message" }
-}
+. (Join-Path $PSScriptRoot 'TestAssertions.ps1')
 
 function Write-JsonFixture {
     param(

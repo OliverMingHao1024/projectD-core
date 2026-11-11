@@ -11,13 +11,7 @@ $projectionSchemaPath = Join-Path $core (
 $eventSchemaPath = Join-Path $core 'evals\schemas\usage-events.schema.json'
 $tempRoot = Join-Path ([IO.Path]::GetTempPath()) "claude-usage-ledger-$PID"
 
-function Assert-True {
-    param(
-        [Parameter(Mandatory)][bool]$Condition,
-        [Parameter(Mandatory)][string]$Message
-    )
-    if (-not $Condition) { throw "Assertion failed: $Message" }
-}
+. (Join-Path $PSScriptRoot 'TestAssertions.ps1')
 
 function Assert-Throws {
     param(

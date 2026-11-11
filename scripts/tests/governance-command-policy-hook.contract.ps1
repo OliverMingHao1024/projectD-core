@@ -12,13 +12,7 @@ $tempRoot = Join-Path ([IO.Path]::GetTempPath()) (
 $repoRoot = Join-Path $tempRoot 'repo'
 $registryPath = Join-Path $tempRoot 'project-classification.json'
 
-function Assert-True {
-    param(
-        [Parameter(Mandatory)][bool]$Condition,
-        [Parameter(Mandatory)][string]$Message
-    )
-    if (-not $Condition) { throw "Assertion failed: $Message" }
-}
+. (Join-Path $PSScriptRoot 'TestAssertions.ps1')
 
 <#
 Registration via the hook's own -RegisterCurrentRepo/-RegisterCurrentMachine

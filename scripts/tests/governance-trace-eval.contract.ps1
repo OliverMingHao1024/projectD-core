@@ -9,10 +9,7 @@ $schema = Join-Path $core 'evals\schemas\governance-task-traces.schema.json'
 $catalog = Join-Path $core 'evals\governance-behavior-cases.json'
 $tempRoot = Join-Path ([IO.Path]::GetTempPath()) "governance-trace-$PID"
 
-function Assert-True {
-    param([Parameter(Mandatory)][bool]$Condition, [Parameter(Mandatory)][string]$Message)
-    if (-not $Condition) { throw "Assertion failed: $Message" }
-}
+. (Join-Path $PSScriptRoot 'TestAssertions.ps1')
 
 function Invoke-JsonProcess {
     param(
