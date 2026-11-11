@@ -31,7 +31,7 @@ lastUpdated: 2026-11-11
 
 ## 瘦身護欄
 
-- `scripts/projectd-check.ps1` 強制：session init ≤ 10 KiB、Skill discovery ≤ 6,000
+- `scripts/projectd-check.ps1` 強制：session init ≤ 10 KiB、Skill discovery ≤ 7,000
   字、`_staging` 只留審查中候選、CI 不重跑重型 contracts。
 - 刪除個別 Skill 前需有使用或品質證據；先合併可證明的薄 wrapper。
 
