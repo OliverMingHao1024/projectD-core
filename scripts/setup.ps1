@@ -32,6 +32,27 @@ function Write-WiringPlan {
     }
 }
 
+function Write-PruneScheduleHint {
+    # Advisory only: a missing schedule never fails setup or Check.
+    $scheduleScript = Join-Path $PSScriptRoot 'governance-prune-schedule.ps1'
+    try {
+        $status = & $scheduleScript -Action Status
+    } catch {
+        Write-Host "[SKIP] 無法查詢本機證據清理排程：$($_.Exception.Message)" `
+            -ForegroundColor DarkGray
+        return
+    }
+    if ($status.registered) {
+        Write-Host "[PASS] 本機證據清理排程已註冊（$($status.task_name)）。" `
+            -ForegroundColor Green
+        return
+    }
+    Write-Host (
+        '[WARN] 本機證據清理排程未註冊，.local/governance/ 會一直變大。' +
+        '註冊：pwsh -File scripts\governance-prune-schedule.ps1 -Action Register'
+    ) -ForegroundColor Yellow
+}
+
 $core = Resolve-ProjectDCore -ScriptRoot $PSScriptRoot
 $wiring = New-GlobalGovernanceWiring -Core $core
 
@@ -68,6 +89,7 @@ if ($Mode -eq 'Check') {
         )
     }
     Write-Host '[PASS] 全域治理接線符合 desired state。' -ForegroundColor Green
+    Write-PruneScheduleHint
     return
 }
 
@@ -75,5 +97,6 @@ $changed = @($plan | Where-Object Operation -NE 'None').Count
 Write-Host (
     "[PASS] 全域治理接線已套用並驗證；$changed resource(s) changed."
 ) -ForegroundColor Green
+Write-PruneScheduleHint
 Write-Host '可選本機歷程搜尋：.\scripts\setup-project-history.ps1（不會自動下載）'
 Write-Host '回滾：pwsh -File scripts\uninstall.ps1'

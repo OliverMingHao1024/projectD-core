@@ -1,0 +1,6 @@
+{
+  "name": "open-todos",
+  "version": "1.0.0",
+  "description": "側欄面板：依專案列出所有 Claude Code session 未完成的待辦，以及正在執行的 session",
+  "author": { "name": "OliverMingHao1024" }
+}

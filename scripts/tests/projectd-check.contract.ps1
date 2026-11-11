@@ -52,6 +52,11 @@ try {
         @($json.checks |
             Where-Object name -EQ 'knowledge-requirement-contract').Count -eq 1
     ) 'Unified check must validate the KnowledgeWorkspace requirement adapter.'
+    Assert-True (
+        @($json.checks | Where-Object {
+            $_.name -eq 'skill-catalog-doc' -and $_.passed
+        }).Count -eq 1
+    ) 'Unified check must confirm every canonical Skill is listed in the Skill catalog.'
     $checkContent = Get-Content -Raw -LiteralPath $check
     Assert-True (
         $checkContent.Contains('[switch]$SkipFleet')
@@ -107,6 +112,36 @@ try {
             @($governanceJson.checks | Where-Object name -CEQ $name).Count -eq 1
         ) "Unified check must report $name separately."
     }
+
+    $tempCatalog = Join-Path $tempRoot 'skill-catalog.md'
+    Set-Content `
+        -LiteralPath $tempCatalog `
+        -Value '| [`grilling`](../../core/skills/grilling/SKILL.md) | stub | stub |' `
+        -Encoding utf8
+    $catalogJson = (
+        & $check `
+            -ProjectRoot $core `
+            -SkillCatalogPath $tempCatalog `
+            -SkipFleet `
+            -SkipGlobal `
+            -SkipWiring `
+            -Json |
+            ConvertFrom-Json
+    )
+    $catalogCheck = @(
+        $catalogJson.checks | Where-Object name -EQ 'skill-catalog-doc'
+    )
+    Assert-True (
+        $catalogCheck.Count -eq 1 -and -not $catalogCheck[0].passed
+    ) 'A Skill catalog that omits canonical Skills must fail.'
+    Assert-True (
+        $catalogCheck[0].message.Contains('code-review') -and
+        $catalogCheck[0].message.Contains('python') -and
+        -not $catalogCheck[0].message.Contains('grilling')
+    ) 'The catalog check must name exactly the missing Skills and packs.'
+    Assert-True (
+        -not $catalogJson.passed
+    ) 'A failed catalog check must fail the unified result.'
 
     Set-Content `
         -LiteralPath $tempFleet `

@@ -67,13 +67,17 @@ priority: high
 
 使用具檔案讀寫或 shell 執行能力的 MCP server（例如 DevSpace）時：
 
-- 禁止匿名公開 Tunnel（如 `devtunnel --allow-anonymous`）；經 AppLocker/WDAC 等應用程式
+- 預設禁止匿名公開 Tunnel（如 `devtunnel --allow-anonymous`）；經 AppLocker/WDAC 等應用程式
   控制技術性封鎖，不僅列為政策禁止。優先使用已驗證的 Secure Tunnel 或受控 reverse proxy。
+  唯一例外：DevSpace 跑在隔離容器內，且目前 repository／機器登記為 `personal`
+  （ADR 0017，fail-closed）；其他情況一律維持禁止。
 - 執行環境使用非 root、單一 repo bind-mount 的 rootless container；不得以日常高權限帳號
   或 Administrator/root 直接執行 shell；不掛 Docker socket、SSH agent、host `~/.ssh`／
   `~/.aws`／`~/.kube`。
 - Egress 預設 deny，經白名單 proxy（而非僅防火牆規則）強制放行必要目的地。
-- 決策理由與取捨見 `../../docs/adr/0015-isolate-ai-agent-mcp-server-execution.md`；依據
+- 決策理由與取捨見 `../../docs/adr/0015-isolate-ai-agent-mcp-server-execution.md`，
+  匿名 Tunnel 例外見
+  `../../docs/adr/0017-allow-anonymous-devtunnel-for-isolated-devspace-on-personal-registrations.md`；依據
   2026-08-12 DevSpace MCP 資安風險評估與重新導入安全指引（Offense 335495 事件後修訂版）。
 
 ## L2 判斷層

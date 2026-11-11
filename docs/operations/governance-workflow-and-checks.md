@@ -142,6 +142,30 @@ pwsh -File scripts/governance-host-upgrade-gate.ps1 `
   -CandidateManifestPath .local/governance/candidate.json
 ```
 
+### 清理本機 runtime evidence
+
+每次工具呼叫都會在 `.local/governance/` 留下 log、lock 與 decision 檔，不會自動清除。
+定期用下列指令清掉超過保留天數的檔案；預設 `Check` 只列出，不刪除：
+
+```powershell
+pwsh -File scripts/governance-prune-local-evidence.ps1 -Verbose
+pwsh -File scripts/governance-prune-local-evidence.ps1 -Mode Apply -RetentionDays 30
+```
+
+只會刪：已完成（`open`）的 operation log 與其 lock、decision；沒有對應 log 的舊 lock 與
+decision；過期超過保留天數的 task authorization。`requires-reconciliation` 的 log、
+無法解析的檔案與 `*.error.log` 一律保留。
+
+每天約新增 200 個檔案，建議讓 Windows 每天自動跑一次（目前使用者、不提權；錯過的
+排程會在下次登入補跑）：
+
+```powershell
+pwsh -File scripts/governance-prune-schedule.ps1                    # 只顯示排程內容
+pwsh -File scripts/governance-prune-schedule.ps1 -Action Register   # 建立或更新
+pwsh -File scripts/governance-prune-schedule.ps1 -Action Status
+pwsh -File scripts/governance-prune-schedule.ps1 -Action Unregister
+```
+
 Codex／Claude manual-import 參數、schema 與 evidence 語意以
 [`governance-evals-v2-phase-3.md`](../specs/governance-evals-v2-phase-3.md) 為準。
 

@@ -35,6 +35,15 @@ Implement incrementally. Run focused tests and static checks during the work,
 then run the broadest relevant suite justified by the change before declaring it
 complete. Report checks that could not run and why.
 
+Treat verification evidence strictly:
+
+- Judge a check by its own exit code, not by the last command in a pipeline
+  (for example `| tail` or `| Select-Object`) that only reshapes its output.
+- Report each required check as passed, failed, or not run. A required check
+  that did not run is never reported as passing.
+- Only checks run after the last code change count. Re-run affected checks
+  after any later edit, including review fixes.
+
 ## Complete the review gate
 
 Classify the result:
@@ -65,7 +74,9 @@ Adapted for cross-agent use from
 <https://github.com/mattpocock/skills/tree/ed37663cc5fbef691ddfecd080dff42f7e7e350d/skills/engineering/implement>.
 Licensed under MIT; see [LICENSE](LICENSE). The adaptation makes TDD conditional,
 loads project-specific guidance instead of prescribing coding rules, requires a
-bounded `code-review` gate for behavioral changes, and removes automatic commit.
+bounded `code-review` gate for behavioral changes, adds strict verification
+evidence rules (informed by pixiu-core's verify loop), and removes automatic
+commit.
 It also adopts two later upstream changes (reviewed at
 `49dd158d1076134a641b33efb035946536778336`): fetching a passed ticket reference
 (read-only here) and the explicit "call the Skill tool" wording. Upstream's

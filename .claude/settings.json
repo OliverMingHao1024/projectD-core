@@ -1,9 +1,8 @@
 {
-  "outputStyle": "zh-tw-explainer",
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "*",
+        "matcher": "^(?!(Read|Glob|Grep)$).*",
         "hooks": [
           {
             "type": "command",
@@ -32,7 +31,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "*",
+        "matcher": "^(?!(Read|Glob|Grep)$).*",
         "hooks": [
           {
             "type": "command",
@@ -51,7 +50,7 @@
     ],
     "PostToolUseFailure": [
       {
-        "matcher": "*",
+        "matcher": "^(?!(Read|Glob|Grep)$).*",
         "hooks": [
           {
             "type": "command",

@@ -117,7 +117,7 @@
       "owner": "projectD-core",
       "status": "active",
       "risk_tier": "medium",
-      "source": { "type": "repository-local", "reference": "scripts/projectd-check.ps1", "version": "git-tracked", "integrity": "sha256:9a77d82d8d5afacbe331512974be00f766f41afb7c8d003e7ee4a56fb897ee25" },
+      "source": { "type": "repository-local", "reference": "scripts/projectd-check.ps1", "version": "git-tracked", "integrity": "sha256:efb014d1835e17821a8e59c21f2f8eb1505e408a223bade466e0fdb3c07c9487" },
       "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "read-only-check", "isolation": "bounded-repository-roots", "source_sink_policy": "no-external-communication", "disable_procedure": "Remove the check from the local hook and CI workflow, retaining the previous git version for rollback." },
       "related_eval_cases": ["failed-verification-cannot-claim-success"]
@@ -271,7 +271,7 @@
       "owner": "projectD-core",
       "status": "active",
       "risk_tier": "high",
-      "source": { "type": "repository-local", "reference": "scripts/lib/GovernanceCommon.psm1", "version": "git-tracked", "integrity": "sha256:4fa81d606c7edb1987513750dc0d420754bebe1f8631255e8c9e02eebf3586f7" },
+      "source": { "type": "repository-local", "reference": "scripts/lib/GovernanceCommon.psm1", "version": "git-tracked", "integrity": "sha256:c18e4ae5b06b1a15c2735c83dc218b16a0190614f8996bb35713ce2a2dc3be47" },
       "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": false, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "inherits-importing-tool-approval-policy", "isolation": "bounded-repository-paths-and-no-reparse", "source_sink_policy": "known-secret-markers-rejected-and-repository-paths-bounded-with-no-reparse", "disable_procedure": "Remove the Import-Module reference from its consuming scripts, restore each script's previous inline copy of these functions from git history, and delete this file." },
       "related_eval_cases": ["untrusted-content-cannot-exfiltrate-secrets", "governance-update-preserves-regression-threshold"]
@@ -337,7 +337,7 @@
       "owner": "projectD-core",
       "status": "active",
       "risk_tier": "high",
-      "source": { "type": "repository-local", "reference": "scripts/lib/RuntimePolicy.psm1", "version": "runtime-governance-v2-policy-bundle-bound", "integrity": "sha256:7369418a1675f61fd2eeefa7378a4405fa888bbd63af3012c6858a65297f7c42" },
+      "source": { "type": "repository-local", "reference": "scripts/lib/RuntimePolicy.psm1", "version": "runtime-governance-v2-policy-bundle-bound", "integrity": "sha256:588f44264541cf16b37ae2a724f54ffd12e4f34eea2b1b07b0c5394d601b14bf" },
       "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "deterministic-normalization-only", "isolation": "in-process-metadata-classification-no-direct-effect", "source_sink_policy": "reads bounded host tool metadata and returns capability/effect metadata without persisting raw input", "disable_procedure": "Remove the RuntimePolicy module import and v2 decision emission from the host operation hook, then revert the module and its contract." },
       "related_eval_cases": ["network-read-does-not-authorize-external-write", "host-permission-is-not-task-authorization", "unclassified-effect-cannot-silently-allow"]
@@ -359,7 +359,7 @@
       "owner": "projectD-core",
       "status": "active",
       "risk_tier": "critical",
-      "source": { "type": "repository-local", "reference": "scripts/governance-host-operation-hook.ps1", "version": "runtime-governance-v2-structured-fail-closed-enforcement", "integrity": "sha256:3904d67fb27c70725d3bcdc86c68424807ed8900267972c219f7d6a3dfb46540" },
+      "source": { "type": "repository-local", "reference": "scripts/governance-host-operation-hook.ps1", "version": "runtime-governance-v2-structured-fail-closed-enforcement", "integrity": "sha256:9346f979e62f0f3a371ee5c10dbb6377db73b96ae17e1139fed05561a37d550c" },
       "capabilities": { "read": true, "write": true, "destructive": true, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "effectful-task-envelope-enforced-host-permission-never-promoted", "isolation": "bounded-stdin-per-tool-single-writer-gitignored-repository-output-and-no-reparse", "source_sink_policy": "raw-tool-input-output-and-errors-stay-in-memory-only-policy-and-authorization-evidence-are-metadata-only", "disable_procedure": "Remove the entries from .codex/hooks.json and .claude/settings.json, then retain or remove ignored local evidence and authorization envelopes according to the operator's retention policy." },
       "related_eval_cases": ["interrupted-task-reads-checkpoint-before-resume", "source-does-not-authorize-action", "untrusted-content-cannot-exfiltrate-secrets"]

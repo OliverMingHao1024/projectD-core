@@ -2,6 +2,7 @@
 param(
     [string]$ProjectRoot = (Split-Path -Parent $PSScriptRoot),
     [string]$FleetPath,
+    [string]$SkillCatalogPath,
     [switch]$Json,
     [switch]$SkipFleet,
     [switch]$SkipGlobal,
@@ -13,6 +14,9 @@ $ErrorActionPreference = 'Stop'
 $core = [IO.Path]::GetFullPath($ProjectRoot)
 if ([string]::IsNullOrWhiteSpace($FleetPath)) {
     $FleetPath = Join-Path $core 'fleet\fleet.json'
+}
+if ([string]::IsNullOrWhiteSpace($SkillCatalogPath)) {
+    $SkillCatalogPath = Join-Path $core 'docs\operations\skill-catalog.md'
 }
 $results = @()
 function Add-Result([string]$n,[bool]$p,[string]$m){$script:results+=,[pscustomobject]@{name=$n;passed=$p;message=$m}}
@@ -134,6 +138,49 @@ function Get-SkillCatalogCheck {
         name = 'skill-catalog'
         passed = $true
         message = $discoveryMessage
+    }
+}
+
+function Get-SkillCatalogDocCheck {
+    param(
+        [Parameter(Mandatory)][string]$Core,
+        [Parameter(Mandatory)][string]$CatalogPath
+    )
+
+    if (-not (Test-Path -LiteralPath $CatalogPath -PathType Leaf)) {
+        return [pscustomobject]@{
+            name = 'skill-catalog-doc'
+            passed = $false
+            message = "Skill catalog not found: $CatalogPath"
+        }
+    }
+    $catalog = Get-Content -Raw -LiteralPath $CatalogPath
+    $names = @(
+        foreach ($root in @(
+            (Join-Path $Core 'core\skills'),
+            (Join-Path $Core 'packs')
+        )) {
+            Get-ChildItem -LiteralPath $root -Directory |
+                Where-Object Name -NotLike '_*' |
+                ForEach-Object Name
+        }
+    )
+    $missing = @(
+        $names | Where-Object { -not $catalog.Contains("[``$_``](") }
+    )
+    if ($missing.Count -gt 0) {
+        return [pscustomobject]@{
+            name = 'skill-catalog-doc'
+            passed = $false
+            message = (
+                'Skill catalog is missing: ' + ($missing -join ', ')
+            )
+        }
+    }
+    return [pscustomobject]@{
+        name = 'skill-catalog-doc'
+        passed = $true
+        message = "$($names.Count) canonical skill(s) listed in the catalog"
     }
 }
 
@@ -495,6 +542,7 @@ function Get-FleetCatalogCheck {
 
 foreach ($checkResult in @(
     Get-SkillCatalogCheck -Core $core
+    Get-SkillCatalogDocCheck -Core $core -CatalogPath $SkillCatalogPath
     Get-SkillRegistryCheck -Core $core
     Get-IndexRoutingCheck -Core $core
     Get-SessionInitBudgetCheck -Core $core
@@ -684,6 +732,7 @@ if($null -eq $pwsh){
     Add-Result 'usage-monitoring-rollout-contract' $false 'pwsh executable not found'
     Add-Result 'claude-usage-collect-contract' $false 'pwsh executable not found'
     Add-Result 'codex-usage-collect-contract' $false 'pwsh executable not found'
+    Add-Result 'governance-prune-local-evidence-contract' $false 'pwsh executable not found'
 }else{
     Child 'fleet-inspect-contract' {
         & $pwsh.Source -NoProfile -File (
@@ -756,6 +805,13 @@ if($null -eq $pwsh){
     Child 'codex-usage-collect-contract' {
         & $pwsh.Source -NoProfile -File (
             Join-Path $core 'scripts\tests\codex-usage-collect.contract.ps1'
+        )
+    }
+    Child 'governance-prune-local-evidence-contract' {
+        & $pwsh.Source -NoProfile -File (
+            Join-Path $core (
+                'scripts\tests\governance-prune-local-evidence.contract.ps1'
+            )
         )
     }
 }
