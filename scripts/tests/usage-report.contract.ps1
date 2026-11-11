@@ -9,13 +9,7 @@ $reportSchemaPath = Join-Path $core 'evals\schemas\usage-report.schema.json'
 $mergeRunPath = Join-Path $core 'scripts\usage-merge-run.ps1'
 $tempRoot = Join-Path ([IO.Path]::GetTempPath()) "usage-report-$PID"
 
-function Assert-True {
-    param(
-        [Parameter(Mandatory)][bool]$Condition,
-        [Parameter(Mandatory)][string]$Message
-    )
-    if (-not $Condition) { throw "Assertion failed: $Message" }
-}
+. (Join-Path $PSScriptRoot 'TestAssertions.ps1')
 
 function Write-JsonFixture {
     param(

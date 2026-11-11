@@ -12,13 +12,7 @@ $catalogSchema = Join-Path $core 'evals\schemas\governance-behavior-cases.schema
 $trialsSchema = Join-Path $core 'evals\schemas\governance-behavior-trials.schema.json'
 $tempRoot = Join-Path ([IO.Path]::GetTempPath()) "governance-upgrade-gate-$PID"
 
-function Assert-True {
-    param(
-        [Parameter(Mandatory)][bool]$Condition,
-        [Parameter(Mandatory)][string]$Message
-    )
-    if (-not $Condition) { throw "Assertion failed: $Message" }
-}
+. (Join-Path $PSScriptRoot 'TestAssertions.ps1')
 
 function Invoke-ScriptProcess {
     param(

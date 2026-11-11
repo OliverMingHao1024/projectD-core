@@ -9,13 +9,7 @@ $adapterPath = Join-Path $core 'scripts\hooks\pre-push'
 $checkPath = Join-Path $core 'scripts\projectd-check.ps1'
 $tempRoot = Join-Path ([IO.Path]::GetTempPath()) "governance-hook-$PID"
 
-function Assert-True {
-    param(
-        [Parameter(Mandatory)][bool]$Condition,
-        [Parameter(Mandatory)][string]$Message
-    )
-    if (-not $Condition) { throw "Assertion failed: $Message" }
-}
+. (Join-Path $PSScriptRoot 'TestAssertions.ps1')
 
 try {
     Assert-True (Test-Path -LiteralPath $modulePath -PathType Leaf) (

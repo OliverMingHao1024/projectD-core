@@ -18,13 +18,7 @@ Import-Module (Join-Path $core 'scripts\lib\GovernanceCommon.psm1') -Force
 Import-Module (Join-Path $core 'scripts\lib\RuntimePolicy.psm1') -Force
 $runtimePolicyDigest = Get-ProjectDRuntimePolicyDigest -ProjectRoot $core
 
-function Assert-True {
-    param(
-        [Parameter(Mandatory)][bool]$Condition,
-        [Parameter(Mandatory)][string]$Message
-    )
-    if (-not $Condition) { throw "Assertion failed: $Message" }
-}
+. (Join-Path $PSScriptRoot 'TestAssertions.ps1')
 
 function Copy-JsonValue {
     param([Parameter(Mandatory)]$Value)

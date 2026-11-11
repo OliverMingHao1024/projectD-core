@@ -11,13 +11,7 @@ $tempRoot = Join-Path ([IO.Path]::GetTempPath()) (
 $logDirectory = Join-Path $tempRoot '.local\governance\operation-hooks\codex'
 $oldTime = '2026-09-01T00:00:00Z'
 
-function Assert-True {
-    param(
-        [Parameter(Mandatory)][bool]$Condition,
-        [Parameter(Mandatory)][string]$Message
-    )
-    if (-not $Condition) { throw "Assertion failed: $Message" }
-}
+. (Join-Path $PSScriptRoot 'TestAssertions.ps1')
 
 function New-OrphanedLog {
     param(

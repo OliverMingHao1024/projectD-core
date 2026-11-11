@@ -10,10 +10,7 @@ $tempProject = Join-Path $tempRoot 'project'
 $stdoutPath = Join-Path $tempRoot 'stdout.json'
 $stderrPath = Join-Path $tempRoot 'stderr.txt'
 
-function Assert-True {
-    param([Parameter(Mandatory)][bool]$Condition, [Parameter(Mandatory)][string]$Message)
-    if (-not $Condition) { throw "Assertion failed: $Message" }
-}
+. (Join-Path $PSScriptRoot 'TestAssertions.ps1')
 
 try {
     New-Item -ItemType Directory -Path $tempProject -Force | Out-Null
