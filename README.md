@@ -206,6 +206,10 @@ pwsh -NoProfile -File scripts/governance-task-authorization.ps1 `
 
 接著照提示親手輸入 `AUTHORIZE claude workspace-write workspace-file`。
 
+> Session 若跑在 git worktree（例如 `.claude/worktrees/<name>`），hook 仍以主 checkout
+> 為 project root 記錄 decision；請在主 checkout 根目錄執行上面的指令，否則會出現
+> 「no runtime-policy directory exists」。
+
 - 授權綁定同一個 session、同一份 policy digest，最長 24 小時。
 - 改到 policy 相關檔案會讓所有現有授權立即失效（防止 agent 邊改規則邊放寬自己）。
 - `-CapabilitySet governance-dev` 一次授權三組常用的非對外、非破壞性權限。
@@ -323,19 +327,9 @@ python -m pytest tests/
 
 ## 目前狀態與邊界
 
-- Governance Evals Phase 1–2 已完成。Phase 3 有 contracts、adapters、logs、hooks、gates
-  與 bounded single-host 證據；live runner、observers、broader pilots、paired
-  authorization、Copilot 與 cross-host matrix 尚未完成。
-- Runtime Governance v2：2026-09-04 在 Codex 與 Claude 各完成一次 bounded single-host
-  實機驗證（read 放行、授權後 workspace write 放行、未授權指令拒絕）。之後的唯讀分類
-  放寬（2026-09-06 shell 唯讀清單與 dry-run、2026-10-20 `gh` 讀取、2026-11-06
-  `codegraph` 查詢）改變了 policy digest，只有 contract 測試，尚未重新做實機驗證；
-  當時「`git status` 被拒絕」的證據已不代表現行規則。
-- Recovery、crash／reopen、observer 與其他模型／工具路徑尚未實機驗證。
-- Copilot 尚未接上 `setup.ps1` 或 runtime hook。
-- 本機 runtime state 外移到 `PROJECTD_STATE_HOME`／`PROJECTD_CACHE_HOME` 已核准設計，
-  尚未實作（[規格](docs/specs/external-runtime-state.md)）。
-- Pi runtime 不屬於 mandatory core，只能是 optional adapter。
+會隨時間變動的驗證狀態（Governance Evals 進度、Runtime v2 實機驗證、尚未接上的 host）
+集中在 [目前狀態與邊界](docs/operations/current-status.md)。重點：contract 測試通過不代表
+live hook 已實機驗證。
 
 ## 瘦身護欄
 

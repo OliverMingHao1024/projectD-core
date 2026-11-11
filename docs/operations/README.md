@@ -2,6 +2,7 @@
 
 | 文件 | 用途 |
 | --- | --- |
+| [目前狀態與邊界](current-status.md) | 各項治理能力的驗證進度、尚未實機驗證的範圍與日期。 |
 | [治理接線與驗證](governance-workflow-and-checks.md) | 安裝、Fleet、治理檢查、line-ending recovery 與離線 evidence 工具。 |
 | [Runtime Governance v2 Codex Live Pilot](runtime-governance-v2-codex-live-pilot.md) | 執行 current-policy Codex bounded single-host allow／deny 驗證。 |
 | [Codex Hook 間歇性失敗診斷](codex-hook-intermittent-failure-diagnostic.md) | 保留 Windows hook transport 的診斷結果、歷史證據與適用邊界。 |

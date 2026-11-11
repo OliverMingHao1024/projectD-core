@@ -1,7 +1,7 @@
 ---
 type: memory-summary
 readAt: session-start
-lastUpdated: 2026-11-09
+lastUpdated: 2026-11-11
 ---
 
 # projectD-core 工作記憶
@@ -18,6 +18,8 @@ lastUpdated: 2026-11-09
 - projectD repositories 使用 Git/GitHub；F25B 專案才依證據路由 TFS。
 - 跨專案知識內容屬於獨立 `projectD-knowledge`；core 只保留 portable contract、adapter
   與治理決策。
+- Hook 延遲主因是本機 `pwsh` 啟動（2026-11-11 實測空啟動約 1.8 秒，hook 約 2.3 秒）；
+  關閉 telemetry／update check 無效，IT 無法加防毒例外。優化 hook 腳本效益有限。
 
 ## 現行決策
 
