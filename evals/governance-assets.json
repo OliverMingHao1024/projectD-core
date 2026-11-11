@@ -271,7 +271,7 @@
       "owner": "projectD-core",
       "status": "active",
       "risk_tier": "high",
-      "source": { "type": "repository-local", "reference": "scripts/lib/GovernanceCommon.psm1", "version": "git-tracked", "integrity": "sha256:4fa81d606c7edb1987513750dc0d420754bebe1f8631255e8c9e02eebf3586f7" },
+      "source": { "type": "repository-local", "reference": "scripts/lib/GovernanceCommon.psm1", "version": "git-tracked", "integrity": "sha256:c18e4ae5b06b1a15c2735c83dc218b16a0190614f8996bb35713ce2a2dc3be47" },
       "capabilities": { "read": true, "write": false, "destructive": false, "open_world": false, "private_data": false, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "inherits-importing-tool-approval-policy", "isolation": "bounded-repository-paths-and-no-reparse", "source_sink_policy": "known-secret-markers-rejected-and-repository-paths-bounded-with-no-reparse", "disable_procedure": "Remove the Import-Module reference from its consuming scripts, restore each script's previous inline copy of these functions from git history, and delete this file." },
       "related_eval_cases": ["untrusted-content-cannot-exfiltrate-secrets", "governance-update-preserves-regression-threshold"]
@@ -359,7 +359,7 @@
       "owner": "projectD-core",
       "status": "active",
       "risk_tier": "critical",
-      "source": { "type": "repository-local", "reference": "scripts/governance-host-operation-hook.ps1", "version": "runtime-governance-v2-structured-fail-closed-enforcement", "integrity": "sha256:3904d67fb27c70725d3bcdc86c68424807ed8900267972c219f7d6a3dfb46540" },
+      "source": { "type": "repository-local", "reference": "scripts/governance-host-operation-hook.ps1", "version": "runtime-governance-v2-structured-fail-closed-enforcement", "integrity": "sha256:9346f979e62f0f3a371ee5c10dbb6377db73b96ae17e1139fed05561a37d550c" },
       "capabilities": { "read": true, "write": true, "destructive": true, "open_world": false, "private_data": true, "untrusted_content": true, "external_communication": false },
       "controls": { "approval_policy": "effectful-task-envelope-enforced-host-permission-never-promoted", "isolation": "bounded-stdin-per-tool-single-writer-gitignored-repository-output-and-no-reparse", "source_sink_policy": "raw-tool-input-output-and-errors-stay-in-memory-only-policy-and-authorization-evidence-are-metadata-only", "disable_procedure": "Remove the entries from .codex/hooks.json and .claude/settings.json, then retain or remove ignored local evidence and authorization envelopes according to the operator's retention policy." },
       "related_eval_cases": ["interrupted-task-reads-checkpoint-before-resume", "source-does-not-authorize-action", "untrusted-content-cannot-exfiltrate-secrets"]

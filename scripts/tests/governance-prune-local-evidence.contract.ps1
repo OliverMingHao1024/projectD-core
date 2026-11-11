@@ -110,6 +110,22 @@ try {
     }
     Assert-True $rejected 'A zero-day retention must be rejected.'
 
+    # The scheduler wrapper's default action must only describe the task,
+    # and the task must call the prune script in Apply mode for this root
+    # without elevation.
+    $schedule = Join-Path $core 'scripts\governance-prune-schedule.ps1'
+    $definition = & $schedule -ProjectRoot $core
+    Assert-True ($definition.task_name -ceq 'projectD-governance-prune-local-evidence') (
+        'Schedule must use the fixed projectD task name.'
+    )
+    Assert-True ($definition.run_level -ceq 'Limited') 'Schedule must not run elevated.'
+    Assert-True ($definition.arguments.Contains(
+        "-File `"$prune`" -Mode Apply -RetentionDays 30 -ProjectRoot `"$core`""
+    )) "Schedule must call the prune script in Apply mode; got $($definition.arguments)."
+    $badTimeRejected = $false
+    try { & $schedule -ProjectRoot $core -At '25:00' } catch { $badTimeRejected = $true }
+    Assert-True $badTimeRejected 'Schedule must reject an invalid time of day.'
+
     Write-Output 'GOVERNANCE_PRUNE_LOCAL_EVIDENCE_CONTRACT_OK'
 } finally {
     if (Test-Path -LiteralPath $tempRoot) {

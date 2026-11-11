@@ -156,6 +156,16 @@ pwsh -File scripts/governance-prune-local-evidence.ps1 -Mode Apply -RetentionDay
 decision；過期超過保留天數的 task authorization。`requires-reconciliation` 的 log、
 無法解析的檔案與 `*.error.log` 一律保留。
 
+每天約新增 200 個檔案，建議讓 Windows 每天自動跑一次（目前使用者、不提權；錯過的
+排程會在下次登入補跑）：
+
+```powershell
+pwsh -File scripts/governance-prune-schedule.ps1                    # 只顯示排程內容
+pwsh -File scripts/governance-prune-schedule.ps1 -Action Register   # 建立或更新
+pwsh -File scripts/governance-prune-schedule.ps1 -Action Status
+pwsh -File scripts/governance-prune-schedule.ps1 -Action Unregister
+```
+
 Codex／Claude manual-import 參數、schema 與 evidence 語意以
 [`governance-evals-v2-phase-3.md`](../specs/governance-evals-v2-phase-3.md) 為準。
 

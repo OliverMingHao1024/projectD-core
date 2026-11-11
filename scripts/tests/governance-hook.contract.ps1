@@ -29,10 +29,13 @@ try {
     )
 
     Import-Module $modulePath -Force
+    # Generous timeout: this case checks the allow decision, not speed, and
+    # the full repository check can take minutes on a loaded workstation.
     $pass = Invoke-ProjectDGovernanceHook `
         -Event PrePush `
         -ProjectRoot $core `
-        -CheckArguments @('-SkipFleet', '-SkipGlobal', '-SkipWiring')
+        -CheckArguments @('-SkipFleet', '-SkipGlobal', '-SkipWiring') `
+        -TimeoutSeconds 300
     Assert-True ($pass.decision -eq 'allow') (
         'Healthy repository-local checks must allow pre-push.'
     )
@@ -76,13 +79,27 @@ try {
         -Encoding utf8
     Set-Content `
         -LiteralPath (Join-Path $timeoutRoot 'scripts\projectd-check.ps1') `
-        -Value 'Start-Sleep -Seconds 10' `
+        -Value (
+            "Set-Content -LiteralPath '$timeoutRoot\child-started' -Value x`n" +
+            "& '$((Get-Command pwsh).Source)' -NoProfile -Command 'Start-Sleep -Seconds 120'"
+        ) `
         -Encoding utf8
+    # The fixture check starts a grandchild that inherits the redirected
+    # output files. A timeout must kill the whole tree; killing only the
+    # direct child leaves the grandchild holding the temp files open.
     $timedOut = Invoke-ProjectDGovernanceHook `
         -Event PrePush `
         -ProjectRoot $timeoutRoot `
         -CheckArguments @() `
-        -TimeoutSeconds 1
+        -TimeoutSeconds 8
+    Assert-True (Test-Path -LiteralPath (Join-Path $timeoutRoot 'child-started')) (
+        'Timeout fixture must have started its grandchild before the timeout.'
+    )
+    $orphans = @(Get-CimInstance Win32_Process -Filter "Name='pwsh.exe'" |
+        Where-Object { $_.CommandLine -like '*Start-Sleep -Seconds 120*' })
+    Assert-True ($orphans.Count -eq 0) (
+        'A timeout must not leave the check''s child processes running.'
+    )
     Assert-True ($timedOut.decision -eq 'block') (
         'A timed-out governance check must block pre-push.'
     )

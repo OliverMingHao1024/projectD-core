@@ -46,19 +46,26 @@ function Test-PathHasReparsePoint {
         [Parameter(Mandatory)][string]$Root,
         [Parameter(Mandatory)][string]$ResolvedPath
     )
-    $rootItem = Get-Item -LiteralPath $Root -Force
-    if ($rootItem.Attributes -band [IO.FileAttributes]::ReparsePoint) {
+    # Direct .NET attribute reads instead of Get-Item/Test-Path/Join-Path:
+    # same per-component check, without provider overhead on every hook
+    # call. GetAttributes does not follow links, so a link component (even a
+    # dangling one) reports ReparsePoint; a missing component is skipped.
+    $reparse = [IO.FileAttributes]::ReparsePoint
+    if ([IO.File]::GetAttributes($Root) -band $reparse) {
         return $true
     }
     $relative = $ResolvedPath.Substring($Root.Length).TrimStart('\', '/')
     $current = $Root
-    foreach ($part in @($relative -split '[\\/]' | Where-Object { $_ })) {
-        $current = Join-Path $current $part
-        if (Test-Path -LiteralPath $current) {
-            $item = Get-Item -LiteralPath $current -Force
-            if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
+    foreach ($part in $relative.Split(
+        [char[]]@('\', '/'), [StringSplitOptions]::RemoveEmptyEntries
+    )) {
+        $current = [IO.Path]::Combine($current, $part)
+        try {
+            if ([IO.File]::GetAttributes($current) -band $reparse) {
                 return $true
             }
+        } catch [IO.FileNotFoundException], [IO.DirectoryNotFoundException] {
+            continue
         }
     }
     return $false
