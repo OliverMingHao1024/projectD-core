@@ -120,7 +120,23 @@ async function collect($: EngineInterface): Promise<void> {
   }
 }
 
-const TODO_TOOLS = ['TodoWrite', 'TaskCreate', 'TaskUpdate']
+// The terminal's todo tools, and the desktop Code tab's step list (update_plan, wrap_up).
+const isTodoTool = (tool: string) =>
+  ['TodoWrite', 'TaskCreate', 'TaskUpdate'].includes(tool) || /(^|__)(update_plan|wrap_up)$/.test(tool)
+
+// Marks a todo (or, without a text, every open todo of the session) done by hand, then
+// collects again. collect.js keeps the mark until the session is prompted again.
+async function markDone($: EngineInterface, id: string, text?: string): Promise<void> {
+  const argv = ['node', `${$.plugin.root}/hooks/collect.js`, '--done', id]
+  if (text !== undefined) argv.push(text)
+  const out = await $.process.run(argv, { timeoutMs: 20_000 })
+  if (out.exitCode !== 0) {
+    failure = out.stderr.trim().slice(0, 200) || `node 結束代碼 ${out.exitCode}`
+    $.ui.invalidate('ui.render')
+    return
+  }
+  await collect($)
+}
 
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
@@ -135,7 +151,7 @@ export const register: Register = on => {
 
   on('tool.call', async ($, e, next) => {
     const result = await next(e)
-    if (TODO_TOOLS.includes(e.tool)) void collect($)
+    if (isTodoTool(e.tool)) void collect($)
     return result
   })
 
@@ -247,7 +263,21 @@ export const register: Register = on => {
                       <Text dimColor wrap="truncate-end">{`› ${s.lastPrompt}`}</Text>
                     ) : null}
                     {live && s.lastTool ? <Text dimColor wrap="truncate-end">{`工具：${s.lastTool}`}</Text> : null}
-                    {s.total > 1 ? <Text dimColor>{`完成 ${s.done}/${s.total}`}</Text> : null}
+                    {s.total > 1 || s.todos.length > 1 ? (
+                      <Box>
+                        {grow(<Text dimColor>{s.total > 1 ? `完成 ${s.done}/${s.total}` : ''}</Text>)}
+                        {s.todos.length > 1 ? (
+                          <Box flexShrink={0} marginLeft={1}>
+                            <Button
+                              key={`done-all-${s.id}`}
+                              label="全部完成"
+                              dimColor
+                              onPress={() => { void markDone($, s.id) }}
+                            />
+                          </Box>
+                        ) : null}
+                      </Box>
+                    ) : null}
                     {rows.map(t => (
                       <Box>
                         <Text color={t.state === 'in_progress' ? ORANGE : GRAY}>
@@ -258,6 +288,15 @@ export const register: Register = on => {
                             {t.text}
                           </Text>,
                         )}
+                        {/* Done: hide it until the session is prompted again. */}
+                        <Box flexShrink={0} marginLeft={1}>
+                          <Button
+                            key={`done-${s.id}-${t.text}`}
+                            label="完成"
+                            dimColor
+                            onPress={() => { void markDone($, s.id, t.text) }}
+                          />
+                        </Box>
                         {/* Chat: put the todo in the prompt box to talk it through (Enter sends). */}
                         <Box flexShrink={0} marginLeft={1}>
                           <Button

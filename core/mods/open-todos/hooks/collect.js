@@ -4,6 +4,10 @@
 // Plain CommonJS without newer syntax, so an older node (12+) on PATH can run it.
 //
 // Output: [{ id, cwd, title, updatedAt, todos: [{ text, state }], done, total, lastPrompt, lastTool }]
+//
+// `node collect.js --done <session id> [todo text]` marks one todo (or, without a text,
+// every open todo of that session) as done by hand. The mark lives in its own file, never
+// in the session log, and lapses once the person sends that session a new prompt.
 
 'use strict'
 const { existsSync, readFileSync, readdirSync, statSync, writeFileSync } = require('fs')
@@ -14,9 +18,15 @@ const HOME = join(homedir(), '.claude')
 const LOGS = join(HOME, 'projects')
 const CACHE = join(HOME, 'open-todos.cache.json')
 const IGNORE = join(HOME, 'open-todos-ignore.txt')
-const CACHE_FORMAT = 'open-todos/2' // bump whenever readLog changes, so old results are dropped
+const DONE = join(HOME, 'open-todos-done.json')
+const CACHE_FORMAT = 'open-todos/3' // bump whenever readLog changes, so old results are dropped
+const DONE_FORMAT = 'open-todos-done/1'
 const ACTIVE_MS = 10 * 60_000
-const TODO_TOOLS = ['"TodoWrite"', '"TaskCreate"', '"TaskUpdate"']
+// TodoWrite / TaskCreate / TaskUpdate in the terminal; the desktop app's Code tab keeps
+// its step list with update_plan and checks it off with wrap_up.
+const TODO_TOOLS = ['"TodoWrite"', '"TaskCreate"', '"TaskUpdate"', '__update_plan"']
+const isPlan = name => name === 'update_plan' || /__update_plan$/.test(name)
+const isWrapUp = name => name === 'wrap_up' || /__wrap_up$/.test(name)
 
 const now = Date.now()
 
@@ -53,10 +63,29 @@ function promptText(content) {
   return ''
 }
 
+// update_plan: `items` replaces the list; `done` (1-based) completes steps, `advance`
+// completes the step in progress and starts the next pending one, `start` starts a step.
+function applyPlan(list, input) {
+  if (Array.isArray(input.items)) {
+    return input.items.map((t, i) => ({ key: `p${i}`, text: t && t.content, state: (t && t.status) || 'pending' }))
+  }
+  if (Array.isArray(input.done)) {
+    for (const n of input.done) if (list[n - 1]) list[n - 1].state = 'completed'
+  }
+  if (input.advance === true) {
+    const doing = list.find(t => t.state === 'in_progress')
+    if (doing) doing.state = 'completed'
+    const nextUp = list.find(t => t.state === 'pending')
+    if (nextUp) nextUp.state = 'in_progress'
+  }
+  if (typeof input.start === 'number' && list[input.start - 1]) list[input.start - 1].state = 'in_progress'
+  return list
+}
+
 // Replays the todo tools of one log, in order, and keeps the facts the pane shows.
 function readLog(file, wantTail) {
   const text = readFileSync(file, 'utf8')
-  const info = { cwd: '', title: '', todos: [], lastPrompt: '', lastTool: '' }
+  const info = { cwd: '', title: '', todos: [], lastPrompt: '', lastTool: '', lastPromptAt: 0 }
   const hasTodos = TODO_TOOLS.some(name => text.includes(name))
   if (!hasTodos && !wantTail) {
     const m = /"cwd":"((?:[^"\\]|\\.)*)"/.exec(text)
@@ -66,6 +95,7 @@ function readLog(file, wantTail) {
 
   let list = [] // { key, text, state }
   let created = 0
+  const seen = new Set() // a tool call can be logged more than once; replay it once
   for (const line of text.split('\n')) {
     if (line === '') continue
     let entry
@@ -82,15 +112,26 @@ function readLog(file, wantTail) {
       const said = promptText(content).trim()
       if (said && !said.startsWith('<') && !said.startsWith('[') && !said.startsWith('Base directory')) {
         info.lastPrompt = said.replace(/\s+/g, ' ').slice(0, 80)
+        const at = Date.parse(entry.timestamp)
+        if (at > info.lastPromptAt) info.lastPromptAt = at
       }
     }
     if (entry.type !== 'assistant' || !Array.isArray(content)) continue
 
     for (const block of content) {
       if (!block || block.type !== 'tool_use') continue
+      if (block.id) {
+        if (seen.has(block.id)) continue
+        seen.add(block.id)
+      }
       info.lastTool = block.name
       const input = block.input || {}
-      if (block.name === 'TodoWrite' && Array.isArray(input.todos)) {
+      if (isPlan(block.name)) {
+        list = applyPlan(list, input)
+      } else if (isWrapUp(block.name)) {
+        // wrap_up closes the turn and checks off what is left of its list
+        for (const t of list) if (t.state === 'pending' || t.state === 'in_progress') t.state = 'completed'
+      } else if (block.name === 'TodoWrite' && Array.isArray(input.todos)) {
         list = input.todos.map((t, i) => ({ key: `w${i}`, text: t.content, state: t.status }))
       } else if (block.name === 'TaskCreate') {
         // one task ({ subject }) or a batch ({ tasks }: an array, or that array as a JSON string)
@@ -124,10 +165,49 @@ function readLog(file, wantTail) {
   return info
 }
 
+// { [session id]: { at: ms, all: bool, todos: [text] } }: todos marked done by hand.
+function loadDone() {
+  try {
+    const data = JSON.parse(readFileSync(DONE, 'utf8'))
+    return data.format === DONE_FORMAT && data.sessions && typeof data.sessions === 'object' ? data.sessions : {}
+  } catch (_) {
+    return {}
+  }
+}
+
+function saveDone(marks) {
+  writeFileSync(DONE, JSON.stringify({ format: DONE_FORMAT, sessions: marks }, null, 2))
+}
+
+function markDone(id, text) {
+  if (!/^[0-9a-f-]{8,64}$/i.test(id || '')) throw new Error('--done needs a session id')
+  const marks = loadDone()
+  const mark = marks[id] || { at: 0, all: false, todos: [] }
+  mark.at = Date.now()
+  if (text) {
+    if (mark.todos.indexOf(text) < 0) mark.todos.push(text)
+  } else {
+    mark.all = true
+  }
+  marks[id] = mark
+  saveDone(marks)
+}
+
+// Hides the todos marked done, unless the session was prompted again after the mark.
+// Returns the info to show, or null when the mark has lapsed and should be dropped.
+function applyDone(info, mark) {
+  if (!mark || info.lastPromptAt > mark.at) return null
+  const open = info.todos.filter(t => !mark.all && mark.todos.indexOf(t.text) < 0)
+  const hidden = info.todos.length - open.length
+  return Object.assign({}, info, { todos: open, done: (info.done || 0) + hidden })
+}
+
 function main() {
   const cache = loadCache()
   const nextCache = {}
   const ignore = loadIgnore()
+  const marks = loadDone()
+  let marksChanged = false
   const sessions = []
 
   let folders = []
@@ -166,10 +246,20 @@ function main() {
       }
       nextCache[file] = { size: st.size, mtimeMs: st.mtimeMs, tail: active, info }
 
+      const id = name.replace(/\.jsonl$/, '')
+      if (marks[id]) {
+        const shown = applyDone(info, marks[id])
+        if (shown) {
+          info = shown
+        } else {
+          delete marks[id] // reopened: its todos count again
+          marksChanged = true
+        }
+      }
+
       if (info.todos.length === 0 && !active) continue
       if (info.cwd && !existsSync(info.cwd)) continue // the project folder is gone
 
-      const id = name.replace(/\.jsonl$/, '')
       const keys = [info.cwd, basename(info.cwd || ''), id.slice(0, 8)].map(k => (k || '').replace(/\\/g, '/').toLowerCase())
       if (keys.some(k => k && ignore.includes(k))) continue
       if (/[\\/]observer-sessions$/.test(info.cwd)) continue // background sessions of the claude-mem plugin
@@ -193,7 +283,18 @@ function main() {
   } catch (_) {
     // a cache that cannot be written only makes the next run slower
   }
+  if (marksChanged) {
+    try {
+      saveDone(marks)
+    } catch (_) {
+      // a lapsed mark that stays on disk lapses again next run
+    }
+  }
   process.stdout.write(JSON.stringify(sessions))
 }
 
-main()
+if (process.argv[2] === '--done') {
+  markDone(process.argv[3], process.argv[4])
+} else {
+  main()
+}
