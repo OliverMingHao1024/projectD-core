@@ -103,14 +103,8 @@ flowchart TD
 Session 只常駐 [`vault/governance/INDEX.md`](vault/governance/INDEX.md) 的摘要；命中時才讀
 [`operating-model.md`](vault/governance/operating-model.md) 的對應段落。
 
-| 層級 | 命中情境 | 最小原則 |
-|---|---|---|
-| L1 安全 | 秘密、權限、檔案、網路、外部整合、部署、不可逆操作 | 分清 Source／Action；高風險先授權 |
-| L2 判斷 | 架構、根因、影響、重大取捨 | 分開事實與假設，以專案證據驗證 |
-| L3 流程 | 多步驟、多檔案、跨模組、行為變更 | TaskScopedProposalLoop；TDD；雙軸 Review |
-| L4 技能 | 工作流、工具、技術棧 | 既有專案決策優先；Skills／packs 按需 |
-| L5 經驗 | 歷史決策、重複踩坑 | 摘要只作索引，回讀原始證據 |
-| L6 校準 | 準備交付 | read-back、測試或來源驗證；缺口明說 |
+L1 安全、L2 判斷、L3 流程、L4 技能、L5 經驗、L6 校準六層的命中情境與最小原則，
+以 [`INDEX.md`](vault/governance/INDEX.md) 的路由表為準，不在此重複。
 
 具體情境範例：[需求驅動開發路由](vault/governance/requirement-driven-routing.md)
 （需求書開發、功能維護、Debug 三條主線）。
@@ -119,12 +113,8 @@ Session 只常駐 [`vault/governance/INDEX.md`](vault/governance/INDEX.md) 的�
 
 `Understand → Propose → Authorize → Execute → Verify → Report → Learn`
 
-- 只處理使用者提出或授權範圍內的工作；不做背景監控、不自行擴張範圍。
-- 只有會影響正確性、安全、資料、權限、可觀察行為、架構、維運或阻塞的發現才算
-  MaterialProposal；格式、命名、非必要重構不算。
-- 原始需求內低風險、可回復的步驟沿用授權；擴張範圍、新依賴、跨 repo、對外傳送、
-  高風險操作需明確授權。
-- 只有命中 L5 條件才提出 HistoryCandidate，經使用者確認才保存。
+只處理使用者提出或授權範圍內的工作。各階段規則與 MaterialProposal 的判定見
+[`operating-model.md`](vault/governance/operating-model.md) 的 TaskScopedProposalLoop 段。
 
 ### 角色
 
