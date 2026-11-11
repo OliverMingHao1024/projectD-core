@@ -1,5 +1,9 @@
 # Runtime Governance v2 — Codex 本機 Live Pilot Runbook
 
+> **時效提醒**：下方「狀態」是 2026-09-04 的實測結果。之後唯讀分類放寬（2026-09-06、
+> 2026-10-20、2026-11-06）已改變 policy digest，尚未重新實機驗證；現行狀態以
+> [`current-status.md`](current-status.md) 為準，不要把本頁的 verified 當成現行 policy 的證據。
+
 - 狀態：2026-09-04 current-policy Codex single-host live authorization enforcement revalidation verified；legacy authorization projection 與 pre-effect deny 均已在更新後 policy bundle 上實測；2026-09-03／09-02 舊 digest pilots 保留為歷史比較／host transport 證據
 - Host：Codex CLI
 - Pilot 類型：single-host、低風險、repository-local
