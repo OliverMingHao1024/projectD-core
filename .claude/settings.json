@@ -1,5 +1,4 @@
 {
-  "outputStyle": "zh-tw-explainer",
   "hooks": {
     "PreToolUse": [
       {
