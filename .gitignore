@@ -6,6 +6,7 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .claude/output-styles/
+.claude/worktrees/
 .claude/settings.local.json
 containers/*/.env
 containers/devspace-isolation/scripts/devtunnel-watchdog-hidden.vbs
