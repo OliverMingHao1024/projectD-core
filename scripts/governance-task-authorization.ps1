@@ -151,17 +151,70 @@ if ([string]::IsNullOrWhiteSpace($DecisionPath)) {
             'for this host to auto-discover one from.'
         )
     }
-    $autoDiscovered = Get-ChildItem -LiteralPath $autoDiscoverDirectory `
+    $decisionFiles = @(Get-ChildItem -LiteralPath $autoDiscoverDirectory `
         -Filter 'decision-call-*.json' -File -ErrorAction SilentlyContinue |
-        Sort-Object -Property LastWriteTimeUtc -Descending |
-        Select-Object -First 1
-    if (-not $autoDiscovered) {
+        Sort-Object -Property LastWriteTimeUtc -Descending)
+    if ($decisionFiles.Count -eq 0) {
         throw (
             'No -DecisionPath given and no decision files were found to ' +
             'auto-discover for this host.'
         )
     }
-    $DecisionPath = $autoDiscovered.FullName
+    # Concurrent sessions of the same host share this directory, so "newest
+    # file" may belong to a different session than the one the user means to
+    # authorize. Only auto-select when every decision written in the recent
+    # window comes from a single task_ref; otherwise refuse and list them.
+    $autoDiscoverWindowMinutes = 30
+    $newestDecisionFile = $decisionFiles[0]
+    $windowStart = $newestDecisionFile.LastWriteTimeUtc.AddMinutes(
+        -$autoDiscoverWindowMinutes
+    )
+    $recentSessions = [ordered]@{}
+    $unreadableRecent = @()
+    foreach ($recentFile in @($decisionFiles | Where-Object {
+        $_.LastWriteTimeUtc -ge $windowStart
+    })) {
+        $recentDecision = $null
+        try {
+            if ($recentFile.Length -le 256KB) {
+                $recentDecision = [IO.File]::ReadAllText(
+                    $recentFile.FullName, [Text.UTF8Encoding]::new($false, $true)
+                ) | ConvertFrom-Json -ErrorAction Stop
+            }
+        } catch {
+            $recentDecision = $null
+        }
+        $recentTaskRef = if ($recentDecision) { [string]$recentDecision.task_ref } else { '' }
+        if ([string]::IsNullOrWhiteSpace($recentTaskRef)) {
+            $unreadableRecent += $recentFile.Name
+            continue
+        }
+        if (-not $recentSessions.Contains($recentTaskRef)) {
+            $recentSessions[$recentTaskRef] = [pscustomobject]@{
+                task_ref = $recentTaskRef
+                written_at_utc = $recentFile.LastWriteTimeUtc.ToString('o')
+                request = "$($recentDecision.request.capability)/$($recentDecision.request.target_class)"
+                decision_path = $recentFile.FullName
+            }
+        }
+    }
+    if ($recentSessions.Count -gt 1 -or $unreadableRecent.Count -gt 0) {
+        $candidateLines = @($recentSessions.Values | ForEach-Object {
+            "  $($_.task_ref)  last=$($_.written_at_utc)  request=$($_.request)`n" +
+            "    -DecisionPath `"$($_.decision_path)`""
+        })
+        if ($unreadableRecent.Count -gt 0) {
+            $candidateLines += "  unreadable recent decision files: $($unreadableRecent -join ', ')"
+        }
+        throw (
+            'No -DecisionPath given and auto-discovery is ambiguous: decisions ' +
+            "written in the last $autoDiscoverWindowMinutes minutes come from " +
+            "$($recentSessions.Count) sessions. Re-run with -DecisionPath " +
+            "naming the denied decision of the session you intend to authorize:`n" +
+            ($candidateLines -join "`n")
+        )
+    }
+    $DecisionPath = $newestDecisionFile.FullName
 }
 $decisionFullPath = [IO.Path]::GetFullPath($DecisionPath)
 $rootPrefix = $root + [IO.Path]::DirectorySeparatorChar
@@ -243,6 +296,8 @@ $grantSummary = ($requestedGrants | ForEach-Object {
     "$($_.capability)/$($_.target_class) (external=$($_.allow_external), destructive=$($_.allow_destructive))"
 }) -join '; '
 $confirmation = Read-Host (
+    "Authorizing task_ref=$([string]$decision.task_ref) " +
+    "(source $decisionFileId). " +
     "Grant $grantSummary, expires=${ExpiresInMinutes}m. " +
     "Type '$confirmationPhrase' to continue"
 )
