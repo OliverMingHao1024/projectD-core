@@ -1,7 +1,7 @@
 ---
 type: memory-summary
 readAt: session-start
-lastUpdated: 2026-11-11
+lastUpdated: 2026-11-13
 ---
 
 # projectD-core 工作記憶
@@ -34,6 +34,9 @@ lastUpdated: 2026-11-11
 - `scripts/projectd-check.ps1` 強制：session init ≤ 10 KiB、Skill discovery ≤ 7,000
   字、`_staging` 只留審查中候選、CI 不重跑重型 contracts。
 - 刪除個別 Skill 前需有使用或品質證據；先合併可證明的薄 wrapper。
+- 改 `evals/governance-assets.json` 列管的腳本，須同步其 integrity 指紋；本機
+  `projectd-check` 不跑此檢查，送 PR 前跑 `scripts/tests/governance-asset-inventory.contract.ps1`
+  （2026-11-13 PR #126 因此 CI 失敗）。
 
 ## 回讀入口
 
