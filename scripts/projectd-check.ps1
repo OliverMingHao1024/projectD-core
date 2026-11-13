@@ -716,105 +716,46 @@ function ChildGroup {
             ([string]$groupResult.message)
     }
 }
-$pwsh=Get-Command pwsh -ErrorAction SilentlyContinue
-if($null -eq $pwsh){
-    Add-Result 'fleet-inspect-contract' $false 'pwsh executable not found'
-    Add-Result 'knowledge-requirement-contract' $false 'pwsh executable not found'
-    Add-Result 'skill-scout-contract' $false 'pwsh executable not found'
-    Add-Result 'skill-update-check-contract' $false 'pwsh executable not found'
-    Add-Result 'claude-switch-account-contract' $false 'pwsh executable not found'
-    Add-Result 'usage-contract' $false 'pwsh executable not found'
-    Add-Result 'codex-usage-ledger-contract' $false 'pwsh executable not found'
-    Add-Result 'claude-usage-ledger-contract' $false 'pwsh executable not found'
-    Add-Result 'usage-export-gate-contract' $false 'pwsh executable not found'
-    Add-Result 'usage-merge-contract' $false 'pwsh executable not found'
-    Add-Result 'usage-report-contract' $false 'pwsh executable not found'
-    Add-Result 'usage-monitoring-rollout-contract' $false 'pwsh executable not found'
-    Add-Result 'claude-usage-collect-contract' $false 'pwsh executable not found'
-    Add-Result 'codex-usage-collect-contract' $false 'pwsh executable not found'
-    Add-Result 'governance-prune-local-evidence-contract' $false 'pwsh executable not found'
-}else{
-    Child 'fleet-inspect-contract' {
-        & $pwsh.Source -NoProfile -File (
-            Join-Path $core 'scripts\tests\fleet-inspect.contract.ps1'
-        )
-    }
-    Child 'knowledge-requirement-contract' {
-        & $pwsh.Source -NoProfile -File (
-            Join-Path $core 'scripts\tests\knowledge-requirement.contract.ps1'
-        )
-    }
-    Child 'skill-scout-contract' {
-        & $pwsh.Source -NoProfile -File (
-            Join-Path $core 'core\skills\skill-scout\tests\skill-scout.contract.ps1'
-        )
-    }
-    Child 'skill-update-check-contract' {
-        & $pwsh.Source -NoProfile -File (
-            Join-Path $core (
-                'core\skills\skill-update-check\tests\' +
-                'skill-update-check.contract.ps1'
-            )
-        )
-    }
-    Child 'claude-switch-account-contract' {
-        & $pwsh.Source -NoProfile -File (
-            Join-Path $core 'scripts\tests\claude-switch-account.contract.ps1'
-        )
-    }
-    Child 'usage-contract' {
-        & $pwsh.Source -NoProfile -File (
-            Join-Path $core 'scripts\tests\usage-contract.contract.ps1'
-        )
-    }
-    Child 'codex-usage-ledger-contract' {
-        & $pwsh.Source -NoProfile -File (
-            Join-Path $core 'scripts\tests\codex-usage-ledger.contract.ps1'
-        )
-    }
-    Child 'claude-usage-ledger-contract' {
-        & $pwsh.Source -NoProfile -File (
-            Join-Path $core 'scripts\tests\claude-usage-ledger.contract.ps1'
-        )
-    }
-    Child 'usage-export-gate-contract' {
-        & $pwsh.Source -NoProfile -File (
-            Join-Path $core 'scripts\tests\usage-export-gate.contract.ps1'
-        )
-    }
-    Child 'usage-merge-contract' {
-        & $pwsh.Source -NoProfile -File (
-            Join-Path $core 'scripts\tests\usage-merge.contract.ps1'
-        )
-    }
-    Child 'usage-report-contract' {
-        & $pwsh.Source -NoProfile -File (
-            Join-Path $core 'scripts\tests\usage-report.contract.ps1'
-        )
-    }
-    Child 'usage-monitoring-rollout-contract' {
-        & $pwsh.Source -NoProfile -File (
-            Join-Path $core 'scripts\tests\usage-monitoring-rollout.contract.ps1'
-        )
-    }
-    Child 'claude-usage-collect-contract' {
-        & $pwsh.Source -NoProfile -File (
-            Join-Path $core 'scripts\tests\claude-usage-collect.contract.ps1'
-        )
-    }
-    Child 'codex-usage-collect-contract' {
-        & $pwsh.Source -NoProfile -File (
-            Join-Path $core 'scripts\tests\codex-usage-collect.contract.ps1'
-        )
-    }
-    Child 'governance-prune-local-evidence-contract' {
-        & $pwsh.Source -NoProfile -File (
-            Join-Path $core (
-                'scripts\tests\governance-prune-local-evidence.contract.ps1'
-            )
-        )
+function Invoke-ContractChecks {
+    # Runs each contract script in its own pwsh, in order. $Checks maps the
+    # result name to [script path relative to core, optional extra args].
+    param(
+        [Parameter(Mandatory)][Collections.Specialized.OrderedDictionary]$Checks,
+        $PowerShell
+    )
+
+    foreach ($entry in $Checks.GetEnumerator()) {
+        if ($null -eq $PowerShell) {
+            Add-Result $entry.Key $false 'pwsh executable not found'
+            continue
+        }
+        $contractPath = Join-Path $core $entry.Value[0]
+        $contractArgs = @($entry.Value | Select-Object -Skip 1)
+        $runContract = {
+            & $PowerShell.Source -NoProfile -File $contractPath @contractArgs
+        }.GetNewClosure()
+        Child $entry.Key $runContract
     }
 }
+
+$pwsh=Get-Command pwsh -ErrorAction SilentlyContinue
+Invoke-ContractChecks -PowerShell $pwsh -Checks ([ordered]@{
+    'fleet-inspect-contract' = @('scripts\tests\fleet-inspect.contract.ps1')
+    'knowledge-requirement-contract' = @('scripts\tests\knowledge-requirement.contract.ps1')
+    'skill-scout-contract' = @('core\skills\skill-scout\tests\skill-scout.contract.ps1')
+    'skill-update-check-contract' = @('core\skills\skill-update-check\tests\skill-update-check.contract.ps1')
+    'claude-switch-account-contract' = @('scripts\tests\claude-switch-account.contract.ps1')
+    'usage-contract' = @('scripts\tests\usage-contract.contract.ps1')
+    'codex-usage-ledger-contract' = @('scripts\tests\codex-usage-ledger.contract.ps1')
+    'claude-usage-ledger-contract' = @('scripts\tests\claude-usage-ledger.contract.ps1')
+    'usage-export-gate-contract' = @('scripts\tests\usage-export-gate.contract.ps1')
+    'usage-merge-contract' = @('scripts\tests\usage-merge.contract.ps1')
+    'usage-report-contract' = @('scripts\tests\usage-report.contract.ps1')
+    'usage-monitoring-rollout-contract' = @('scripts\tests\usage-monitoring-rollout.contract.ps1')
+    'claude-usage-collect-contract' = @('scripts\tests\claude-usage-collect.contract.ps1')
+    'codex-usage-collect-contract' = @('scripts\tests\codex-usage-collect.contract.ps1')
+    'governance-prune-local-evidence-contract' = @('scripts\tests\governance-prune-local-evidence.contract.ps1')
+})
 if (-not $SkipWiring) {
     if ($null -eq $pwsh) {
         if (-not $SkipGlobal) {
@@ -842,81 +783,33 @@ if (-not $SkipWiring) {
 }
 
 if ($GovernanceEvals) {
+    Invoke-ContractChecks -PowerShell $pwsh -Checks ([ordered]@{
+        'governance-structural-evals' = @('scripts\governance-eval.ps1')
+        'governance-behavior-catalog' = @('scripts\governance-behavior-eval.ps1', '-CatalogOnly')
+        'governance-asset-inventory' = @('scripts\governance-asset-inventory.ps1')
+        'governance-security-traces' = @('scripts\governance-trace-eval.ps1')
+    })
+    # These contracts are independent and slow, so they run in parallel.
+    $parallelContracts = [ordered]@{
+        'governance-host-trial-contract' = 'scripts\tests\governance-host-trial.contract.ps1'
+        'governance-operation-log-contract' = 'scripts\tests\governance-operation-log.contract.ps1'
+        'governance-reconcile-operation-log-contract' = 'scripts\tests\governance-reconcile-orphaned-logs.contract.ps1'
+        'governance-runtime-policy-contract' = 'scripts\tests\governance-runtime-policy.contract.ps1'
+        'governance-host-operation-hook-contract' = 'scripts\tests\governance-host-operation-hook.contract.ps1'
+        'governance-host-upgrade-gate-contract' = 'scripts\tests\governance-host-upgrade-gate.contract.ps1'
+        'governance-host-run-plan-contract' = 'scripts\tests\governance-host-run-plan.contract.ps1'
+    }
     if ($null -eq $pwsh) {
-        Add-Result 'governance-structural-evals' $false 'pwsh executable not found'
-        Add-Result 'governance-behavior-catalog' $false 'pwsh executable not found'
-        Add-Result 'governance-asset-inventory' $false 'pwsh executable not found'
-        Add-Result 'governance-security-traces' $false 'pwsh executable not found'
-        Add-Result 'governance-host-trial-contract' $false 'pwsh executable not found'
-        Add-Result 'governance-operation-log-contract' $false 'pwsh executable not found'
-        Add-Result 'governance-reconcile-operation-log-contract' $false 'pwsh executable not found'
-        Add-Result 'governance-runtime-policy-contract' $false 'pwsh executable not found'
-        Add-Result 'governance-host-operation-hook-contract' $false 'pwsh executable not found'
-        Add-Result 'governance-host-upgrade-gate-contract' $false 'pwsh executable not found'
-        Add-Result 'governance-host-run-plan-contract' $false 'pwsh executable not found'
+        foreach ($name in $parallelContracts.Keys) {
+            Add-Result $name $false 'pwsh executable not found'
+        }
     } else {
-        Child 'governance-structural-evals' {
-            & $pwsh.Source -NoProfile -File (
-                Join-Path $core 'scripts\governance-eval.ps1'
-            )
-        }
-        Child 'governance-behavior-catalog' {
-            & $pwsh.Source -NoProfile -File (
-                Join-Path $core 'scripts\governance-behavior-eval.ps1'
-            ) -CatalogOnly
-        }
-        Child 'governance-asset-inventory' {
-            & $pwsh.Source -NoProfile -File (
-                Join-Path $core 'scripts\governance-asset-inventory.ps1'
-            )
-        }
-        Child 'governance-security-traces' {
-            & $pwsh.Source -NoProfile -File (
-                Join-Path $core 'scripts\governance-trace-eval.ps1'
-            )
-        }
         ChildGroup -PowerShellPath $pwsh.Source -Checks @(
-            [pscustomobject]@{
-                name = 'governance-host-trial-contract'
-                path = Join-Path $core (
-                    'scripts\tests\governance-host-trial.contract.ps1'
-                )
-            }
-            [pscustomobject]@{
-                name = 'governance-operation-log-contract'
-                path = Join-Path $core (
-                    'scripts\tests\governance-operation-log.contract.ps1'
-                )
-            }
-            [pscustomobject]@{
-                name = 'governance-reconcile-operation-log-contract'
-                path = Join-Path $core (
-                    'scripts\tests\governance-reconcile-orphaned-logs.contract.ps1'
-                )
-            }
-            [pscustomobject]@{
-                name = 'governance-runtime-policy-contract'
-                path = Join-Path $core (
-                    'scripts\tests\governance-runtime-policy.contract.ps1'
-                )
-            }
-            [pscustomobject]@{
-                name = 'governance-host-operation-hook-contract'
-                path = Join-Path $core (
-                    'scripts\tests\governance-host-operation-hook.contract.ps1'
-                )
-            }
-            [pscustomobject]@{
-                name = 'governance-host-upgrade-gate-contract'
-                path = Join-Path $core (
-                    'scripts\tests\governance-host-upgrade-gate.contract.ps1'
-                )
-            }
-            [pscustomobject]@{
-                name = 'governance-host-run-plan-contract'
-                path = Join-Path $core (
-                    'scripts\tests\governance-host-run-plan.contract.ps1'
-                )
+            foreach ($entry in $parallelContracts.GetEnumerator()) {
+                [pscustomobject]@{
+                    name = $entry.Key
+                    path = Join-Path $core $entry.Value
+                }
             }
         )
     }
