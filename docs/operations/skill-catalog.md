@@ -101,6 +101,21 @@ Pack 在修改對應技術棧時提供語言、框架、測試與建置慣例。
 | [`rdl-report`](../../packs/rdl-report/SKILL.md) | 建立、修改與驗證 F25B ESOAF 家族的 SSRS RDL 報表。 | 新增 RDL、調整版面、檢查資料來源或處理 `rptsp_` 報表程序。 |
 | [`typescript`](../../packs/typescript/SKILL.md) | TypeScript／JavaScript、module system 與 build tool 慣例。 | 修改 `.ts`、`.tsx`、JavaScript、`tsconfig` 或 package scripts。 |
 
+## 容易混淆的 Skill
+
+下列組合的觸發情境相近。它們各有上游來源，刻意不合併；依下表分流。
+
+| 情境 | 使用 | 不使用 |
+| --- | --- | --- |
+| 在回答中用表格、樹狀圖或 Mermaid 補充說明 | [`show-me`](../../core/skills/show-me/SKILL.md) | `archify` |
+| 需要獨立、可互動、可分享的 HTML 圖表或說明頁 | [`archify`](../../core/skills/archify/SKILL.md) | `show-me` |
+| 修改瀏覽器 UI 時要遵守的 HTML、CSS、無障礙基線 | [`frontend-core`](../../packs/frontend-core/SKILL.md) | `design-engineering` |
+| 介面已能用，要提升手感、細節、回饋與感知效能 | [`design-engineering`](../../core/skills/design-engineering/SKILL.md) | 只靠 `frontend-core` |
+| 掃描整個專案的動效並規劃改善路線 | [`improve-animations`](../../core/skills/improve-animations/SKILL.md) | `review-animations` |
+| 審查一段已存在的動效 diff、元件或原型 | [`review-animations`](../../core/skills/review-animations/SKILL.md) | `improve-animations` |
+
+`frontend-core` 與 `design-engineering` 可同時使用：前者是基線，後者是加分。
+
 ## 維護規則
 
 - 新增、移除或重新命名 Canonical Skill 時，同步更新本目錄。
