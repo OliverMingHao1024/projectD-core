@@ -436,6 +436,15 @@ function Get-ProjectDRuntimeRequest {
             $external = $true
             $destructive = $true
         }
+    } elseif ($name -cin @('webfetch', 'websearch')) {
+        # Claude Code's built-in read-only web tools. Their names have no
+        # separator, so the token rule below cannot see 'fetch'/'search'
+        # and would fall through to unclassified-effect.
+        $capability = 'network-read'
+        $targetClass = 'external-source'
+        $classificationSource = 'deterministic-rule'
+        $external = $true
+        $reversible = 'yes'
     } elseif ($name -match '(web|fetch|http|browser)') {
         if (Test-ProjectDOperationToken -Name $name -Tokens @(
             'send', 'create', 'update', 'delete', 'post', 'put', 'patch',

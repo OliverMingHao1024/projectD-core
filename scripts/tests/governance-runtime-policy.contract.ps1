@@ -221,6 +221,16 @@ Assert-True (
     $webReadRequest.effect.external
 ) 'Web fetch must normalize as network-read rather than generic Action.'
 
+foreach ($claudeWebTool in @('WebFetch', 'WebSearch')) {
+    $claudeWebRequest = Get-RuntimeRequestFromJson -ToolName $claudeWebTool `
+        -ToolInputJson '{"url":"https://example.invalid","query":"x"}'
+    Assert-True (
+        $claudeWebRequest.capability -ceq 'network-read' -and
+        $claudeWebRequest.effect.external -and
+        $claudeWebRequest.decision_outcome -ceq 'observe-only'
+    ) "Claude $claudeWebTool must normalize as network-read observe-only, not unclassified-effect."
+}
+
 $gitPushRequest = Get-RuntimeRequestFromJson -ToolName 'Bash' `
     -ToolInputJson '{"command":"git push origin HEAD"}'
 Assert-True (
