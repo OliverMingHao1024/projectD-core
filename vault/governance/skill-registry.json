@@ -504,18 +504,6 @@
       "migration_status": "complete"
     },
     {
-      "id": "mattpocock-skills--skills-productivity-grill-me",
-      "source_id": "github-mattpocock-skills",
-      "source_path": "skills/productivity/grill-me",
-      "observed_commit": "6654f6b60cd9d5be8b54c6fafe44346dabeb3b76",
-      "upstream_digest": "sha256:196a036705cac69220273072f517a4702c8278860f665ca12a0d7da7e3dfb184",
-      "lifecycle_status": "adopted",
-      "target": "core/skills/grilling",
-      "canonical_name": "grilling",
-      "decision_record": "mattpocock/skills（codebase-design / domain-modeling / improve-codebase-architecture / writing-great-skills）",
-      "migration_status": "complete"
-    },
-    {
       "id": "mattpocock-skills--skills-productivity-grilling",
       "source_id": "github-mattpocock-skills",
       "source_path": "skills/productivity/grilling",
