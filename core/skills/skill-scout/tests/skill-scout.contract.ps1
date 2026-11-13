@@ -71,4 +71,54 @@ Assert-True (
     ))
 ) 'Contract run must not write staging.'
 
+$VerdictSchema = Join-Path $SkillRoot 'references\review-verdict.schema.json'
+$passVerdictJson = Get-Content -Raw -LiteralPath (
+    Join-Path $PSScriptRoot 'fixtures\review-verdict-pass.json'
+)
+
+function Test-Verdict {
+    param([Parameter(Mandatory)][string]$Json)
+    return [bool](Test-Json -Json $Json -SchemaFile $VerdictSchema `
+        -ErrorAction SilentlyContinue)
+}
+
+function Set-VerdictField {
+    param(
+        [Parameter(Mandatory)][string]$Json,
+        [Parameter(Mandatory)][hashtable]$Fields
+    )
+    $verdict = $Json | ConvertFrom-Json
+    foreach ($key in $Fields.Keys) {
+        $verdict | Add-Member -NotePropertyName $key `
+            -NotePropertyValue $Fields[$key] -Force
+    }
+    return ($verdict | ConvertTo-Json -Depth 10)
+}
+
+Assert-True (Test-Verdict $passVerdictJson) (
+    'A clean passing verdict must validate.'
+)
+foreach ($redFlag in @(
+    @{ has_broad_scope_hooks = $true },
+    @{ has_undisclosed_telemetry = $true },
+    @{ has_cross_service_secret_routing = $true },
+    @{ has_coercive_text = $true },
+    @{ description_matches_behavior = $false }
+)) {
+    $flagName = @($redFlag.Keys)[0]
+    Assert-True (-not (Test-Verdict (Set-VerdictField $passVerdictJson $redFlag))) (
+        "A verdict with $flagName set must not be allowed to pass."
+    )
+    Assert-True (Test-Verdict (Set-VerdictField $passVerdictJson ($redFlag + @{
+        passes = $false
+        violations = @('hooks/hooks.json: example violation')
+    }))) "A failing verdict with $flagName and a violation must validate."
+}
+Assert-True (-not (Test-Verdict (Set-VerdictField $passVerdictJson @{
+    passes = $false
+}))) 'A failing verdict must cite at least one violation.'
+Assert-True (-not (Test-Verdict (Set-VerdictField $passVerdictJson @{
+    unexpected_field = $true
+}))) 'A verdict must reject unknown fields.'
+
 Write-Output 'SKILL_SCOUT_CONTRACT_OK'

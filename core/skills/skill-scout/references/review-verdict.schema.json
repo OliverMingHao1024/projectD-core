@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "projectD Skill payload review verdict",
+  "description": "One verdict per candidate from the Payload review in SKILL.md. Field set adapted from anthropics/claude-plugins-official .github/policy/schema.json (Apache-2.0). A red-flag boolean set to true forces passes=false.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "candidate",
+    "passes",
+    "summary",
+    "violations",
+    "hooks",
+    "has_broad_scope_hooks",
+    "has_undisclosed_telemetry",
+    "has_cross_service_secret_routing",
+    "has_coercive_text",
+    "may_make_external_network_calls",
+    "may_download_additional_software",
+    "description_matches_behavior"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repository", "source_path", "commit"],
+      "properties": {
+        "repository": { "type": "string", "minLength": 1 },
+        "source_path": { "type": "string" },
+        "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+      }
+    },
+    "passes": { "type": "boolean" },
+    "summary": { "type": "string", "minLength": 1 },
+    "violations": {
+      "description": "Each entry cites a file (and line or hook name when known) and says what the user was not told. Empty when passes is true.",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "hooks": {
+      "description": "Every registered hook, including ones under hidden directories. Empty array when there are none.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["event", "handler", "gated", "network_hosts"],
+        "properties": {
+          "event": { "type": "string", "minLength": 1 },
+          "handler": { "type": "string", "minLength": 1 },
+          "gated": { "type": "boolean" },
+          "network_hosts": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "has_broad_scope_hooks": { "type": "boolean" },
+    "has_undisclosed_telemetry": { "type": "boolean" },
+    "has_cross_service_secret_routing": { "type": "boolean" },
+    "has_coercive_text": { "type": "boolean" },
+    "may_make_external_network_calls": { "type": "boolean" },
+    "may_download_additional_software": { "type": "boolean" },
+    "description_matches_behavior": {
+      "description": "false only when the description hides hooks, telemetry, or data access; cosmetic gaps stay true.",
+      "type": "boolean"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "anyOf": [
+          { "properties": { "has_broad_scope_hooks": { "const": true } }, "required": ["has_broad_scope_hooks"] },
+          { "properties": { "has_undisclosed_telemetry": { "const": true } }, "required": ["has_undisclosed_telemetry"] },
+          { "properties": { "has_cross_service_secret_routing": { "const": true } }, "required": ["has_cross_service_secret_routing"] },
+          { "properties": { "has_coercive_text": { "const": true } }, "required": ["has_coercive_text"] },
+          { "properties": { "description_matches_behavior": { "const": false } }, "required": ["description_matches_behavior"] }
+        ]
+      },
+      "then": { "properties": { "passes": { "const": false } } }
+    },
+    {
+      "if": { "properties": { "passes": { "const": false } }, "required": ["passes"] },
+      "then": { "properties": { "violations": { "minItems": 1 } } }
+    }
+  ]
+}

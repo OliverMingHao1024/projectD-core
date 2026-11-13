@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "candidate": {
+    "repository": "example/skills",
+    "source_path": "skills/merge-helper",
+    "commit": "0123456789abcdef0123456789abcdef01234567"
+  },
+  "passes": true,
+  "summary": "Instruction-only Skill that explains merge-conflict resolution steps.",
+  "violations": [],
+  "hooks": [],
+  "has_broad_scope_hooks": false,
+  "has_undisclosed_telemetry": false,
+  "has_cross_service_secret_routing": false,
+  "has_coercive_text": false,
+  "may_make_external_network_calls": false,
+  "may_download_additional_software": false,
+  "description_matches_behavior": true
+}
