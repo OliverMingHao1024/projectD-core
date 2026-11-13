@@ -226,6 +226,12 @@ Two ergonomics-only additions address this without touching any of those invaria
 
 This does not, and must not, reduce how often re-authorization is needed while actively editing the policy itself — that digest-invalidates-on-edit behavior is the load-bearing property preventing an agent from loosening its own authorization while simultaneously changing the rules that grant it (see "Authorization is task-scoped and non-transitive" above). What changed is how much manual work each *individual* re-authorization costs, not how many times it is required. There is no automated contract-test coverage for this script: it deliberately throws when `[Console]::IsInputRedirected`, which is precisely what a typical non-interactive test harness does, so verification here is manual human trial rather than a `*.contract.ps1` case.
 
+### Auto-discovery must not cross sessions (2026-11-13)
+
+Incident: two Claude Code sessions were active against this checkout. The user ran the issuer without `-DecisionPath` intending to authorize the session that had just been denied, but auto-discovery picked the newest decision file for the host, which belonged to the *other* session. That session silently received a 30-minute `workspace-write/workspace-file` grant while the intended session stayed denied. No check was relaxed, but the grant reached the wrong `task_ref` — auto-discovery assumed one active session per host, which concurrent sessions break.
+
+Change: when `-DecisionPath` is omitted, the issuer reads every decision file written within 30 minutes of the newest one. If those files span more than one `task_ref`, or any of them cannot be read as a decision, it refuses and lists each candidate session (task_ref, newest decision path, time, requested capability) so the user re-runs with an explicit `-DecisionPath`. A single recent session is still auto-selected. The confirmation prompt now always names the `task_ref` and source decision being authorized, so a mismatch is visible before typing the phrase. All prior invariants are unchanged; this only narrows when auto-discovery may choose.
+
 ### Corrections to make in the runtime architecture
 
 1. **Refine tool classification from name-level to operation-level where host payload allows it.** A web fetch/read is not automatically equivalent to an external mutation; MCP is a transport/integration boundary, not a single Action class. Unknown remains fail-safe.
