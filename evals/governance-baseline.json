@@ -111,7 +111,7 @@
     },
     {
       "id": "roles-synced-governance-wiring",
-      "file": "scripts/ProjectD.GovernanceWiring.psm1",
+      "file": "scripts/governance-wiring/desired-state.ps1",
       "must_contain": [
         "${bt}ux$bt（互動設計）",
         "${bt}qa$bt（獨立驗證）",
