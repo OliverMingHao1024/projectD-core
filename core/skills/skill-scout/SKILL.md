@@ -80,6 +80,11 @@ description that hides hooks, telemetry, or data access make a candidate ineligi
 Adapted from the plugin review policy in `anthropics/knowledge-work-plugins`
 (`.github/policy/prompt.md`, Apache-2.0).
 
+Record each candidate's review as one JSON object that validates against
+[review-verdict.schema.json](references/review-verdict.schema.json), then explain it
+in prose. The schema forces `passes: false` when any red flag is set; a verdict that
+does not validate is not a review.
+
 ## Output and staging
 
 The script emits normalized JSON and never writes staging. Explain at most three
