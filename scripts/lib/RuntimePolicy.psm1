@@ -267,6 +267,53 @@ function Get-ProjectDCommandClassificationText {
     return $sanitized
 }
 
+function Test-ProjectDLocalSessionStart {
+    # True only when a desktop-app start_session call provably keeps the new
+    # session local, in this same folder, without a worktree.
+    param([Parameter(Mandatory)][Text.Json.JsonElement]$ToolInput)
+
+    if ($ToolInput.ValueKind -ne [Text.Json.JsonValueKind]::Object) {
+        return $false
+    }
+    $locationFields = @(
+        'target', 'cwd', 'host', 'preset', 'environment', 'repository',
+        'source_branch', 'branch_name'
+    )
+    $hasUseWorktree = $false
+    $useWorktreeIsFalse = $false
+    $hasPrompt = $false
+    $hasProposal = $false
+    foreach ($property in $ToolInput.EnumerateObject()) {
+        if ($property.Name -cin $locationFields) {
+            $isLocalTarget = (
+                $property.Name -ceq 'target' -and
+                $property.Value.ValueKind -eq [Text.Json.JsonValueKind]::String -and
+                $property.Value.GetString() -ceq 'local'
+            )
+            if (-not $isLocalTarget) {
+                return $false
+            }
+        } elseif ($property.Name -ceq 'use_worktree') {
+            $hasUseWorktree = $true
+            $useWorktreeIsFalse = (
+                $property.Value.ValueKind -eq [Text.Json.JsonValueKind]::False
+            )
+        } elseif ($property.Name -ceq 'prompt') {
+            $hasPrompt = $true
+        } elseif ($property.Name -ceq 'proposal_id') {
+            $hasProposal = $true
+        }
+    }
+    if ($hasUseWorktree) {
+        return $useWorktreeIsFalse
+    }
+    # Without use_worktree, only a title-only offer card is safe: it starts
+    # nothing until the user answers, and the follow-up call that sends the
+    # brief is classified again.
+    $initiation = Get-JsonStringProperty -Element $ToolInput -Name 'initiation'
+    return ($initiation -ceq 'offer' -and -not $hasPrompt -and -not $hasProposal)
+}
+
 function Get-ProjectDRuntimeRequest {
     param(
         [Parameter(Mandatory)][string]$ToolName,
@@ -322,12 +369,36 @@ function Get-ProjectDRuntimeRequest {
         $reversible = 'yes'
     } elseif ($name -cin @(
         'mcp__ccd_turn__update_plan',
-        'mcp__ccd_turn__wrap_up'
+        'mcp__ccd_turn__wrap_up',
+        'mcp__ccd_pr__bind_pr',
+        'mcp__ccd_session__mark_chapter',
+        'mcp__ccd_session__dismiss_task'
     )) {
-        # Exact desktop-app task-list and wrap-up UI tools only; any other
-        # MCP name keeps the token rules below.
+        # Exact desktop-app UI tools only: task list, wrap-up box, PR bar
+        # binding, chapter divider, withdrawing an unstarted proposal card.
+        # Any other MCP name keeps the token rules below.
         $capability = 'local-read'
         $targetClass = 'host-ui'
+        $classificationSource = 'deterministic-rule'
+        $reversible = 'yes'
+    } elseif ($name -ceq 'mcp__terminal__read_terminal') {
+        # Reads the text of the user's own terminal panel; runs nothing.
+        # Checked before the shell rule, which would match 'terminal' and,
+        # finding no command text, treat it as command-execute.
+        $capability = 'local-read'
+        $targetClass = 'host-terminal'
+        $classificationSource = 'deterministic-rule'
+        $reversible = 'yes'
+    } elseif (
+        $name -ceq 'mcp__ccd_session__start_session' -and
+        (Test-ProjectDLocalSessionStart -ToolInput $ToolInput)
+    ) {
+        # Same rule as a local subagent: a new local session in this same
+        # folder loads this project's hooks, so each of its tool calls is
+        # classified on its own. Cloud, SSH, other folders, presets and
+        # worktrees stay unclassified (see Test-ProjectDLocalSessionStart).
+        $capability = 'local-read'
+        $targetClass = 'agent-delegation'
         $classificationSource = 'deterministic-rule'
         $reversible = 'yes'
     } elseif ($name -match '^(apply_patch|edit|write|notebookedit)$') {
