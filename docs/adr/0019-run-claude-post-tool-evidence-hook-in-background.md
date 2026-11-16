@@ -47,8 +47,8 @@ Codex hooks are unchanged.
 ## Consequences
 
 - Claude no longer waits for one `pwsh` start per tool call. The expected saving is
-  roughly one hook (about 2.3 s) per call; this figure is an estimate until measured
-  on the host.
+  roughly one hook (about 2.3 s) per call. Measured on the host: about 2.0 s per call
+  (see "Host measurement" below).
 - More operation logs may remain at `requires-reconciliation` after abrupt exits.
   Evidence readers must keep treating that state as unverified, never as success.
 - A rejection is reported after Claude has already continued, not before. Post-tool
@@ -69,3 +69,57 @@ Codex hooks are unchanged.
 
 Contract tests prove the configuration shape only. Whether the hook actually runs in
 the background, and how much time it saves, must be confirmed on the live host.
+
+## Host measurement (2026-11-16)
+
+Read-only measurement on the live host after PR #130. No code or settings changed.
+Result: the post hook now runs in the background, and Claude no longer waits for it.
+The saving is about 2.0 s per hooked tool call.
+
+### Main evidence: when the result reaches Claude
+
+Method: compare when the tool result reached Claude (session transcript `.jsonl`,
+`tool_result` timestamp) with when the post hook finished (operation log `record-3`
+`occurred_at`).
+
+| | Before (synchronous, 05:51 UTC) | After (`asyncRewake`, 08:51 UTC) |
+|---|---|---|
+| Sample | 4 calls (Write, Edit, update_plan, Bash) | 10 sequential `git status --short` |
+| Result reached Claude vs. `record-3` | 0.08–0.24 s **after** | 1.89–2.48 s **before** (median 2.03 s) |
+
+- Before: Claude received the result only after the post hook finished.
+- After: Claude received it about 2 s earlier, while the post hook was still running.
+- Remaining cost: from tool call to result is still about 4.0 s (median of 9;
+  `git status` itself is fast). That time is now almost all the synchronous
+  `PreToolUse` hooks, mostly `pwsh` startup (about 2.5 s from the tool call to the
+  hook's first record).
+
+### Ledger-only metrics (cannot show the saving)
+
+A second run of 10 `git status --short` calls (09:00–09:01 UTC), measured from the
+operation logs only (all times converted to UTC first):
+
+| Metric | After (10 calls) |
+|---|---|
+| Gap between call starts, mean / median | 7.91 s / 7.90 s |
+| `record-3` − `record-2`, mean / median | 3.72 s / 3.73 s |
+| `runner_state.status` not `open` | 0 / 10 |
+
+- `record-3` − `record-2` is not expected to shrink: the post hook still runs to the
+  end; only Claude stops waiting for it.
+- The gap between call starts includes model think time, which varies by more than
+  2 s from call to call. It is a rough metric only.
+- No valid "before" baseline was found for these metrics: no older session had 5 or
+  more back-to-back Bash calls before 2026-11-16T08:49:42Z. The closest run (4 Bash
+  calls on 2026-11-13) ran different, slower commands, so it was not compared.
+
+### Limits
+
+- Small sample. Only 4 clean pairs before the change; calls sent in parallel in one
+  message were left out because they could not be matched reliably.
+- Transcript timestamps mark when a message was written, not exact execution time
+  (about ±0.1 s).
+- The first call after the change took 16.4 s from tool call to result. Cause unknown
+  (possibly a cold start); it is not counted above.
+- No abrupt session exit was tested, so the `requires-reconciliation` path for a
+  result that never lands is still unverified on the host.
