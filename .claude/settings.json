@@ -43,7 +43,8 @@
               "-HostName",
               "claude"
             ],
-            "timeout": 30
+            "timeout": 30,
+            "asyncRewake": true
           }
         ]
       }
@@ -62,7 +63,8 @@
               "-HostName",
               "claude"
             ],
-            "timeout": 30
+            "timeout": 30,
+            "asyncRewake": true
           }
         ]
       }
