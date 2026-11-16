@@ -121,5 +121,23 @@ operation logs only (all times converted to UTC first):
   (about ±0.1 s).
 - The first call after the change took 16.4 s from tool call to result. Cause unknown
   (possibly a cold start); it is not counted above.
-- No abrupt session exit was tested, so the `requires-reconciliation` path for a
-  result that never lands is still unverified on the host.
+- A session ending while the background post hook is still running (the 2–4 s after
+  the tool result) was not tested; that window is too short to hit by hand. See the
+  interruption tests below for the cases that were tested.
+
+### Interruption tests (2026-11-16)
+
+Checks whether a result that never lands leaves the operation log truthful. Each test
+ran a slow read-only `grep -r` over `C:\Windows` from the Bash tool, then stopped it
+before it finished.
+
+| Test | How it was stopped | Log (UTC start) | `runner_state.status` | `record-3` |
+|---|---|---|---|---|
+| A | Stop button in the desktop app while the tool ran | `claude-call-d860db75…` (11:05:54) | `requires-reconciliation` | absent (`last_sequence` 2) |
+| B | Desktop app closed while the tool ran, then reopened | `claude-call-77c73cd7…` (11:08:08) | `requires-reconciliation` | absent (`last_sequence` 2) |
+
+- Both logs kept `pending_effect_id` set and did not claim success, as the "Why this
+  is safe enough" section expects.
+- After reopening, the session kept the same `host_run_id`.
+- Not shown: whether the interrupted `grep` processes were also killed (they only
+  read files).
