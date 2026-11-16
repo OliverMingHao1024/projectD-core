@@ -43,7 +43,9 @@ Phase 3 的 durable operation log、checkpoint、host trial 與 upgrade gate 繼
 
 ## Host hook 邊界
 
-- `scripts/governance-host-operation-hook.ps1` 是 Codex／Claude 共用同步 handler。
+- `scripts/governance-host-operation-hook.ps1` 是 Codex／Claude 共用 handler。PreToolUse
+  一律同步；Claude 的 PostToolUse／Failure 依 ADR 0019 以 `asyncRewake` 背景執行，
+  未落地的 result 保持 `requires-reconciliation`。
 - PreToolUse 使用 write-through temporary file 與 atomic replace 先寫 intent；PostToolUse／Failure 只追加 result。
 - `.codex/hooks.json` 與 `.claude/settings.json` 註冊各 host 可見的 tool paths。
 - Hook 成功不輸出 allow decision，保留 host 原有 permission flow。Codex deny 以正常 exit 0 回傳 structured `PreToolUse permissionDecision=deny`；Claude deny 維持 stderr 加 exit 2。

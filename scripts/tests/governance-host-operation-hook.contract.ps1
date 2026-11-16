@@ -808,8 +808,19 @@ try {
             "Claude $event must cover every hook-visible tool path except the documented pure reads."
         )
         Assert-True (-not [bool]$entries[0].hooks[0].async) (
-            "Claude $event durability hook must be synchronous."
+            "Claude $event evidence hook must not use plain async (it would hide rejections)."
         )
+        if ($event -ceq 'PreToolUse') {
+            Assert-True (-not [bool]$entries[0].hooks[0].asyncRewake) (
+                'Claude PreToolUse intent/policy hook must be synchronous.'
+            )
+        } else {
+            # ADR 0019: post-effect result hooks run in the background but
+            # still wake Claude on a rejection (exit 2).
+            Assert-True ([bool]$entries[0].hooks[0].asyncRewake) (
+                "Claude $event result hook must run with asyncRewake (ADR 0019)."
+            )
+        }
         Assert-True (
             @($entries[0].hooks[0].args) -contains 'claude'
         ) "Claude $event must invoke the shared handler as Claude."
@@ -818,7 +829,7 @@ try {
     '[PASS] host hooks: pre-effect intent and post-effect result are durable'
     '[PASS] privacy: raw tool arguments, output, and errors are not persisted'
     '[PASS] recovery: duplicate delivery is idempotent and mismatch fails closed'
-    '[PASS] coverage: Codex and Claude repository hook configs are synchronous'
+    '[PASS] coverage: Codex hooks and Claude PreToolUse are synchronous; Claude post hooks use asyncRewake'
 } finally {
     $tempBase = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd(
         [IO.Path]::DirectorySeparatorChar,
