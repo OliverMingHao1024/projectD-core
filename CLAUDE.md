@@ -14,6 +14,14 @@
 工具呼叫被 `projectD runtime policy denied` 擋下時，先讀
 `vault/governance/task-authorization.md`，照它給使用者完整、可直接執行的授權指令；不要猜。
 
+## 改到治理清單列管的檔案時
+
+改了 `evals/governance-assets.json` 有記 `integrity` 的檔案（例如 `scripts/lib/*.psm1`、
+`scripts/governance-*`），**開 PR 前**必須先通知使用者：列出哪些檔案的 sha256 要更新，
+並給出在使用者自己終端機計算新值的完整指令。清單更新、
+`scripts/tests/governance-asset-inventory.contract.ps1` 通過後，才開 PR。
+（2026-11-16 PR #132 因漏改而 CI 失敗。）
+
 ## 外部工具參考（core/skills/）
 
 - `core/skills/codegraph/SKILL.md` — 若專案根目錄有 `.codegraph/`，理解/定位程式碼優先用它
