@@ -358,6 +358,80 @@ foreach ($hostUiTool in @('mcp__ccd_turn__update_plan', 'mcp__ccd_turn__wrap_up'
     ) "The host task-list UI tool $hostUiTool must normalize as local-read host-ui."
 }
 
+foreach ($hostUiTool in @(
+    'mcp__ccd_pr__bind_pr',
+    'mcp__ccd_session__mark_chapter',
+    'mcp__ccd_session__dismiss_task'
+)) {
+    $hostUiRequest = Get-RuntimeRequestFromJson -ToolName $hostUiTool `
+        -ToolInputJson '{"title":"x"}'
+    Assert-True (
+        $hostUiRequest.capability -ceq 'local-read' -and
+        $hostUiRequest.target_class -ceq 'host-ui' -and
+        $hostUiRequest.decision_outcome -ceq 'observe-only'
+    ) "The desktop-app UI tool $hostUiTool must normalize as local-read host-ui."
+}
+
+$readTerminalRequest = Get-RuntimeRequestFromJson `
+    -ToolName 'mcp__terminal__read_terminal' -ToolInputJson '{"lines":60}'
+Assert-True (
+    $readTerminalRequest.capability -ceq 'local-read' -and
+    $readTerminalRequest.target_class -ceq 'host-terminal' -and
+    $readTerminalRequest.decision_outcome -ceq 'observe-only'
+) 'Reading the user terminal panel must normalize as local-read, not command-execute.'
+
+$runInTerminalRequest = Get-RuntimeRequestFromJson `
+    -ToolName 'mcp__terminal__run_in_terminal' -ToolInputJson '{"command":"rm -rf ."}'
+Assert-True (
+    $runInTerminalRequest.capability -ceq 'command-execute'
+) 'Running a command in the user terminal must stay command-execute.'
+
+$localSessionInputs = @(
+    '{"initiation":"user_asked","title":"x","prompt":"y","background":"z","use_worktree":false}',
+    '{"initiation":"own_initiative","title":"x","prompt":"y","background":"z","use_worktree":false,"target":"local"}',
+    '{"initiation":"offer","title":"x"}'
+)
+foreach ($localSessionInput in $localSessionInputs) {
+    $localSessionRequest = Get-RuntimeRequestFromJson `
+        -ToolName 'mcp__ccd_session__start_session' -ToolInputJson $localSessionInput
+    Assert-True (
+        $localSessionRequest.capability -ceq 'local-read' -and
+        $localSessionRequest.target_class -ceq 'agent-delegation' -and
+        $localSessionRequest.decision_outcome -ceq 'observe-only'
+    ) "A local same-folder session start must normalize as local-read delegation: $localSessionInput"
+}
+
+$offsiteSessionInputs = @(
+    '{"initiation":"user_asked","title":"x","prompt":"y","background":"z"}',
+    '{"initiation":"user_asked","title":"x","prompt":"y","background":"z","use_worktree":true}',
+    '{"initiation":"user_asked","title":"x","prompt":"y","use_worktree":false,"target":"cloud"}',
+    '{"initiation":"user_asked","title":"x","prompt":"y","use_worktree":false,"target":"ssh","host":"box"}',
+    '{"initiation":"user_asked","title":"x","prompt":"y","use_worktree":false,"cwd":"C:\\other"}',
+    '{"initiation":"user_asked","title":"x","prompt":"y","use_worktree":false,"preset":"p"}',
+    '{"initiation":"user_asked","title":"x","prompt":"y","use_worktree":false,"repository":"o/r"}',
+    '{"initiation":"user_asked","title":"x","prompt":"y","use_worktree":false,"environment":"e"}',
+    '{"initiation":"user_asked","title":"x","prompt":"y","use_worktree":false,"branch_name":"b"}',
+    '{"initiation":"user_asked","title":"x","prompt":"y","use_worktree":false,"source_branch":"b"}',
+    '{"initiation":"user_asked","title":"x","prompt":"y","use_worktree":"false"}',
+    '{"proposal_id":"task_1"}',
+    '{"initiation":"offer","title":"x","prompt":"y"}',
+    '{"initiation":"offer","title":"x","target":"cloud"}'
+)
+foreach ($offsiteSessionInput in $offsiteSessionInputs) {
+    $offsiteSessionRequest = Get-RuntimeRequestFromJson `
+        -ToolName 'mcp__ccd_session__start_session' -ToolInputJson $offsiteSessionInput
+    Assert-True (
+        $offsiteSessionRequest.capability -ceq 'unclassified-effect'
+    ) "A session start that may leave this folder or create a worktree must stay unclassified: $offsiteSessionInput"
+}
+
+$handOffRequest = Get-RuntimeRequestFromJson `
+    -ToolName 'mcp__ccd_session__hand_off_to_session' `
+    -ToolInputJson '{"title":"x","remaining_plan":"y"}'
+Assert-True (
+    $handOffRequest.capability -ceq 'unclassified-effect'
+) 'A session hand-off cannot prove it stays in this folder and must stay unclassified.'
+
 $similarMcpRequest = Get-RuntimeRequestFromJson `
     -ToolName 'mcp__other__update_plan' -ToolInputJson '{}'
 Assert-True (
