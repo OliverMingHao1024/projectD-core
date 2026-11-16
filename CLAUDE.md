@@ -9,6 +9,11 @@
 4. 需要技術棧規範時，才讀取對應的 `packs/*/SKILL.md`
    （完整清單與適用情境見 `docs/operations/skill-catalog.md`；各 pack 在 `packs/<name>/SKILL.md`）
 
+## 被授權擋下時
+
+工具呼叫被 `projectD runtime policy denied` 擋下時，先讀
+`vault/governance/task-authorization.md`，照它給使用者完整、可直接執行的授權指令；不要猜。
+
 ## 外部工具參考（core/skills/）
 
 - `core/skills/codegraph/SKILL.md` — 若專案根目錄有 `.codegraph/`，理解/定位程式碼優先用它

@@ -16,6 +16,7 @@
 
 - L0：`../../core/constitution/rules.md`
 - L1–L6、外部整合、MCP 與 repository hosting：`operating-model.md`
+- 工具被 runtime policy 拒絕／要請使用者發任務授權：`task-authorization.md`
 - 需求驅動開發（需求書／維護／debug）：`requirement-driven-routing.md`
 - 角色：`../../core/agents/{pm,sa,ux,sd,pg,qa}.md`
 - 通用 Skills（含 security-review、select-frontend-capability）：`../../core/skills/*/SKILL.md`
